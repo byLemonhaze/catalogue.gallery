@@ -1,0 +1,55 @@
+import { urlFor } from '../sanity/image';
+
+interface ArtistProps {
+    id: string;
+    name: string;
+    thumbnail: any; // Can be string (local) or Sanity image object
+    subtitle: string;
+    websiteUrl?: string; // Optional custom URL
+    badge?: string; // Optional custom badge text
+    type?: string; // artist or collection
+    isSanity?: boolean;
+}
+
+export const ArtistCard: React.FC<ArtistProps> = ({ name, thumbnail, subtitle, isSanity }) => {
+    // Resolve image URL
+    const imageUrl = isSanity && thumbnail ? urlFor(thumbnail).width(800).url() : thumbnail;
+
+    return (
+        <div
+            className="group relative flex flex-col h-96 bg-[#1a1a1a]/50 backdrop-blur-xl border border-white/5 rounded-[32px] overflow-hidden hover:scale-[1.02] transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10 cursor-default"
+        >
+            {/* Image Container - Visual only, parent handles click */}
+            <div className="flex-1 relative overflow-hidden cursor-pointer block">
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10 opacity-60 pointer-events-none" />
+                {imageUrl ? (
+                    <img
+                        src={imageUrl}
+                        alt={name}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:rotate-1"
+                    />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900/20 to-black">
+                        <span className="text-9xl font-bold text-white/20 uppercase">{name.charAt(0)}</span>
+                    </div>
+                )}
+            </div>
+
+            {/* Content Container - Visual only, strictly non-interactive to pass clicks to the Link behind */}
+            <div className="absolute bottom-0 inset-x-0 p-6 z-20 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500 pointer-events-none">
+                <h3 className="text-2xl font-bold text-white mb-2 tracking-tight group-hover:text-purple-200 transition-colors">
+                    {name}
+                </h3>
+                <p className="text-sm text-white/60 line-clamp-2 leading-relaxed">
+                    {subtitle}
+                </p>
+
+                {/* Action Indicator */}
+                <div className="mt-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/40 group-hover:text-white transition-colors opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 duration-500 delay-100">
+                    <span>Explore Universe</span>
+                    <span className="text-lg">→</span>
+                </div>
+            </div>
+        </div>
+    );
+};
