@@ -18,25 +18,31 @@ export default defineConfig({
                     .title('Content')
                     .items([
                         S.listItem()
+                            .id('pending-review')
                             .title('In Review (New)')
                             .child(
                                 S.documentList()
+                                    .id('pending-review-list')
                                     .title('In Review')
-                                    .filter('_type in ["artist", "gallery"] && status == "pending"')
+                                    .filter('status == "pending"')
                             ),
                         S.listItem()
+                            .id('declined-feedback-sent')
                             .title('Declined (Feedback Sent)')
                             .child(
                                 S.documentList()
+                                    .id('declined-feedback-list')
                                     .title('Declined')
-                                    .filter('_type in ["artist", "gallery"] && status == "declined"')
+                                    .filter('status == "declined"')
                             ),
                         S.listItem()
+                            .id('published-review')
                             .title('Published')
                             .child(
                                 S.documentList()
+                                    .id('published-review-list')
                                     .title('Published')
-                                    .filter('_type in ["artist", "gallery", "collector"] && status == "published"')
+                                    .filter('status == "published"')
                             ),
                         S.divider(),
                         ...S.documentTypeListItems()

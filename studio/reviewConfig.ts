@@ -26,7 +26,7 @@ const ApproveAndNotifyAction: DocumentActionComponent = (props) => {
     if (!REVIEWABLE_TYPES.has(props.type)) return null
 
     const status = getDocStatus(props)
-    if (status === 'published') return null
+    if (status === 'declined' || status === 'published') return null
 
     const publishedId = props.id.replace(/^drafts\./, '')
     const { patch, publish } = useDocumentOperation(publishedId, props.type)
@@ -58,7 +58,7 @@ const DeclineAndNotifyAction: DocumentActionComponent = (props) => {
     if (!REVIEWABLE_TYPES.has(props.type)) return null
 
     const status = getDocStatus(props)
-    if (status === 'declined') return null
+    if (status !== 'declined') return null
 
     const reasonCode = getStringField(props, 'rejectionReasonCode')
     const customReason = getStringField(props, 'rejectionReason')
