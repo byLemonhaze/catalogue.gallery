@@ -6,7 +6,7 @@ export const articles = [
         date: "February 16, 2026",
         type: "Article",
         excerpt: "By weaponizing the \"right to be deleted\" and reclaiming the aesthetics of digital waste, Robness didn't just break the rules of crypto art—he rewrote the contract of ownership itself.",
-        thumbnail: "/robness.jpg",
+        thumbnail: "/robness.png",
         content: `
 # The Aesthetics of Deleted Worlds: Robness and the Radical Ontology of Trash Art
 

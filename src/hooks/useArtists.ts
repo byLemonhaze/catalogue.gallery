@@ -60,7 +60,7 @@ export function useArtists() {
                         id: 'robness',
                         name: 'Robness',
                         subtitle: 'Trash Art',
-                        thumbnail: '/robness.jpg',
+                        thumbnail: '/robness.png',
                         type: 'artist',
                         template: '1', // Default template
                         desktopExitPosition: 'top-center',
