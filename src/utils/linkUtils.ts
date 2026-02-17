@@ -26,7 +26,7 @@ export function processArticleContent(content: string, entities: any[]): string 
         // Find occurrences that are NOT already part of a markdown link
         // This is a basic heuristic: find name followed by word boundary, 
         // and ensure it's not followed by ']' part of a link.
-        const regex = new RegExp(`\\b${escapedName}\\b(?![^\\[]*\\])`, 'g');
+        const regex = new RegExp(`\\b${escapedName}\\b(?![^\\[]*\\])`, 'gi');
 
         processedContent = processedContent.replace(regex, (match) => {
             return `[${match}](${linkPath})`;
