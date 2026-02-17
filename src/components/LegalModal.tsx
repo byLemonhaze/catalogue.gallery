@@ -56,10 +56,10 @@ export function LegalModal({ isOpen, onClose }: LegalModalProps) {
                     <section className="space-y-4">
                         <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 pb-2 border-b border-white/5">02. Privacy & Cookies</h3>
                         <div className="space-y-4 text-[11px] text-white/50 leading-relaxed font-mono">
-                            <p>We collect artist/gallery names and URLs via the application form. Optionally, applicants may provide an email address for submission updates and platform announcements. If approved, your artist/gallery name and URL are made public. Email addresses are never publicly displayed.</p>
+                            <p>We collect artist/gallery names, URLs, and a required contact email via the application form. If approved, your artist/gallery name and URL are made public. Email addresses are never publicly displayed.</p>
                             <div className="space-y-2">
                                 <span className="text-white uppercase font-bold tracking-widest text-[9px]">Email Usage</span>
-                                <p>If provided, we use your email solely to communicate about your submission status and send occasional platform updates. We will never sell, trade, or share your email with third parties.</p>
+                                <p>We use your email solely to communicate about your submission status and send occasional platform updates. We will never sell, trade, or share your email with third parties.</p>
                             </div>
                             <div className="space-y-2">
                                 <span className="text-white uppercase font-bold tracking-widest text-[9px]">Zero-Tracking Policy</span>

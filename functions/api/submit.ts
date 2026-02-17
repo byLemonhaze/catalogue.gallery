@@ -50,6 +50,10 @@ function createSlug(name: string) {
     return base || `entry-${Date.now()}`;
 }
 
+function isValidEmail(email: string) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 function getErrorMessage(err: unknown) {
     return err instanceof Error ? err.message : 'Internal Server Error';
 }
@@ -66,12 +70,15 @@ export const onRequestPost = async (context: WorkerContext) => {
         const name = String(formData.get('name') || '').trim();
         const subtitle = String(formData.get('subtitle') || '').trim();
         const websiteUrlInput = String(formData.get('websiteUrl') || '').trim();
-        const email = String(formData.get('email') || '').trim() || null;
+        const email = String(formData.get('email') || '').trim().toLowerCase();
         const typeRaw = String(formData.get('type') || 'artist').trim();
         const thumbnail = formData.get('thumbnail');
 
-        if (!name || !subtitle || !websiteUrlInput) {
-            return jsonResponse({ error: 'Missing required fields: name, subtitle, and websiteUrl are required.' }, 400);
+        if (!name || !subtitle || !websiteUrlInput || !email) {
+            return jsonResponse({ error: 'Missing required fields: name, subtitle, websiteUrl, and email are required.' }, 400);
+        }
+        if (!isValidEmail(email)) {
+            return jsonResponse({ error: 'Please provide a valid email address.' }, 400);
         }
         if (!allowedTypes.has(typeRaw as SubmissionType)) {
             return jsonResponse({ error: 'Invalid type. Only "artist" and "gallery" submissions are accepted.' }, 400);
@@ -141,7 +148,7 @@ export const onRequestPost = async (context: WorkerContext) => {
             },
             subtitle,
             websiteUrl: normalizedUrl,
-            email: email || undefined,
+            email,
             template: 'external',
             status: 'pending',
             thumbnail: imageAssetId

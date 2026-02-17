@@ -44,7 +44,7 @@ Required app/server env vars:
 1. User submits via `/submit`.
 2. `POST /api/submit` creates a Sanity `artist` or `gallery` document with:
    - `status: "pending"`
-   - optional `email`
+   - required `email`
 3. You review in Sanity Studio:
    - pending list: `In Review (New)`
    - for fast workflow use document actions:

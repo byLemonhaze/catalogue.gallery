@@ -191,7 +191,7 @@ export const onRequestPost = async (context: WorkerContext) => {
         const rejectionReason = payload.rejectionReason?.trim();
 
         if (!email) {
-            return jsonResponse({ message: 'No email provided in payload' });
+            return jsonResponse({ error: 'Missing email in payload. Email is required to send notifications.' }, 400);
         }
 
         if (status !== 'published' && status !== 'declined') {

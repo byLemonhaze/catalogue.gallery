@@ -33,6 +33,8 @@ export function SubmitArtist() {
         e.preventDefault();
         if (formData.type === 'collector') return; // Prevent submission for now
 
+        const normalizedEmail = formData.email.trim();
+
         setIsSubmitting(true);
         setStatus(null);
 
@@ -42,9 +44,7 @@ export function SubmitArtist() {
             submitData.append('name', formData.name);
             submitData.append('subtitle', formData.subtitle);
             submitData.append('websiteUrl', formData.websiteUrl);
-            if (formData.email) {
-                submitData.append('email', formData.email);
-            }
+            submitData.append('email', normalizedEmail);
             submitData.append('type', formData.type);
             if (thumbnailFile) {
                 submitData.append('thumbnail', thumbnailFile);
@@ -321,14 +321,15 @@ export function SubmitArtist() {
                                         </button>
                                     </div>
 
-                                    {/* Email (Optional) */}
+                                    {/* Email */}
                                     <div className="space-y-1">
                                         <input
                                             type="email"
+                                            required
                                             value={formData.email}
                                             onChange={e => setFormData({ ...formData, email: e.target.value })}
                                             className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm font-mono text-white focus:border-white/30 outline-none transition-all placeholder-white/20 shadow-inner"
-                                            placeholder="Email Address (Optional)"
+                                            placeholder="Email Address"
                                         />
                                     </div>
 

@@ -52,10 +52,10 @@ export default {
         },
         {
             name: 'email',
-            title: 'Email (Optional)',
+            title: 'Email',
             type: 'string',
-            description: 'Contact email for submission updates (not publicly displayed)',
-            validation: (Rule: any) => Rule.email(),
+            description: 'Required contact email for submission updates (not publicly displayed)',
+            validation: (Rule: any) => Rule.required().email(),
         },
         {
             name: 'status',
