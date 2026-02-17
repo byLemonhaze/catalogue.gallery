@@ -1,6 +1,6 @@
 export const articles = [
     {
-        id: "robness-trash-art",
+        id: "robness-the-ontology-of-trash-art",
         title: "The Aesthetics of Deleted Worlds: Robness and the Radical Ontology of Trash Art",
         author: "CATALOGUE",
         date: "February 16, 2026",
