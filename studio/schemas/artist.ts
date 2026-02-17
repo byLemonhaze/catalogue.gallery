@@ -1,3 +1,5 @@
+import { REJECTION_REASON_OPTIONS } from '../reviewConfig'
+
 export default {
     name: 'artist',
     title: 'Artist',
@@ -67,11 +69,40 @@ export default {
             initialValue: 'pending',
         },
         {
-            name: 'rejectionReason',
-            title: 'Rejection Reason',
+            name: 'approvalMessage',
+            title: 'Approval Note (Optional)',
             type: 'text',
-            description: 'Short reason why the application was declined (sent to the applicant)',
+            description: 'Optional personal note sent in the approval email.',
+            hidden: ({ document }: any) => document?.status !== 'published',
+        },
+        {
+            name: 'rejectionReasonCode',
+            title: 'Rejection Reason',
+            type: 'string',
+            description: 'Choose the main reason shown in the rejection email.',
+            options: {
+                list: REJECTION_REASON_OPTIONS,
+                layout: 'dropdown',
+            },
             hidden: ({ document }: any) => document?.status !== 'declined',
+            validation: (Rule: any) => Rule.custom((value: string | undefined, context: any) => {
+                if (context.document?.status !== 'declined') return true
+                return value ? true : 'Select a rejection reason before sending decline email.'
+            }),
+        },
+        {
+            name: 'rejectionReason',
+            title: 'Rejection Details (Optional)',
+            type: 'text',
+            description: 'Optional extra note for the applicant. Required if reason is "Other".',
+            hidden: ({ document }: any) => document?.status !== 'declined',
+            validation: (Rule: any) => Rule.custom((value: string | undefined, context: any) => {
+                if (context.document?.status !== 'declined') return true
+                if (context.document?.rejectionReasonCode === 'other') {
+                    return value?.trim() ? true : 'Add details when reason is "Other".'
+                }
+                return true
+            }),
         },
         {
             name: 'thumbnail',

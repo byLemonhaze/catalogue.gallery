@@ -34,6 +34,7 @@ Required app/server env vars:
 - `RESEND_API_KEY`
 - `RESEND_FROM_EMAIL` (example: `CATALOGUE <apply@catalogue.gallery>`)
 - `RESEND_REPLY_TO` (set to your ProtonMail address)
+- `PUBLIC_BASE_URL` (example: `https://catalogue.gallery`)
 - `WEBHOOK_SHARED_SECRET` (for webhook authentication)
 - `SANITY_PROJECT_ID` (optional server override)
 - `SANITY_DATASET` (optional server override)
@@ -46,8 +47,11 @@ Required app/server env vars:
    - optional `email`
 3. You review in Sanity Studio:
    - pending list: `In Review (New)`
-   - set `status` to `published` or `declined`
-   - optionally set `rejectionReason`
+   - for fast workflow use document actions:
+     - `Approve & Notify`
+     - `Decline & Notify`
+   - for declines choose `rejectionReasonCode` and optionally add `rejectionReason` details
+   - for approvals optionally add `approvalMessage`
 4. Sanity webhook calls `POST /api/webhook`.
 5. `/api/webhook` sends approval/decline email through Resend.
 
@@ -68,9 +72,14 @@ Use Resend to send mail and ProtonMail to receive replies:
    - Projection body:
      ```json
      {
+       "_type": _type,
        "status": status,
        "email": email,
        "name": name,
+       "slug": slug.current,
+       "websiteUrl": websiteUrl,
+       "approvalMessage": approvalMessage,
+       "rejectionReasonCode": rejectionReasonCode,
        "rejectionReason": rejectionReason
      }
      ```
