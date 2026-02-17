@@ -1,18 +1,41 @@
 import { createClient } from '@sanity/client';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+function parseEnvFile(filePath: string): Record<string, string> {
+    if (!fs.existsSync(filePath)) return {};
+
+    const parsed: Record<string, string> = {};
+    const content = fs.readFileSync(filePath, 'utf-8');
+    for (const rawLine of content.split('\n')) {
+        const line = rawLine.trim();
+        if (!line || line.startsWith('#')) continue;
+        const [key, ...rest] = line.split('=');
+        if (!key || rest.length === 0) continue;
+        parsed[key.trim()] = rest.join('=').trim().replace(/^"(.*)"$/, '$1');
+    }
+    return parsed;
+}
+
+const rootDir = path.resolve(__dirname, '..');
+const localEnv = {
+    ...parseEnvFile(path.join(rootDir, '.env')),
+    ...parseEnvFile(path.join(rootDir, '.env.local')),
+};
+
+const getEnv = (key: string) => process.env[key] || localEnv[key];
+
 // Configuration
-const projectId = process.env.VITE_SANITY_PROJECT_ID || 'ebj9kqfo';
-const dataset = process.env.VITE_SANITY_DATASET || 'production';
-const token = process.env.SANITY_WRITE_TOKEN;
+const projectId = getEnv('SANITY_PROJECT_ID') || getEnv('VITE_SANITY_PROJECT_ID') || 'ebj9kqfo';
+const dataset = getEnv('SANITY_DATASET') || getEnv('VITE_SANITY_DATASET') || 'production';
+const token = getEnv('SANITY_WRITE_TOKEN') || getEnv('VITE_SANITY_TOKEN');
 
 if (!token) {
-    console.error('Error: SANITY_WRITE_TOKEN environment variable is required.');
+    console.error('Error: SANITY_WRITE_TOKEN (or VITE_SANITY_TOKEN) environment variable is required.');
     process.exit(1);
 }
 

@@ -1,73 +1,91 @@
-# React + TypeScript + Vite
+# CATALOGUE.gallery
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Digital artist directory where each profile opens the artist's own website in an iframe "universe" and gives visitors a fast path back to browse more.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Frontend: React + TypeScript + Vite
+- Content + review backend: Sanity Studio (`/studio`)
+- Public API endpoints: Cloudflare Pages Functions (`/functions/api`)
+- Email delivery: Resend
+- Inbox/reply workflow: ProtonMail (via `reply_to`)
 
-## React Compiler
+## Local Development
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Install dependencies:
+   - `npm install`
+   - `cd studio && npm install`
+2. Create local env file:
+   - `cp .env.example .env.local`
+3. Run app:
+   - `npm run dev`
+4. Run Sanity Studio:
+   - `cd studio && npm run dev`
 
-## Expanding the ESLint configuration
+## Environment Variables
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Use `.env.local` for local secrets. Never commit `.env` or `.env.local`.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Required app/server env vars:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- `VITE_SANITY_PROJECT_ID`
+- `VITE_SANITY_DATASET`
+- `SANITY_WRITE_TOKEN` (server-side write token for submit endpoint)
+- `RESEND_API_KEY`
+- `RESEND_FROM_EMAIL` (example: `CATALOGUE <apply@catalogue.gallery>`)
+- `RESEND_REPLY_TO` (set to your ProtonMail address)
+- `WEBHOOK_SHARED_SECRET` (for webhook authentication)
+- `SANITY_PROJECT_ID` (optional server override)
+- `SANITY_DATASET` (optional server override)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Submission + Review Flow
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+1. User submits via `/submit`.
+2. `POST /api/submit` creates a Sanity `artist` or `gallery` document with:
+   - `status: "pending"`
+   - optional `email`
+3. You review in Sanity Studio:
+   - pending list: `In Review (New)`
+   - set `status` to `published` or `declined`
+   - optionally set `rejectionReason`
+4. Sanity webhook calls `POST /api/webhook`.
+5. `/api/webhook` sends approval/decline email through Resend.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## ProtonMail + Resend Setup (Recommended)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Use Resend to send mail and ProtonMail to receive replies:
+
+1. In Resend:
+   - verify `catalogue.gallery` domain with DNS records
+   - set sender as `CATALOGUE <apply@catalogue.gallery>`
+2. In Cloudflare Pages env vars:
+   - `RESEND_API_KEY`
+   - `RESEND_FROM_EMAIL=CATALOGUE <apply@catalogue.gallery>`
+   - `RESEND_REPLY_TO=yourname@proton.me`
+3. In Sanity webhook settings:
+   - URL: `https://catalogue.gallery/api/webhook`
+   - Trigger: document create/update for `artist` and `gallery`
+   - Projection body:
+     ```json
+     {
+       "status": status,
+       "email": email,
+       "name": name,
+       "rejectionReason": rejectionReason
+     }
+     ```
+   - Header: `x-webhook-secret: <WEBHOOK_SHARED_SECRET>`
+
+This keeps deliverability high (Resend) while all replies route back to ProtonMail.
+
+## Security Notes
+
+- A previous committed `.env` exposed a token. Rotate that token in Sanity immediately.
+- After rotating, update local and production env vars.
+- If needed, scrub old secrets from git history before making the repo public.
+
+## Useful Scripts
+
+- Build app: `npm run build`
+- Migrate old artists: `npx -y tsx scripts/migrate-artists.ts`
+- Purge artists: `npx -y tsx scripts/purge-artists.ts`

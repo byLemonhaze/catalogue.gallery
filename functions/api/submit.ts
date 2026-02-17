@@ -1,117 +1,179 @@
-export const onRequestPost = async (context: any) => {
+type EnvVars = Record<string, string | undefined>;
+type WorkerContext = { request: Request; env: EnvVars };
+type SubmissionType = 'artist' | 'gallery';
+
+type SanityErrorResponse = {
+    error?: {
+        message?: string;
+    };
+};
+
+type SanityAssetResponse = {
+    _id?: string;
+    document?: {
+        _id?: string;
+    };
+};
+
+type SanityDuplicateQueryResponse = {
+    result?: {
+        _id?: string;
+    };
+};
+
+const jsonHeaders = { 'Content-Type': 'application/json' };
+const allowedTypes = new Set<SubmissionType>(['artist', 'gallery']);
+
+function jsonResponse(body: Record<string, unknown>, status = 200) {
+    return new Response(JSON.stringify(body), {
+        status,
+        headers: jsonHeaders,
+    });
+}
+
+function normalizeWebsiteUrl(rawUrl: string) {
+    const parsed = new URL(rawUrl.trim());
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+        throw new Error('Only http/https website URLs are supported');
+    }
+    parsed.hash = '';
+    return parsed.toString().replace(/\/+$/, '');
+}
+
+function createSlug(name: string) {
+    const base = name
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+    return base || `entry-${Date.now()}`;
+}
+
+function getErrorMessage(err: unknown) {
+    return err instanceof Error ? err.message : 'Internal Server Error';
+}
+
+function isFileEntry(value: FormDataEntryValue | null): value is File {
+    return typeof File !== 'undefined' && value instanceof File;
+}
+
+export const onRequestPost = async (context: WorkerContext) => {
     const { request, env } = context;
 
     try {
         const formData = await request.formData();
-        const name = formData.get('name') as string;
-        const subtitle = formData.get('subtitle') as string;
-        const websiteUrl = formData.get('websiteUrl') as string;
-        const email = formData.get('email') as string | null;
-        const type = (formData.get('type') as string) || 'artist';
-        const thumbnail = formData.get('thumbnail'); // This is a File object
+        const name = String(formData.get('name') || '').trim();
+        const subtitle = String(formData.get('subtitle') || '').trim();
+        const websiteUrlInput = String(formData.get('websiteUrl') || '').trim();
+        const email = String(formData.get('email') || '').trim() || null;
+        const typeRaw = String(formData.get('type') || 'artist').trim();
+        const thumbnail = formData.get('thumbnail');
+
+        if (!name || !subtitle || !websiteUrlInput) {
+            return jsonResponse({ error: 'Missing required fields: name, subtitle, and websiteUrl are required.' }, 400);
+        }
+        if (!allowedTypes.has(typeRaw as SubmissionType)) {
+            return jsonResponse({ error: 'Invalid type. Only "artist" and "gallery" submissions are accepted.' }, 400);
+        }
+        const type = typeRaw as SubmissionType;
 
         if (!env.SANITY_WRITE_TOKEN) {
-            return new Response(JSON.stringify({ error: 'Server configuration error: Write token not found.' }), {
-                status: 500,
-                headers: { 'Content-Type': 'application/json' }
-            });
+            return jsonResponse({ error: 'Server configuration error: SANITY_WRITE_TOKEN is missing.' }, 500);
         }
 
-        const projectId = env.VITE_SANITY_PROJECT_ID || 'ebj9kqfo';
-        const dataset = env.VITE_SANITY_DATASET || 'production';
+        const projectId = env.SANITY_PROJECT_ID || env.VITE_SANITY_PROJECT_ID || 'ebj9kqfo';
+        const dataset = env.SANITY_DATASET || env.VITE_SANITY_DATASET || 'production';
         const apiVersion = 'v2024-01-01';
         const baseUrl = `https://${projectId}.api.sanity.io/${apiVersion}`;
 
-        let imageAssetId = null;
+        const normalizedUrl = normalizeWebsiteUrl(websiteUrlInput);
+        const slug = createSlug(name);
 
-        // 1. Upload Image to Sanity if it exists
-        if (thumbnail && (thumbnail as any) instanceof File && (thumbnail as any).size > 0) {
+        let imageAssetId: string | null = null;
+
+        // 1. Upload image to Sanity when provided
+        if (isFileEntry(thumbnail) && thumbnail.size > 0) {
             const uploadResponse = await fetch(`${baseUrl}/assets/images/${dataset}`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${env.SANITY_WRITE_TOKEN}`,
-                    'Content-Type': (thumbnail as any).type
+                    Authorization: `Bearer ${env.SANITY_WRITE_TOKEN}`,
+                    'Content-Type': thumbnail.type || 'application/octet-stream',
                 },
-                body: thumbnail
+                body: thumbnail,
             });
 
             if (!uploadResponse.ok) {
-                const errorData: any = await uploadResponse.json();
+                const errorData = await uploadResponse.json() as SanityErrorResponse;
                 throw new Error(`Image upload failed: ${errorData.error?.message || uploadResponse.statusText}`);
             }
 
-            const asset: any = await uploadResponse.json();
+            const asset = await uploadResponse.json() as SanityAssetResponse;
             imageAssetId = asset.document?._id || asset._id;
         }
 
-        // 2. Check for Duplicate URL
-        const normalizedUrl = websiteUrl.replace(/\/+$/, "");
-        const query = encodeURIComponent(`*[( _type == "artist" || _type == "gallery" ) && (websiteUrl == $url || websiteUrl == $url + "/")][0]`);
-        const checkUrl = `${baseUrl}/data/query/${dataset}?query=${query}&$url="${encodeURIComponent(normalizedUrl)}"`;
+        // 2. Check for duplicate URL across artists + galleries
+        const duplicateQuery = '*[_type in ["artist", "gallery"] && (websiteUrl == $url || websiteUrl == $url + "/")][0]{_id}';
+        const checkUrl = new URL(`${baseUrl}/data/query/${dataset}`);
+        checkUrl.searchParams.set('query', duplicateQuery);
+        checkUrl.searchParams.set('$url', normalizedUrl);
 
-        const checkResponse = await fetch(checkUrl, {
+        const checkResponse = await fetch(checkUrl.toString(), {
             headers: {
-                'Authorization': `Bearer ${env.SANITY_WRITE_TOKEN}`
-            }
+                Authorization: `Bearer ${env.SANITY_WRITE_TOKEN}`,
+            },
         });
 
         if (checkResponse.ok) {
-            const checkData: any = await checkResponse.json();
-            if (checkData.result) {
-                return new Response(JSON.stringify({ error: 'This URL is already registered.' }), {
-                    status: 400,
-                    headers: { 'Content-Type': 'application/json' }
-                });
+            const checkData = await checkResponse.json() as SanityDuplicateQueryResponse;
+            if (checkData.result?._id) {
+                return jsonResponse({ error: 'This URL is already registered.' }, 400);
             }
         }
 
-        // 3. Create the Document in Sanity
+        // 3. Create a pending review document in Sanity
         const doc = {
             _type: type,
             name,
+            slug: {
+                _type: 'slug',
+                current: slug,
+            },
             subtitle,
-            websiteUrl: normalizedUrl, // Save normalized version
-            email: email || undefined, // Only include if provided
+            websiteUrl: normalizedUrl,
+            email: email || undefined,
             template: 'external',
-
             status: 'pending',
-            thumbnail: imageAssetId ? {
-                _type: 'image',
-                asset: {
-                    _type: 'reference',
-                    _ref: imageAssetId
+            thumbnail: imageAssetId
+                ? {
+                    _type: 'image',
+                    asset: {
+                        _type: 'reference',
+                        _ref: imageAssetId,
+                    },
                 }
-            } : undefined
+                : undefined,
         };
 
         const mutateResponse = await fetch(`${baseUrl}/data/mutate/${dataset}?returnIds=true`, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${env.SANITY_WRITE_TOKEN}`,
-                'Content-Type': 'application/json'
+                Authorization: `Bearer ${env.SANITY_WRITE_TOKEN}`,
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                mutations: [
-                    { create: doc }
-                ]
-            })
+                mutations: [{ create: doc }],
+            }),
         });
 
         if (!mutateResponse.ok) {
-            const errorData: any = await mutateResponse.json();
+            const errorData = await mutateResponse.json() as SanityErrorResponse;
             throw new Error(`Document creation failed: ${errorData.error?.message || mutateResponse.statusText}`);
         }
 
-        return new Response(JSON.stringify({ success: true }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' }
-        });
-
-    } catch (err: any) {
+        return jsonResponse({ success: true });
+    } catch (err: unknown) {
         console.error('API Submit Error:', err);
-        return new Response(JSON.stringify({ error: err.message || 'Internal Server Error' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' }
-        });
+        return jsonResponse({ error: getErrorMessage(err) }, 500);
     }
 };

@@ -1,24 +1,44 @@
 import { createClient } from '@sanity/client';
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
-// Manual .env parsing
-const envPath = path.resolve(process.cwd(), '.env');
-const envContent = fs.readFileSync(envPath, 'utf-8');
-const env: Record<string, string> = {};
-envContent.split('\n').forEach(line => {
-    const [key, ...value] = line.split('=');
-    if (key && value) {
-        env[key.trim()] = value.join('=').trim().replace(/^"(.*)"$/, '$1');
+function parseEnvFile(filePath: string): Record<string, string> {
+    if (!fs.existsSync(filePath)) return {};
+
+    const parsed: Record<string, string> = {};
+    const content = fs.readFileSync(filePath, 'utf-8');
+    for (const rawLine of content.split('\n')) {
+        const line = rawLine.trim();
+        if (!line || line.startsWith('#')) continue;
+        const [key, ...rest] = line.split('=');
+        if (!key || rest.length === 0) continue;
+        parsed[key.trim()] = rest.join('=').trim().replace(/^"(.*)"$/, '$1');
     }
-});
+    return parsed;
+}
+
+const rootDir = process.cwd();
+const localEnv = {
+    ...parseEnvFile(path.join(rootDir, '.env')),
+    ...parseEnvFile(path.join(rootDir, '.env.local')),
+};
+const getEnv = (key: string) => process.env[key] || localEnv[key];
+
+const projectId = getEnv('SANITY_PROJECT_ID') || getEnv('VITE_SANITY_PROJECT_ID') || 'ebj9kqfo';
+const dataset = getEnv('SANITY_DATASET') || getEnv('VITE_SANITY_DATASET') || 'production';
+const token = getEnv('SANITY_WRITE_TOKEN') || getEnv('VITE_SANITY_TOKEN');
+
+if (!token) {
+    console.error('Error: SANITY_WRITE_TOKEN (or VITE_SANITY_TOKEN) environment variable is required.');
+    process.exit(1);
+}
 
 const client = createClient({
-    projectId: env.VITE_SANITY_PROJECT_ID || 'ebj9kqfo',
-    dataset: env.VITE_SANITY_DATASET || 'production',
+    projectId,
+    dataset,
     apiVersion: '2024-01-01',
     useCdn: false,
-    token: env.VITE_SANITY_TOKEN,
+    token,
 });
 
 async function purgeArtists() {
