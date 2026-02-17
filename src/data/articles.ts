@@ -1,5 +1,45 @@
 export const articles = [
     {
+        id: "robness-toter",
+        title: "The Aesthetics of Deleted Worlds: Robness and the Radical Ontology of Trash Art",
+        author: "CATALOGUE",
+        date: "February 16, 2026",
+        type: "Article",
+        excerpt: "By weaponizing the \"right to be deleted\" and reclaiming the aesthetics of digital waste, Robness didn't just break the rules of crypto art—he rewrote the contract of ownership itself.",
+        thumbnail: "/robness.jpg",
+        content: `
+# The Aesthetics of Deleted Worlds: Robness and the Radical Ontology of Trash Art
+
+**Abstract:**
+
+History is written by the victors, but in the digital age, art is defined by what is deleted. Robness, the progenitor of the "Trash Art" movement, stands as the central antagonist to the sanitized, hyper-commercialized narrative of the early NFT boom. While his contemporaries sought to replicate the scarcity models of the traditional art world, Robness weaponized the infinite reproducibility of the internet to challenge them. This paper analyzes his practice through the lens of digital readymades, arguing that his "64 Gallon Toter" was not merely a prank, but a sophisticated institutional critique that exposed the fragility of decentralized censorship.
+
+## The Digital Readymade
+
+To understand Robness is to understand the lineage of Duchamp, but with a critical deviation. Duchamp's *Fountain* (1917) asserted that the artist's choice defined the art. Robness’s work asserts that the *platform's rejection* defines the art. 
+
+In early 2020, the crypto-art ecosystem was in a state of fragile gentrification. Platforms like SuperRare were curated walled gardens, attempting to establish digital files as "fine art" by mimicking the exclusivity of physical galleries. Into this environment, Robness introduced *64 Gallon Toter*—a glitchy, appropriated GIF of a Home Depot trash can. It was low-res, copyrighted, and aggressively ordinary.
+
+## The Toter Incident: Constructive Deletion
+
+When SuperRare removed the artwork and suspended Robness, they inadvertently completed the piece. The act of censorship transformed the object from a "picture of a trash can" into a symbol of resistance against the re-centralization of Web3. 
+
+This event birthed #TrashArt, a movement that embraced the artifacts of digital decay: compression artifacts, stolen JPEGs, and copyright infringements. If the platforms wanted "originality," Trash Art gave them the ultimate reality of the internet: everything is a remix, everything is copied, and everything is trash. Robness demonstrated that on a blockchain, "deletion" is impossible—you can delist the interface, but you cannot burn the record.
+
+## V2 and the aesthetics of Glitch
+
+Robness’s aesthetic—often characterized by aggressive color-banding, datamoshing, and the visual language of broken files—is not simply a stylistic choice; it is a political one. It is an aesthetic of "breakage." 
+
+In the same way that Punk broke the musical complexity of Prog Rock to return to three chords and the truth, Robness broke the technical perfectionism of early 3D crypto-art. He validated the "shitpost" as a valid artistic medium. By adopting the persona of *V2*, *Lord Satoshi*, and other avatars, he treated identity itself as a fluid, remixable asset, mirroring the liquidity of the markets he critiqued.
+
+## Conclusion: The Garbage remains
+
+Years later, the "64 Gallon Toter" has returned to the canon, not as a mistake, but as a cornerstone. Institutional acceptance has followed, but the core of Robness’s work remains uncomfortable. He forces us to look at the digital debris we generate and asks why we value the clean simulation over the messy reality.
+
+In a world obsessed with "clean" metadata and "verified" contracts, Robness remains the ghost in the machine, reminding us that in the end, it all goes in the bin. And that is where the real art lives.
+`
+    },
+    {
         id: "beeple-relentless",
         title: "The Relentless: Beeple",
         author: "CATALOGUE",
