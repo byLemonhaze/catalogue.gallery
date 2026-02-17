@@ -28,8 +28,9 @@ const REJECTION_GUIDANCE: Record<string, { label: string; fixes: string[] }> = {
     iframe_incompatible: {
         label: 'Website currently blocks iframe embedding',
         fixes: [
-            'Allow your website to be embedded in an iframe.',
-            'Remove restrictive X-Frame-Options / CSP frame-ancestors rules for catalogue.gallery.',
+            'Your server is currently sending security headers that block embeds (X-Frame-Options or CSP frame-ancestors).',
+            'Update your headers to allow embedding from https://catalogue.gallery (for example via CSP frame-ancestors).',
+            'If your host cannot support iframe embedding, submit another URL/domain that allows it.',
         ],
     },
     identity_incomplete: {
