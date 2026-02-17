@@ -53,6 +53,22 @@ export function useArtists() {
                     isSanity: true
                 }));
 
+                // Manual Injection: Robness
+                // This ensures auto-linking works even if he's not in Sanity yet
+                if (!mappedSanity.find((a: any) => a.name === 'Robness')) {
+                    mappedSanity.push({
+                        id: 'robness',
+                        name: 'Robness',
+                        subtitle: 'Trash Art',
+                        thumbnail: '/robness.jpg',
+                        type: 'artist',
+                        template: '1', // Default template
+                        desktopExitPosition: 'top-center',
+                        mobileExitPosition: 'top-center',
+                        isSanity: false
+                    });
+                }
+
                 setArtists(mappedSanity);
                 globalCache = mappedSanity; // Update cache
             } catch (err) {
