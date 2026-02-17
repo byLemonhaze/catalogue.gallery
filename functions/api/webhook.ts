@@ -30,6 +30,7 @@ const REJECTION_GUIDANCE: Record<string, { label: string; fixes: string[] }> = {
         fixes: [
             'Your server is currently sending security headers that block embeds (X-Frame-Options or CSP frame-ancestors).',
             'Update your headers to allow embedding from https://catalogue.gallery (for example via CSP frame-ancestors).',
+            'If you are unsure how to change this, contact your hosting provider and ask them to allow iframe embedding from https://catalogue.gallery.',
             'If your host cannot support iframe embedding, submit another URL/domain that allows it.',
         ],
     },
