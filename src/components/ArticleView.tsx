@@ -1,13 +1,24 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
-import { articles } from '../data/articles';
 import { useArtists } from '../hooks/useArtists';
 import { processArticleContent } from '../utils/linkUtils';
 import { Navigation } from './Navigation';
 import { Helmet } from 'react-helmet-async';
+import type { ArticleRecord } from '../types/article';
 
-export const ArticleView: React.FC = () => {
+interface ArticleViewProps {
+    articles: ArticleRecord[];
+    loading?: boolean;
+}
+
+function toAbsoluteImageUrl(url: string | undefined) {
+    if (!url) return 'https://catalogue.gallery/logo.png';
+    if (/^https?:\/\//i.test(url)) return url;
+    return `https://catalogue.gallery${url.startsWith('/') ? url : `/${url}`}`;
+}
+
+export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = false }) => {
     const { id } = useParams<{ id: string }>();
     const { artists } = useArtists();
     const article = articles.find(a => a.id === id);
@@ -18,6 +29,15 @@ export const ArticleView: React.FC = () => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
+
+    if (loading && !article) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-black text-white">
+                <Navigation />
+                <div className="text-xs text-white/40 font-mono uppercase tracking-widest">Loading article...</div>
+            </div>
+        );
+    }
 
     if (!article) {
         return (
@@ -34,6 +54,8 @@ export const ArticleView: React.FC = () => {
         );
     }
 
+    const socialImage = toAbsoluteImageUrl(article.thumbnailUrl);
+
     return (
         <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black font-sans">
             <Helmet>
@@ -42,10 +64,10 @@ export const ArticleView: React.FC = () => {
                 <meta property="og:title" content={article.title} />
                 <meta property="og:description" content={article.excerpt} />
                 <meta property="og:url" content={window.location.href} />
-                <meta property="og:image" content={`https://catalogue.gallery${article.thumbnail || '/logo.png'}`} />
+                <meta property="og:image" content={socialImage} />
                 <meta name="twitter:title" content={article.title} />
                 <meta name="twitter:description" content={article.excerpt} />
-                <meta name="twitter:image" content={`https://catalogue.gallery${article.thumbnail || '/logo.png'}`} />
+                <meta name="twitter:image" content={socialImage} />
             </Helmet>
             {/* Header / Nav */}
             <Navigation />

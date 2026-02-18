@@ -1,13 +1,98 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { articles } from '../src/data/articles';
+import { articles as legacyArticles } from '../src/data/articles';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const DIST_DIR = path.resolve(__dirname, '../dist');
 const TEMPLATE_PATH = path.join(DIST_DIR, 'index.html');
+
+type MetaArticle = {
+    id: string;
+    title: string;
+    excerpt: string;
+    thumbnailUrl: string;
+};
+
+function normalizeImageUrl(input: string | undefined) {
+    if (!input) return 'https://catalogue.gallery/logo.png';
+    if (/^https?:\/\//i.test(input)) return input;
+    return `https://catalogue.gallery${input.startsWith('/') ? input : `/${input}`}`;
+}
+
+function toLegacyMetaArticles(): MetaArticle[] {
+    return legacyArticles.map((article) => ({
+        id: article.id,
+        title: article.title,
+        excerpt: article.excerpt,
+        thumbnailUrl: normalizeImageUrl(article.thumbnail || '/logo.png'),
+    }));
+}
+
+async function fetchSanityMetaArticles(): Promise<MetaArticle[]> {
+    const projectId = process.env.SANITY_PROJECT_ID || process.env.VITE_SANITY_PROJECT_ID || 'ebj9kqfo';
+    const dataset = process.env.SANITY_DATASET || process.env.VITE_SANITY_DATASET || 'production';
+    const apiVersion = 'v2024-01-01';
+
+    const query = `*[_type == "post" && defined(slug.current)]
+      | order(coalesce(sortOrder, 999999) asc, coalesce(publishedAt, _createdAt) desc) {
+        "id": slug.current,
+        title,
+        excerpt,
+        thumbnailPath,
+        "thumbnailAssetUrl": thumbnail.asset->url
+      }`;
+
+    const url = new URL(`https://${projectId}.api.sanity.io/${apiVersion}/data/query/${dataset}`);
+    url.searchParams.set('query', query);
+
+    const response = await fetch(url.toString(), {
+        headers: { Accept: 'application/json' },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Sanity query failed (${response.status})`);
+    }
+
+    const body = await response.json() as {
+        result?: Array<{
+            id?: string;
+            title?: string;
+            excerpt?: string;
+            thumbnailPath?: string;
+            thumbnailAssetUrl?: string;
+        }>;
+    };
+
+    const posts = body.result || [];
+
+    return posts
+        .filter((post) => Boolean(post.id && post.title && post.excerpt))
+        .map((post) => ({
+            id: post.id as string,
+            title: post.title as string,
+            excerpt: post.excerpt as string,
+            thumbnailUrl: normalizeImageUrl(post.thumbnailAssetUrl || post.thumbnailPath || '/logo.png'),
+        }));
+}
+
+async function resolveMetaArticles() {
+    try {
+        const sanityArticles = await fetchSanityMetaArticles();
+        if (sanityArticles.length > 0) {
+            console.log(`Using ${sanityArticles.length} Sanity posts for social meta generation.`);
+            return sanityArticles;
+        }
+    } catch (error) {
+        console.warn('Sanity post fetch failed, falling back to legacy local article data.', error);
+    }
+
+    const fallback = toLegacyMetaArticles();
+    console.log(`Using ${fallback.length} legacy local posts for social meta generation.`);
+    return fallback;
+}
 
 async function generate() {
     if (!fs.existsSync(TEMPLATE_PATH)) {
@@ -17,6 +102,7 @@ async function generate() {
         process.exit(1);
     }
 
+    const articles = await resolveMetaArticles();
     const template = fs.readFileSync(TEMPLATE_PATH, 'utf-8');
 
     for (const article of articles) {
@@ -60,7 +146,7 @@ async function generate() {
         replaceMetaTag('property', 'og:description', safeExcerpt);
         replaceMetaTag('property', 'og:url', articleUrl);
         // Set og:image to article thumbnail
-        const imageUrl = `https://catalogue.gallery${article.thumbnail || '/logo.png'}`;
+        const imageUrl = article.thumbnailUrl;
         replaceMetaTag('property', 'og:image', imageUrl);
 
 

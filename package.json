@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "postbuild": "npx -y tsx scripts/generate-meta.ts"
+    "postbuild": "npx -y tsx scripts/generate-meta.ts",
+    "migrate:articles": "npx -y tsx scripts/migrate-articles.ts"
   },
   "dependencies": {
     "@sanity/client": "^7.14.1",

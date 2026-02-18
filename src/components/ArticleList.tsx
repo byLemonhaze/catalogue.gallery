@@ -1,13 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { articles } from '../data/articles';
+import type { ArticleRecord } from '../types/article';
 interface ArticleListProps {
     filter?: 'interview' | 'blog' | 'all';
+    articles: ArticleRecord[];
+    loading?: boolean;
 }
 
 import { Helmet } from 'react-helmet-async';
 
-export const ArticleList: React.FC<ArticleListProps> = ({ filter = 'all' }) => {
+export const ArticleList: React.FC<ArticleListProps> = ({ filter = 'all', articles, loading = false }) => {
     // Filter articles logic
     const filteredArticles = articles.filter(article => {
         if (filter === 'interview') return article.type === 'Interview';
@@ -24,7 +26,10 @@ export const ArticleList: React.FC<ArticleListProps> = ({ filter = 'all' }) => {
 
 
 
-                <div className="grid grid-cols-1 gap-4 mt-8 md:mt-12">
+                {loading && filteredArticles.length === 0 ? (
+                    <div className="mt-12 text-center text-white/40 text-xs font-mono uppercase tracking-widest">Loading archives...</div>
+                ) : (
+                    <div className="grid grid-cols-1 gap-4 mt-8 md:mt-12">
                     {filteredArticles.map(article => (
                         <Link
                             key={article.id}
@@ -35,7 +40,7 @@ export const ArticleList: React.FC<ArticleListProps> = ({ filter = 'all' }) => {
                                 {/* Thumbnail */}
                                 <div className="w-full md:w-48 h-48 md:h-32 rounded-xl overflow-hidden bg-white/5 shrink-0 border border-white/5">
                                     <img
-                                        src={article.thumbnail || '/logo.png'}
+                                        src={article.thumbnailUrl || '/logo.png'}
                                         alt=""
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-70 group-hover:opacity-100"
                                     />
@@ -78,7 +83,8 @@ export const ArticleList: React.FC<ArticleListProps> = ({ filter = 'all' }) => {
                             </div>
                         </Link>
                     ))}
-                </div>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -8,7 +8,9 @@ export function processArticleContent(content: string, entities: any[]): string 
         const name = entity.name;
         const id = entity.id;
         const type = entity.type || 'artist';
-        const linkPath = type === 'collection' ? `/collection/${id}` : `/artist/${id}`;
+        const linkPath = type === 'gallery'
+            ? `/gallery/${id}`
+            : (type === 'collection' ? `/collection/${id}` : `/artist/${id}`);
 
         // Regex explanation:
         // (?<!\[)           - Not preceded by '[' (not already inside a link label)

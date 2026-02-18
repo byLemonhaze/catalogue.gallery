@@ -13,7 +13,6 @@ import { ArtistFrame } from './pages/ArtistFrame';
 import { SubmitArtist } from './pages/SubmitArtist';
 import { Build } from './pages/Build';
 import type { Artist } from './hooks/useArtists';
-import { articles } from './data/articles';
 
 interface HomeProps {
   artists: Artist[];
@@ -159,6 +158,7 @@ function Home({ artists, loading, setIsLegalModalOpen }: HomeProps) {
 
 
 import { useArtists } from './hooks/useArtists';
+import { useArticles } from './hooks/useArticles';
 
 const AppContent = () => {
   const location = useLocation();
@@ -167,6 +167,7 @@ const AppContent = () => {
   const isArtistPage = location.pathname.startsWith('/artist/') || location.pathname.startsWith('/gallery/');
 
   const { artists, loading } = useArtists();
+  const { articles, loading: articlesLoading } = useArticles();
   const [search, setSearch] = useState('');
   const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
 
@@ -224,8 +225,8 @@ const AppContent = () => {
         <Route path="/gallery/:id" element={<ArtistFrame />} />
         <Route path="/submit" element={<SubmitArtist />} />
 
-        <Route path="/blog" element={<ArticleList filter="all" />} />
-        <Route path="/blog/:id" element={<ArticleView />} />
+        <Route path="/blog" element={<ArticleList filter="all" articles={articles} loading={articlesLoading} />} />
+        <Route path="/blog/:id" element={<ArticleView articles={articles} loading={articlesLoading} />} />
 
         <Route path="/artists" element={<ArtistList />} />
         <Route path="/build" element={<Build />} />

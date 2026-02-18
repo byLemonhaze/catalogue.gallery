@@ -1,14 +1,14 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { articles } from '../data/articles';
 import { urlFor } from '../sanity/image';
 import type { Artist } from '../hooks/useArtists';
+import type { ArticleRecord } from '../types/article';
 
 interface GlobalSearchProps {
     search: string;
     setSearch: (val: string) => void;
     filteredArtists: Artist[];
-    filteredArticles: typeof articles;
+    filteredArticles: ArticleRecord[];
 }
 
 interface SearchResultItemProps {

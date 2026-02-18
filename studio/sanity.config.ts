@@ -44,6 +44,14 @@ export default defineConfig({
                                     .title('Published')
                                     .filter('status == "published"')
                             ),
+                        S.listItem()
+                            .id('editorial-posts')
+                            .title('Editorial (Posts)')
+                            .child(
+                                S.documentTypeList('post')
+                                    .id('editorial-posts-list')
+                                    .title('Editorial Posts')
+                            ),
                         S.divider(),
                         ...S.documentTypeListItems()
                     ])

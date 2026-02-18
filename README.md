@@ -9,6 +9,7 @@ Digital artist directory where each profile opens the artist's own website in an
 - Public API endpoints: Cloudflare Pages Functions (`/functions/api`)
 - Email delivery: Resend
 - Inbox/reply workflow: ProtonMail (via `reply_to`)
+- Editorial/blog content: Sanity `post` documents (served at `/blog/:slug`)
 
 ## Local Development
 
@@ -55,6 +56,24 @@ Required app/server env vars:
 4. Sanity webhook calls `POST /api/webhook`.
 5. `/api/webhook` sends approval/decline email through Resend.
 
+## Editorial / Blog Flow
+
+1. Blog/interview/article entries live in Sanity as `post` documents.
+2. Keep slugs stable to preserve URLs: `/blog/:slug`.
+3. `npm run build` runs `postbuild`, which generates static meta pages in `dist/blog/<slug>/index.html`.
+4. Social OG/Twitter images are sourced from Sanity `post.thumbnail` (with legacy fallback).
+5. In-article entity linking still auto-links published names to profile routes.
+
+### Migrate Existing Local Articles to Sanity
+
+Run once (idempotent by `createOrReplace` on `post-<slug>` ids):
+
+```bash
+npm run migrate:articles
+```
+
+This imports current local articles using the same slug ids, preserving existing `/blog/...` links.
+
 ## ProtonMail + Resend Setup (Recommended)
 
 Use Resend to send mail and ProtonMail to receive replies:
@@ -96,5 +115,6 @@ This keeps deliverability high (Resend) while all replies route back to ProtonMa
 ## Useful Scripts
 
 - Build app: `npm run build`
+- Migrate local article archive to Sanity posts: `npm run migrate:articles`
 - Migrate old artists: `npx -y tsx scripts/migrate-artists.ts`
 - Purge artists: `npx -y tsx scripts/purge-artists.ts`
