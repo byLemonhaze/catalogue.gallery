@@ -152,7 +152,7 @@ function emailShell(params: {
             </tr>
             <tr>
               <td style="padding:0 28px 24px 28px;">
-                <p style="margin:0;font-size:12px;line-height:1.6;color:#8f8f98;">CATALOGUE © 2026 by Lemonhaze</p>
+                <p style="margin:0;font-size:12px;line-height:1.6;color:#8f8f98;">CATALOGUE © 2026</p>
               </td>
             </tr>
           </table>

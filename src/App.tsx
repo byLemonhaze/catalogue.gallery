@@ -68,7 +68,7 @@ function Home({ artists, loading, setIsLegalModalOpen }: HomeProps) {
 
       {/* Footer - Fixed at bottom */}
       <footer className="fixed bottom-8 left-0 right-0 text-center text-[10px] text-white/15 font-mono tracking-wider pointer-events-none">
-        CATALOGUE © 2026 <span className="lowercase">by</span> Lemonhaze
+        CATALOGUE © 2026
       </footer>
 
       {/* Floating Social Link */}
