@@ -205,7 +205,6 @@ export const onRequestPost = async (context: WorkerContext) => {
         const baseUrl = (env.PUBLIC_BASE_URL || 'https://catalogue.gallery').replace(/\/+$/, '');
         const fromAddress = env.RESEND_FROM_EMAIL || 'CATALOGUE <apply@catalogue.gallery>';
         const replyTo = env.RESEND_REPLY_TO?.trim();
-        const safeName = escapeHtml(name || 'there');
 
         const profilePath = slug
             ? (payload._type === 'gallery' ? `/gallery/${encodeURIComponent(slug)}` : `/artist/${encodeURIComponent(slug)}`)
@@ -223,7 +222,6 @@ export const onRequestPost = async (context: WorkerContext) => {
                 title: 'Application approved',
                 intro: `Hi ${name || 'there'}, your profile is now live on CATALOGUE.`,
                 bodyHtml: `
-                    <p style="margin:0 0 12px 0;">Hi ${safeName},</p>
                     <p style="margin:0 0 12px 0;">Great news. Your application has been approved and published.</p>
                     ${approvalMessage ? `<p style="margin:0 0 12px 0;"><strong>Note from the team:</strong><br/>${escapeHtml(approvalMessage)}</p>` : ''}
                     ${safeWebsiteUrl ? `<p style="margin:0;">Original site submitted: <a href="${safeWebsiteUrl}" style="color:#aeb4ff;">${escapeHtml(safeWebsiteUrl)}</a></p>` : ''}
@@ -251,7 +249,6 @@ export const onRequestPost = async (context: WorkerContext) => {
                     title: 'Application needs updates',
                     intro: `Hi ${name || 'there'}, we reviewed your submission and need a few changes before approval.`,
                     bodyHtml: `
-                        <p style="margin:0 0 12px 0;">Hi ${safeName},</p>
                         <p style="margin:0 0 12px 0;">Thank you for applying to CATALOGUE. We are not moving forward yet, but you are welcome to improve your submission and re-apply.</p>
                         ${guidanceHtml}
                         ${reviewerNoteHtml}
