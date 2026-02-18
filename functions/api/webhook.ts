@@ -233,7 +233,8 @@ export const onRequestPost = async (context: WorkerContext) => {
                 const guidance = rejectionReasonCode ? REJECTION_GUIDANCE[rejectionReasonCode] : undefined;
                 const guidanceHtml = guidance
                     ? `
-                        <p style="margin:0 0 8px 0;"><strong>Primary review reason:</strong> ${escapeHtml(guidance.label)}</p>
+                        <p style="margin:0 0 8px 0;"><strong>Primary review reason:</strong></p>
+                        <p style="margin:0 0 8px 0;">${escapeHtml(guidance.label)}</p>
                         <ul style="margin:0 0 12px 20px;padding:0;">
                             ${guidance.fixes.map((fix) => `<li style="margin:0 0 4px 0;">${escapeHtml(fix)}</li>`).join('')}
                         </ul>
@@ -247,12 +248,11 @@ export const onRequestPost = async (context: WorkerContext) => {
                 return emailShell({
                     baseUrl,
                     title: 'Application needs updates',
-                    intro: `Hi ${name || 'there'}, we reviewed your submission and need a few changes before approval.`,
+                    intro: `Hi ${name || 'there'}, thank you for applying to CATALOGUE.`,
                     bodyHtml: `
-                        <p style="margin:0 0 12px 0;">Thank you for applying to CATALOGUE. We are not moving forward yet, but you are welcome to improve your submission and re-apply.</p>
+                        <p style="margin:0 0 12px 0;">We reviewed your submission and need a few changes before approval.</p>
                         ${guidanceHtml}
                         ${reviewerNoteHtml}
-                        <p style="margin:0;">Once updated, you can submit again and we will review promptly.</p>
                     `,
                     buttonLabel: 'Update and re-apply',
                     buttonUrl: `${baseUrl}/submit`,
