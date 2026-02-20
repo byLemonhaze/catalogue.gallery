@@ -19,13 +19,29 @@ import { useArtists } from '../hooks/useArtists';
 import { urlFor } from '../sanity/image';
 
 export const ArtistList: React.FC = () => {
-    const { artists, loading } = useArtists();
+    const { artists, loading, error } = useArtists();
 
     if (loading) return (
         <div className="flex items-center justify-center min-h-screen pt-40">
             <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
         </div>
     );
+
+    if (!artists.length) {
+        return (
+            <div className="min-h-screen bg-black text-white pt-44 px-6">
+                <div className="max-w-xl mx-auto border border-white/10 bg-white/[0.02] rounded-2xl p-6 text-center">
+                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/70">Unable to load directory</p>
+                    <p className="mt-3 text-sm text-white/50">{error || 'Could not reach Sanity right now.'}</p>
+                    <p className="mt-2 text-xs text-white/35">
+                        If testing from phone on local dev, add this origin in Sanity CORS:
+                        {' '}
+                        <span className="font-mono">{window.location.origin}</span>
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     // Sort artists alphabetically (regular artists only)
     const artistItems = artists.filter(a => a.type === 'artist' || !a.type);

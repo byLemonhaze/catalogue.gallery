@@ -149,7 +149,7 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
 
     return (
         <div
-            className="relative w-full h-[450px] md:h-[560px] flex items-center justify-center overflow-hidden -mt-4 md:mt-0 cursor-default"
+            className="relative w-full h-[450px] md:h-[560px] flex items-center justify-center overflow-hidden mt-0 cursor-default"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}

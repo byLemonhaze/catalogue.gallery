@@ -17,10 +17,11 @@ import type { Artist } from './hooks/useArtists';
 interface HomeProps {
   artists: Artist[];
   loading: boolean;
+  artistsError?: string | null;
   isLegalModalOpen: boolean;
   setIsLegalModalOpen: (open: boolean) => void;
 }
-function Home({ artists, loading, setIsLegalModalOpen }: HomeProps) {
+function Home({ artists, loading, artistsError, setIsLegalModalOpen }: HomeProps) {
   // Restore carousel position from location state (exit navigation) or sessionStorage
   const location = useLocation();
   const [carouselIndex, setCarouselIndex] = useState(() => {
@@ -35,7 +36,7 @@ function Home({ artists, loading, setIsLegalModalOpen }: HomeProps) {
   const [showSocialMenu, setShowSocialMenu] = useState(false);
 
   return (
-    <div className="fixed inset-0 h-screen w-screen overflow-hidden">
+    <div className="fixed inset-0 w-screen overflow-hidden h-screen h-[100dvh]">
       <Helmet>
         <title>CATALOGUE</title>
       </Helmet>
@@ -43,13 +44,30 @@ function Home({ artists, loading, setIsLegalModalOpen }: HomeProps) {
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-black to-black pointer-events-none" />
 
       {/* Main Content */}
-      <main className="relative h-full flex flex-col items-center px-0 md:px-6 max-w-7xl mx-auto pt-36 pb-8 md:justify-center md:pt-32 md:pb-0">
+      <main className="relative h-full flex flex-col items-center justify-start px-0 md:px-6 max-w-7xl mx-auto pt-40 pb-8 md:justify-center md:pt-32 md:pb-0">
 
         {/* Carousel Container */}
         {/* Mobile: Flex-1 to push it to center vertically. Desktop: Normal flow. */}
-        <div className="flex-1 w-full flex items-center justify-center md:flex-none md:h-auto overflow-hidden">
-          {loading || artists.length === 0 ? (
-            <div className="text-white/50 text-sm font-mono tracking-widest uppercase">Loading...</div>
+        <div className="w-full flex items-start justify-center md:flex-none md:h-auto md:items-center overflow-hidden">
+          {loading ? (
+            <div className="w-full h-[450px] md:h-[560px] flex items-center justify-center">
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                <div className="text-white/50 text-xs font-mono tracking-[0.3em] uppercase">Loading artists...</div>
+              </div>
+            </div>
+          ) : artists.length === 0 ? (
+            <div className="w-full h-[450px] md:h-[560px] flex items-center justify-center px-6">
+              <div className="max-w-sm text-center">
+                <p className="text-white/60 text-xs font-semibold uppercase tracking-[0.2em]">Unable to load artists</p>
+                <p className="mt-3 text-white/40 text-xs leading-relaxed">
+                  {artistsError || 'Could not reach Sanity right now.'}
+                </p>
+                <p className="mt-2 text-white/30 text-[11px] leading-relaxed">
+                  If testing from phone on local dev, add your local origin to Sanity CORS (example: {window.location.origin}).
+                </p>
+              </div>
+            </div>
           ) : (
             <ArtistCarousel
               artists={artists}
@@ -63,7 +81,6 @@ function Home({ artists, loading, setIsLegalModalOpen }: HomeProps) {
           )}
         </div>
       </main>
-// ... (social footer remains)
 
       {/* Footer - Fixed at bottom */}
       <footer className="fixed bottom-8 left-0 right-0 text-center text-[10px] text-white/15 font-mono tracking-wider pointer-events-none">
@@ -166,7 +183,7 @@ const AppContent = () => {
   const isBuildPage = location.pathname === '/build';
   const isArtistPage = location.pathname.startsWith('/artist/') || location.pathname.startsWith('/gallery/');
 
-  const { artists, loading } = useArtists();
+  const { artists, loading, error: artistsError } = useArtists();
   const { articles, loading: articlesLoading } = useArticles();
   const [search, setSearch] = useState('');
   const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
@@ -216,6 +233,7 @@ const AppContent = () => {
             <Home
               artists={filteredArtists}
               loading={loading}
+              artistsError={artistsError}
               isLegalModalOpen={isLegalModalOpen}
               setIsLegalModalOpen={setIsLegalModalOpen}
             />
