@@ -42,6 +42,17 @@ export default {
             validation: (Rule: any) => Rule.required(),
         },
         {
+            name: 'featuredArtist',
+            title: 'Featured Artist',
+            type: 'reference',
+            description: 'Used as the default social/thumbnail image source for this post.',
+            to: [
+                { type: 'artist' },
+                { type: 'gallery' },
+                { type: 'collector' },
+            ],
+        },
+        {
             name: 'displayDate',
             title: 'Display Date',
             type: 'string',

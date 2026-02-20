@@ -41,6 +41,7 @@ async function fetchSanityMetaArticles(): Promise<MetaArticle[]> {
         "id": slug.current,
         title,
         excerpt,
+        "featuredArtistThumbnailAssetUrl": featuredArtist->thumbnail.asset->url,
         thumbnailPath,
         "thumbnailAssetUrl": thumbnail.asset->url
       }`;
@@ -61,6 +62,7 @@ async function fetchSanityMetaArticles(): Promise<MetaArticle[]> {
             id?: string;
             title?: string;
             excerpt?: string;
+            featuredArtistThumbnailAssetUrl?: string;
             thumbnailPath?: string;
             thumbnailAssetUrl?: string;
         }>;
@@ -74,7 +76,9 @@ async function fetchSanityMetaArticles(): Promise<MetaArticle[]> {
             id: post.id as string,
             title: post.title as string,
             excerpt: post.excerpt as string,
-            thumbnailUrl: normalizeImageUrl(post.thumbnailAssetUrl || post.thumbnailPath || '/logo.png'),
+            thumbnailUrl: normalizeImageUrl(
+                post.featuredArtistThumbnailAssetUrl || post.thumbnailAssetUrl || post.thumbnailPath || '/logo.png',
+            ),
         }));
 }
 

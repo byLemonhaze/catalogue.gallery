@@ -12,6 +12,7 @@ type SanityPost = {
     type?: string
     excerpt?: string
     content?: string
+    featuredArtistThumbnailUrl?: string
     thumbnailUrl?: string
     thumbnailPath?: string
     sortOrder?: number
@@ -70,7 +71,7 @@ function mapSanityArticle(post: SanityPost): ArticleRecord | null {
         type: post.type?.trim() || 'Article',
         excerpt,
         content,
-        thumbnailUrl: normalizeImageUrl(post.thumbnailUrl || post.thumbnailPath),
+        thumbnailUrl: normalizeImageUrl(post.featuredArtistThumbnailUrl || post.thumbnailUrl || post.thumbnailPath),
         sortOrder: typeof post.sortOrder === 'number' ? post.sortOrder : undefined,
         source: 'sanity',
     }
@@ -88,6 +89,7 @@ async function fetchSanityArticles(): Promise<ArticleRecord[]> {
             excerpt,
             content,
             sortOrder,
+            "featuredArtistThumbnailUrl": featuredArtist->thumbnail.asset->url,
             thumbnailPath,
             "thumbnailUrl": thumbnail.asset->url
         }`
