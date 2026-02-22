@@ -1,3 +1,5 @@
+import { encryptEmail } from './_emailCipher';
+
 type EnvVars = Record<string, string | undefined>;
 type WorkerContext = { request: Request; env: EnvVars };
 type SubmissionType = 'artist' | 'gallery';
@@ -88,6 +90,9 @@ export const onRequestPost = async (context: WorkerContext) => {
         if (!env.SANITY_WRITE_TOKEN) {
             return jsonResponse({ error: 'Server configuration error: SANITY_WRITE_TOKEN is missing.' }, 500);
         }
+        if (!env.EMAIL_ENCRYPTION_KEY) {
+            return jsonResponse({ error: 'Server configuration error: EMAIL_ENCRYPTION_KEY is missing.' }, 500);
+        }
 
         const projectId = env.SANITY_PROJECT_ID || env.VITE_SANITY_PROJECT_ID || 'ebj9kqfo';
         const dataset = env.SANITY_DATASET || env.VITE_SANITY_DATASET || 'production';
@@ -96,6 +101,7 @@ export const onRequestPost = async (context: WorkerContext) => {
 
         const normalizedUrl = normalizeWebsiteUrl(websiteUrlInput);
         const slug = createSlug(name);
+        const encryptedEmail = await encryptEmail(email, env.EMAIL_ENCRYPTION_KEY);
 
         let imageAssetId: string | null = null;
 
@@ -148,7 +154,7 @@ export const onRequestPost = async (context: WorkerContext) => {
             },
             subtitle,
             websiteUrl: normalizedUrl,
-            email,
+            email: encryptedEmail,
             template: 'external',
             status: 'pending',
             thumbnail: imageAssetId

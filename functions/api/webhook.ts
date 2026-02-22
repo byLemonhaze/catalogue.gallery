@@ -1,3 +1,5 @@
+import { decryptEmail, isEncryptedEmail } from './_emailCipher';
+
 type ReviewPayload = {
     result?: ReviewPayload;
     _id?: string;
@@ -182,13 +184,25 @@ export const onRequestPost = async (context: WorkerContext) => {
             : rawPayload;
 
         const status = payload.status;
-        const email = payload.email?.trim();
+        const emailField = payload.email?.trim();
         const name = payload.name?.trim();
         const slug = resolveSlug(payload.slug);
         const websiteUrl = payload.websiteUrl?.trim();
         const approvalMessage = payload.approvalMessage?.trim();
         const rejectionReasonCode = payload.rejectionReasonCode?.trim();
         const rejectionReason = payload.rejectionReason?.trim();
+
+        let email = '';
+        if (emailField) {
+            if (isEncryptedEmail(emailField)) {
+                if (!env.EMAIL_ENCRYPTION_KEY) {
+                    return jsonResponse({ error: 'EMAIL_ENCRYPTION_KEY is missing for encrypted email payloads.' }, 500);
+                }
+                email = await decryptEmail(emailField, env.EMAIL_ENCRYPTION_KEY);
+            } else {
+                email = emailField.toLowerCase();
+            }
+        }
 
         if (!email) {
             return jsonResponse({ error: 'Missing email in payload. Email is required to send notifications.' }, 400);

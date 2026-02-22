@@ -49,10 +49,11 @@ export default {
         },
         {
             name: 'email',
-            title: 'Email',
+            title: 'Encrypted Contact Email',
             type: 'string',
-            description: 'Required contact email for submission updates (not publicly displayed)',
-            validation: (Rule: any) => Rule.required().email(),
+            description: 'Stored as encrypted text for notification webhooks.',
+            hidden: true,
+            readOnly: true,
         },
         {
             name: 'status',

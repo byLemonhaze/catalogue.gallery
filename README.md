@@ -37,6 +37,7 @@ Required app/server env vars:
 - `RESEND_REPLY_TO` (set to your ProtonMail address)
 - `PUBLIC_BASE_URL` (example: `https://catalogue.gallery`)
 - `WEBHOOK_SHARED_SECRET` (for webhook authentication)
+- `EMAIL_ENCRYPTION_KEY` (32-byte base64 key used to encrypt contact emails before storing in Sanity)
 - `SANITY_PROJECT_ID` (optional server override)
 - `SANITY_DATASET` (optional server override)
 
@@ -45,7 +46,7 @@ Required app/server env vars:
 1. User submits via `/submit`.
 2. `POST /api/submit` creates a Sanity `artist` or `gallery` document with:
    - `status: "pending"`
-   - required `email`
+   - required encrypted contact email (`email` field stores ciphertext, not plaintext)
 3. You review in Sanity Studio:
    - pending list: `In Review (New)`
    - for fast workflow use document actions:
@@ -55,6 +56,12 @@ Required app/server env vars:
    - for approvals optionally add `approvalMessage`
 4. Sanity webhook calls `POST /api/webhook`.
 5. `/api/webhook` sends approval/decline email through Resend.
+
+### Contact Email Privacy
+
+- Applicant emails are encrypted before being written to Sanity (`email` field stores ciphertext).
+- Webhooks decrypt server-side only (requires `EMAIL_ENCRYPTION_KEY`).
+- This allows you to stay on a public/free Sanity dataset without exposing plaintext contact emails.
 
 ## Editorial / Blog Flow
 
