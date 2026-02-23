@@ -83,3 +83,44 @@ export async function markContactNotified(env: ContactStoreBindings, contactId: 
         .bind(contactId)
         .run()
 }
+
+export async function hasContactStatusNotification(
+    env: ContactStoreBindings,
+    contactId: string,
+    status: 'published' | 'declined',
+) {
+    const db = getContactsDb(env)
+    if (!db) return false
+
+    const row = await db
+        .prepare(
+            `SELECT 1 AS sent
+             FROM contact_notifications
+             WHERE contact_id = ?1
+               AND status = ?2
+             LIMIT 1`,
+        )
+        .bind(contactId, status)
+        .first<{ sent?: number }>()
+
+    return Boolean(row?.sent)
+}
+
+export async function recordContactStatusNotification(
+    env: ContactStoreBindings,
+    contactId: string,
+    status: 'published' | 'declined',
+) {
+    const db = getContactsDb(env)
+    if (!db) return
+
+    await db
+        .prepare(
+            `INSERT OR IGNORE INTO contact_notifications (
+                contact_id,
+                status
+            ) VALUES (?1, ?2)`,
+        )
+        .bind(contactId, status)
+        .run()
+}

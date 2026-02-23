@@ -1,7 +1,9 @@
 import { decryptEmail, isEncryptedEmail } from './_emailCipher';
 import {
+    hasContactStatusNotification,
     hasContactStore,
     markContactNotified,
+    recordContactStatusNotification,
     readContactCiphertext,
     type ContactStoreBindings,
 } from './_contactStore';
@@ -247,6 +249,22 @@ export const onRequestPost = async (context: WorkerContext) => {
         if (status !== 'published' && status !== 'declined') {
             return jsonResponse({ message: `No action for status: ${status || 'unknown'}` });
         }
+        const notificationStatus = status as 'published' | 'declined';
+
+        if (contactId) {
+            try {
+                const alreadySent = await hasContactStatusNotification(env, contactId, notificationStatus);
+                if (alreadySent) {
+                    return jsonResponse({
+                        success: true,
+                        skipped: true,
+                        reason: `Notification already sent for status "${notificationStatus}"`,
+                    });
+                }
+            } catch (dedupeErr) {
+                return jsonResponse({ error: `Notification dedupe check failed: ${getErrorMessage(dedupeErr)}` }, 500);
+            }
+        }
 
         const resendApiKey = readEnvString(env, 'RESEND_API_KEY').trim();
         if (!resendApiKey) {
@@ -346,6 +364,7 @@ export const onRequestPost = async (context: WorkerContext) => {
 
         if (contactId) {
             try {
+                await recordContactStatusNotification(env, contactId, notificationStatus);
                 await markContactNotified(env, contactId);
             } catch (markErr) {
                 console.warn('Failed to update contact notification metadata:', markErr);
