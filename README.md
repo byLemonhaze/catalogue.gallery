@@ -36,17 +36,22 @@ Required app/server env vars:
 - `RESEND_FROM_EMAIL` (example: `CATALOGUE <apply@catalogue.gallery>`)
 - `RESEND_REPLY_TO` (set to your ProtonMail address)
 - `PUBLIC_BASE_URL` (example: `https://catalogue.gallery`)
-- `WEBHOOK_SHARED_SECRET` (for webhook authentication)
+- `WEBHOOK_SHARED_SECRET` (required; webhook requests are rejected without it)
 - `EMAIL_ENCRYPTION_KEY` (32-byte base64 key used to encrypt contact emails before storing in Sanity)
 - `SANITY_PROJECT_ID` (optional server override)
 - `SANITY_DATASET` (optional server override)
+
+Cloudflare binding (not an env var):
+
+- `CONTACTS_DB` (D1 binding used for private contact storage)
 
 ## Submission + Review Flow
 
 1. User submits via `/submit`.
 2. `POST /api/submit` creates a Sanity `artist` or `gallery` document with:
    - `status: "pending"`
-   - required encrypted contact email (`email` field stores ciphertext, not plaintext)
+   - if `CONTACTS_DB` is bound: stores email in D1 and writes `contactId` to Sanity
+   - if `CONTACTS_DB` is not bound: stores encrypted fallback in Sanity `email`
 3. You review in Sanity Studio:
    - pending list: `In Review (New)`
    - for fast workflow use document actions:
@@ -59,9 +64,22 @@ Required app/server env vars:
 
 ### Contact Email Privacy
 
-- Applicant emails are encrypted before being written to Sanity (`email` field stores ciphertext).
+- Recommended mode: keep applicant emails in private Cloudflare D1 (`submission_contacts`) and only store `contactId` in Sanity.
+- Backward-compatible fallback: encrypted email can still be stored in Sanity when D1 is not bound.
 - Webhooks decrypt server-side only (requires `EMAIL_ENCRYPTION_KEY`).
-- This allows you to stay on a public/free Sanity dataset without exposing plaintext contact emails.
+
+### Cloudflare D1 Contact Store Setup
+
+1. Create database:
+   - `npx wrangler d1 create catalogue-private-contacts`
+2. Add binding in `wrangler.toml` (replace `database_id`):
+   - `[[d1_databases]]`
+   - `binding = "CONTACTS_DB"`
+   - `database_name = "catalogue-private-contacts"`
+   - `database_id = "<your-database-id>"`
+3. Apply schema:
+   - `npx wrangler d1 execute catalogue-private-contacts --remote --file=./migrations/001_submission_contacts.sql`
+4. Deploy app again so Functions can use the binding.
 
 ## Editorial / Blog Flow
 
@@ -100,6 +118,7 @@ Use Resend to send mail and ProtonMail to receive replies:
      {
        "_type": _type,
        "status": status,
+       "contactId": contactId,
        "email": email,
        "name": name,
        "slug": slug.current,
@@ -109,6 +128,9 @@ Use Resend to send mail and ProtonMail to receive replies:
        "rejectionReason": rejectionReason
      }
      ```
+     Notes:
+     - Keep `email` in the projection temporarily for legacy records.
+     - `contactId` is required for new D1-backed records.
    - Header: `x-webhook-secret: <WEBHOOK_SHARED_SECRET>`
 
 This keeps deliverability high (Resend) while all replies route back to ProtonMail.

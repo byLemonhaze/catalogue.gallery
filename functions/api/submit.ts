@@ -1,6 +1,7 @@
 import { encryptEmail } from './_emailCipher';
+import { createContact, type ContactStoreBindings } from './_contactStore';
 
-type EnvVars = Record<string, string | undefined>;
+type EnvVars = ContactStoreBindings & Record<string, unknown>;
 type WorkerContext = { request: Request; env: EnvVars };
 type SubmissionType = 'artist' | 'gallery';
 
@@ -23,8 +24,16 @@ type SanityDuplicateQueryResponse = {
     };
 };
 
-const jsonHeaders = { 'Content-Type': 'application/json' };
+const jsonHeaders = {
+    'Content-Type': 'application/json',
+    'Cache-Control': 'no-store',
+};
 const allowedTypes = new Set<SubmissionType>(['artist', 'gallery']);
+
+function readEnvString(env: EnvVars, key: string) {
+    const value = env[key];
+    return typeof value === 'string' ? value : '';
+}
 
 function jsonResponse(body: Record<string, unknown>, status = 200) {
     return new Response(JSON.stringify(body), {
@@ -87,21 +96,31 @@ export const onRequestPost = async (context: WorkerContext) => {
         }
         const type = typeRaw as SubmissionType;
 
-        if (!env.SANITY_WRITE_TOKEN) {
+        const sanityWriteToken = readEnvString(env, 'SANITY_WRITE_TOKEN').trim();
+        const emailEncryptionKey = readEnvString(env, 'EMAIL_ENCRYPTION_KEY').trim();
+        const projectId = (readEnvString(env, 'SANITY_PROJECT_ID') || readEnvString(env, 'VITE_SANITY_PROJECT_ID') || 'ebj9kqfo').trim();
+        const dataset = (readEnvString(env, 'SANITY_DATASET') || readEnvString(env, 'VITE_SANITY_DATASET') || 'production').trim();
+
+        if (!sanityWriteToken) {
             return jsonResponse({ error: 'Server configuration error: SANITY_WRITE_TOKEN is missing.' }, 500);
         }
-        if (!env.EMAIL_ENCRYPTION_KEY) {
+        if (!emailEncryptionKey) {
             return jsonResponse({ error: 'Server configuration error: EMAIL_ENCRYPTION_KEY is missing.' }, 500);
         }
 
-        const projectId = env.SANITY_PROJECT_ID || env.VITE_SANITY_PROJECT_ID || 'ebj9kqfo';
-        const dataset = env.SANITY_DATASET || env.VITE_SANITY_DATASET || 'production';
         const apiVersion = 'v2024-01-01';
         const baseUrl = `https://${projectId}.api.sanity.io/${apiVersion}`;
 
         const normalizedUrl = normalizeWebsiteUrl(websiteUrlInput);
         const slug = createSlug(name);
-        const encryptedEmail = await encryptEmail(email, env.EMAIL_ENCRYPTION_KEY);
+        const encryptedEmail = await encryptEmail(email, emailEncryptionKey);
+
+        let contactId: string | null = null;
+        try {
+            contactId = await createContact(env, encryptedEmail);
+        } catch (storeErr) {
+            throw new Error(`Private contact storage failed: ${getErrorMessage(storeErr)}`);
+        }
 
         let imageAssetId: string | null = null;
 
@@ -110,7 +129,7 @@ export const onRequestPost = async (context: WorkerContext) => {
             const uploadResponse = await fetch(`${baseUrl}/assets/images/${dataset}`, {
                 method: 'POST',
                 headers: {
-                    Authorization: `Bearer ${env.SANITY_WRITE_TOKEN}`,
+                    Authorization: `Bearer ${sanityWriteToken}`,
                     'Content-Type': thumbnail.type || 'application/octet-stream',
                 },
                 body: thumbnail,
@@ -133,7 +152,7 @@ export const onRequestPost = async (context: WorkerContext) => {
 
         const checkResponse = await fetch(checkUrl.toString(), {
             headers: {
-                Authorization: `Bearer ${env.SANITY_WRITE_TOKEN}`,
+                Authorization: `Bearer ${sanityWriteToken}`,
             },
         });
 
@@ -154,7 +173,9 @@ export const onRequestPost = async (context: WorkerContext) => {
             },
             subtitle,
             websiteUrl: normalizedUrl,
-            email: encryptedEmail,
+            contactId: contactId || undefined,
+            // Legacy fallback: if no private contact DB is bound, keep encrypted email in Sanity.
+            email: contactId ? undefined : encryptedEmail,
             template: 'external',
             status: 'pending',
             thumbnail: imageAssetId
@@ -171,7 +192,7 @@ export const onRequestPost = async (context: WorkerContext) => {
         const mutateResponse = await fetch(`${baseUrl}/data/mutate/${dataset}?returnIds=true`, {
             method: 'POST',
             headers: {
-                Authorization: `Bearer ${env.SANITY_WRITE_TOKEN}`,
+                Authorization: `Bearer ${sanityWriteToken}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({

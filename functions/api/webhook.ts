@@ -1,10 +1,17 @@
 import { decryptEmail, isEncryptedEmail } from './_emailCipher';
+import {
+    hasContactStore,
+    markContactNotified,
+    readContactCiphertext,
+    type ContactStoreBindings,
+} from './_contactStore';
 
 type ReviewPayload = {
     result?: ReviewPayload;
     _id?: string;
     _type?: string;
     status?: string;
+    contactId?: string;
     email?: string;
     name?: string;
     slug?: string | { current?: string };
@@ -14,10 +21,13 @@ type ReviewPayload = {
     rejectionReason?: string;
 };
 
-type EnvVars = Record<string, string | undefined>;
+type EnvVars = ContactStoreBindings & Record<string, unknown>;
 type WorkerContext = { request: Request; env: EnvVars };
 
-const jsonHeaders = { 'Content-Type': 'application/json' };
+const jsonHeaders = {
+    'Content-Type': 'application/json',
+    'Cache-Control': 'no-store',
+};
 
 const REJECTION_GUIDANCE: Record<string, { label: string; fixes: string[] }> = {
     personal_website_required: {
@@ -63,6 +73,11 @@ function jsonResponse(body: Record<string, unknown>, status = 200) {
         status,
         headers: jsonHeaders,
     });
+}
+
+function readEnvString(env: EnvVars, key: string) {
+    const value = env[key];
+    return typeof value === 'string' ? value : '';
 }
 
 function getProvidedSecret(request: Request) {
@@ -170,12 +185,14 @@ export const onRequestPost = async (context: WorkerContext) => {
     const { request, env } = context;
 
     try {
-        const requiredSecret = env.WEBHOOK_SHARED_SECRET;
-        if (requiredSecret) {
-            const providedSecret = getProvidedSecret(request);
-            if (providedSecret !== requiredSecret) {
-                return jsonResponse({ error: 'Unauthorized webhook request' }, 401);
-            }
+        const requiredSecret = readEnvString(env, 'WEBHOOK_SHARED_SECRET').trim();
+        if (!requiredSecret) {
+            return jsonResponse({ error: 'Server configuration error: WEBHOOK_SHARED_SECRET is missing.' }, 500);
+        }
+
+        const providedSecret = getProvidedSecret(request);
+        if (!providedSecret || providedSecret !== requiredSecret) {
+            return jsonResponse({ error: 'Unauthorized webhook request' }, 401);
         }
 
         const rawPayload: ReviewPayload = await request.json();
@@ -184,6 +201,7 @@ export const onRequestPost = async (context: WorkerContext) => {
             : rawPayload;
 
         const status = payload.status;
+        const contactId = payload.contactId?.trim();
         const emailField = payload.email?.trim();
         const name = payload.name?.trim();
         const slug = resolveSlug(payload.slug);
@@ -191,20 +209,38 @@ export const onRequestPost = async (context: WorkerContext) => {
         const approvalMessage = payload.approvalMessage?.trim();
         const rejectionReasonCode = payload.rejectionReasonCode?.trim();
         const rejectionReason = payload.rejectionReason?.trim();
+        const emailEncryptionKey = readEnvString(env, 'EMAIL_ENCRYPTION_KEY').trim();
 
         let email = '';
-        if (emailField) {
+        if (contactId) {
+            const storedCiphertext = await readContactCiphertext(env, contactId);
+            if (storedCiphertext) {
+                if (!emailEncryptionKey) {
+                    return jsonResponse({ error: 'EMAIL_ENCRYPTION_KEY is missing for private contact lookup.' }, 500);
+                }
+                email = await decryptEmail(storedCiphertext, emailEncryptionKey);
+            }
+        }
+
+        // Legacy fallback while old records/webhooks still include encrypted email directly.
+        if (!email && emailField) {
             if (isEncryptedEmail(emailField)) {
-                if (!env.EMAIL_ENCRYPTION_KEY) {
+                if (!emailEncryptionKey) {
                     return jsonResponse({ error: 'EMAIL_ENCRYPTION_KEY is missing for encrypted email payloads.' }, 500);
                 }
-                email = await decryptEmail(emailField, env.EMAIL_ENCRYPTION_KEY);
+                email = await decryptEmail(emailField, emailEncryptionKey);
             } else {
                 email = emailField.toLowerCase();
             }
         }
 
         if (!email) {
+            if (contactId && hasContactStore(env)) {
+                return jsonResponse({ error: `No contact record found for contactId "${contactId}".` }, 400);
+            }
+            if (contactId && !hasContactStore(env)) {
+                return jsonResponse({ error: 'CONTACTS_DB binding is missing but payload requires private contact lookup.' }, 500);
+            }
             return jsonResponse({ error: 'Missing email in payload. Email is required to send notifications.' }, 400);
         }
 
@@ -212,13 +248,14 @@ export const onRequestPost = async (context: WorkerContext) => {
             return jsonResponse({ message: `No action for status: ${status || 'unknown'}` });
         }
 
-        if (!env.RESEND_API_KEY) {
+        const resendApiKey = readEnvString(env, 'RESEND_API_KEY').trim();
+        if (!resendApiKey) {
             return jsonResponse({ error: 'RESEND_API_KEY is not configured' }, 500);
         }
 
-        const baseUrl = (env.PUBLIC_BASE_URL || 'https://catalogue.gallery').replace(/\/+$/, '');
-        const fromAddress = env.RESEND_FROM_EMAIL || 'CATALOGUE <apply@catalogue.gallery>';
-        const replyTo = env.RESEND_REPLY_TO?.trim();
+        const baseUrl = (readEnvString(env, 'PUBLIC_BASE_URL') || 'https://catalogue.gallery').replace(/\/+$/, '');
+        const fromAddress = readEnvString(env, 'RESEND_FROM_EMAIL') || 'CATALOGUE <apply@catalogue.gallery>';
+        const replyTo = readEnvString(env, 'RESEND_REPLY_TO').trim();
 
         const profilePath = slug
             ? (payload._type === 'gallery' ? `/gallery/${encodeURIComponent(slug)}` : `/artist/${encodeURIComponent(slug)}`)
@@ -287,7 +324,7 @@ export const onRequestPost = async (context: WorkerContext) => {
         const resendResponse = await fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: {
-                Authorization: `Bearer ${env.RESEND_API_KEY}`,
+                Authorization: `Bearer ${resendApiKey}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(resendPayload),
@@ -304,6 +341,14 @@ export const onRequestPost = async (context: WorkerContext) => {
                 resendBody = JSON.parse(rawResendBody);
             } catch {
                 resendBody = { raw: rawResendBody };
+            }
+        }
+
+        if (contactId) {
+            try {
+                await markContactNotified(env, contactId);
+            } catch (markErr) {
+                console.warn('Failed to update contact notification metadata:', markErr);
             }
         }
 
