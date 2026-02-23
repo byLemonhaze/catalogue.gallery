@@ -10,7 +10,8 @@
         "build": "sanity build",
         "deploy": "sanity deploy",
         "deploy-graphql": "sanity graphql deploy",
-        "encrypt:emails": "sanity exec scripts/encrypt-contact-emails.js --with-user-token"
+        "encrypt:emails": "sanity exec scripts/encrypt-contact-emails.js --with-user-token",
+        "migrate:contacts:d1": "sanity exec scripts/migrate-contacts-to-d1.js --with-user-token"
     },
     "dependencies": {
         "@sanity/image-url": "^1.0.2",

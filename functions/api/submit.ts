@@ -121,6 +121,9 @@ export const onRequestPost = async (context: WorkerContext) => {
         } catch (storeErr) {
             throw new Error(`Private contact storage failed: ${getErrorMessage(storeErr)}`);
         }
+        if (!contactId) {
+            return jsonResponse({ error: 'Server configuration error: CONTACTS_DB binding is missing.' }, 500);
+        }
 
         let imageAssetId: string | null = null;
 
@@ -173,9 +176,7 @@ export const onRequestPost = async (context: WorkerContext) => {
             },
             subtitle,
             websiteUrl: normalizedUrl,
-            contactId: contactId || undefined,
-            // Legacy fallback: if no private contact DB is bound, keep encrypted email in Sanity.
-            email: contactId ? undefined : encryptedEmail,
+            contactId,
             template: 'external',
             status: 'pending',
             thumbnail: imageAssetId

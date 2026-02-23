@@ -50,8 +50,7 @@ Cloudflare binding (not an env var):
 1. User submits via `/submit`.
 2. `POST /api/submit` creates a Sanity `artist` or `gallery` document with:
    - `status: "pending"`
-   - if `CONTACTS_DB` is bound: stores email in D1 and writes `contactId` to Sanity
-   - if `CONTACTS_DB` is not bound: stores encrypted fallback in Sanity `email`
+   - stores email in private D1 and writes `contactId` to Sanity
 3. You review in Sanity Studio:
    - pending list: `In Review (New)`
    - for fast workflow use document actions:
@@ -65,7 +64,7 @@ Cloudflare binding (not an env var):
 ### Contact Email Privacy
 
 - Recommended mode: keep applicant emails in private Cloudflare D1 (`submission_contacts`) and only store `contactId` in Sanity.
-- Backward-compatible fallback: encrypted email can still be stored in Sanity when D1 is not bound.
+- Submit endpoint now requires `CONTACTS_DB`; new submissions fail closed if D1 binding is missing.
 - Webhooks decrypt server-side only (requires `EMAIL_ENCRYPTION_KEY`).
 
 ### Cloudflare D1 Contact Store Setup
@@ -80,6 +79,8 @@ Cloudflare binding (not an env var):
 3. Apply schema:
    - `npx wrangler d1 execute catalogue-private-contacts --remote --file=./migrations/001_submission_contacts.sql`
 4. Deploy app again so Functions can use the binding.
+5. Migrate old encrypted emails from Sanity into D1 and remove legacy `email` fields:
+   - `cd studio && npm run migrate:contacts:d1`
 
 ## Editorial / Blog Flow
 
@@ -147,3 +148,4 @@ This keeps deliverability high (Resend) while all replies route back to ProtonMa
 - Migrate local article archive to Sanity posts: `npm run migrate:articles`
 - Migrate old artists: `npx -y tsx scripts/migrate-artists.ts`
 - Purge artists: `npx -y tsx scripts/purge-artists.ts`
+- Move legacy encrypted contacts into D1: `cd studio && npm run migrate:contacts:d1`
