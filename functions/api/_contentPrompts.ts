@@ -216,14 +216,18 @@ The format emerges from the subject. A collection spotlight should feel differen
 
 // ─── User prompt builders ────────────────────────────────────────────────────
 
-export function buildArticlePrompt(artistName: string, artistSubtitle: string): string {
-    return `Write a CATALOGUE article specifically about the digital artist ${artistName} — ${artistSubtitle}.
+export function buildArticlePrompt(artistName: string, artistSubtitle: string, research?: string | null): string {
+    const researchBlock = research
+        ? `\n\n## Live Research (verified recent information from X/Twitter and the web)\n${research}\n\nUse these verified facts to add precision and currency. Prioritize this research over assumptions.`
+        : '';
 
+    return `Write a CATALOGUE article specifically about the digital artist ${artistName} — ${artistSubtitle}.
+${researchBlock}
 IMPORTANT: This article is ENTIRELY about ${artistName}. Do not pivot to writing about Lemonhaze, XCOPY, or any other artist as the primary subject. ${artistName} is the subject from first word to last.
 
 Critical engagement with ${artistName}'s work and its context. Not a biography. Specific about what makes their practice distinctive, what tradition it sits in, and what it means for it to exist on-chain or in this ecosystem specifically.
 
-Use everything you know about ${artistName} specifically. If you're uncertain about a specific detail, work around it rather than fabricating.
+Use everything you know about ${artistName} specifically, including any research above. If you're uncertain about a detail and have no research to draw from, work around it rather than fabricating.
 
 Return a JSON object with EXACTLY this shape (no other text, no markdown wrapper):
 {
@@ -234,14 +238,16 @@ Return a JSON object with EXACTLY this shape (no other text, no markdown wrapper
 }`;
 }
 
-export function buildBlogPrompt(artistName: string, artistSubtitle: string): string {
-    return `Write a short CATALOGUE blog post about ${artistName} — ${artistSubtitle}.
+export function buildBlogPrompt(artistName: string, artistSubtitle: string, research?: string | null): string {
+    const researchBlock = research
+        ? `\n\n## Live Research (from X/Twitter and the web)\n${research}\n\nDraw from this for specificity.`
+        : '';
 
+    return `Write a short CATALOGUE blog post about ${artistName} — ${artistSubtitle}.
+${researchBlock}
 IMPORTANT: This post is ENTIRELY about ${artistName}. Do not write about Lemonhaze or any other artist as the subject. ${artistName} is the subject.
 
-One specific thing. One angle about ${artistName}'s work specifically — something that couldn't be said about just any artist.
-
-If you know this artist's work well, write from that knowledge. If you're less certain, pick an angle that's genuinely defensible from what you do know.
+One specific thing. One angle about ${artistName}'s work specifically — something that couldn't be said about just any artist. Use the research above to make it precise and current if available.
 
 Return a JSON object with EXACTLY this shape (no other text, no markdown wrapper):
 {

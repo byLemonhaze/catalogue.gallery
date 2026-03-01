@@ -30,6 +30,7 @@ export interface ContentBankBindings {
     VITE_SANITY_PROJECT_ID: string;
     VITE_SANITY_DATASET: string;
     SANITY_WRITE_TOKEN: string;
+    GROK_API_KEY?: string; // optional — enables live X/web research via Grok before generation
 }
 
 export function generateId(): string {

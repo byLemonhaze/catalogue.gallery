@@ -1,8 +1,9 @@
 /**
  * POST /api/content-generate
- * Generates 3 drafts (article + blog + wildcard) via Claude API.
+ * Generates one or three drafts via Claude Haiku.
+ * If `type` is provided in body, generates only that one type.
+ * If GROK_API_KEY is set, first researches the artist via Grok (live X + web search).
  * Protected by CONTENT_LAB_PASSWORD.
- * Called manually from the dashboard OR by the GitHub Actions cron.
  */
 
 import {
@@ -27,7 +28,6 @@ import {
     parseAndNormalizeDraft,
 } from './_draftParser';
 
-// Hardcoded — VITE_ prefixed vars are build-time only, not available in Pages Function runtime.
 const SANITY_PROJECT_ID = 'ebj9kqfo';
 const SANITY_DATASET = 'production';
 
@@ -54,6 +54,8 @@ interface DraftFailure {
     snippet: string;
 }
 
+// ─── Artist fetch ─────────────────────────────────────────────────────────────
+
 async function fetchRandomArtist(): Promise<SanityArtistResult | null> {
     try {
         const query = encodeURIComponent(
@@ -64,7 +66,7 @@ async function fetchRandomArtist(): Promise<SanityArtistResult | null> {
         if (!res.ok) { console.error(`[content-generate] Sanity fetch failed: ${res.status}`); return null; }
         const data = await res.json() as { result: SanityArtistResult[] };
         const artists = data.result || [];
-        if (!artists.length) { console.error('[content-generate] No approved artists found in Sanity'); return null; }
+        if (!artists.length) { console.error('[content-generate] No published artists found in Sanity'); return null; }
         return artists[Math.floor(Math.random() * artists.length)];
     } catch (err) {
         console.error('[content-generate] fetchRandomArtist error:', err);
@@ -72,16 +74,90 @@ async function fetchRandomArtist(): Promise<SanityArtistResult | null> {
     }
 }
 
-function snippet(text: string): string {
-    return text.replace(/\s+/g, ' ').trim().slice(0, 220);
+// Fallback pool — used when Sanity is unreachable, ensures content variety
+const FALLBACK_POOL: SanityArtistResult[] = [
+    { _id: '', name: 'XCOPY', subtitle: 'Dystopian glitch loops, crypto art OG, mortality and dark humor' },
+    { _id: '', name: 'Claire Silver', subtitle: 'AI-collaborative artist, femininity, softness as aesthetic resistance' },
+    { _id: '', name: 'William Mapan', subtitle: 'French generative artist, Dragons and Anticyclone, painterly code' },
+    { _id: '', name: 'Tyler Hobbs', subtitle: 'Generative artist, Fidenza on Art Blocks, flow field algorithms' },
+    { _id: '', name: 'Beeple', subtitle: "Everydays daily practice since 2007, Christie's $69M sale" },
+    { _id: '', name: 'Pak', subtitle: 'Anonymous artist, Merge $91.8M total, token mechanics as artistic medium' },
+    { _id: '', name: 'Rare Scrilla', subtitle: 'Bitcoin OG, Rare Pepe era trading cards, hip-hop aesthetics' },
+    { _id: '', name: 'Robness', subtitle: 'Trash art pioneer, anti-prestige, deliberately low-fi aesthetics' },
+    { _id: '', name: 'Lemonhaze', subtitle: 'Paint Engine, BEST BEFORE with Ordinally, Bitcoin-native generative art' },
+];
+
+// ─── Grok research (optional) ────────────────────────────────────────────────
+
+async function fetchArtistResearch(
+    grokApiKey: string,
+    artistName: string
+): Promise<string | null> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+        controller.abort();
+        console.error(`[content-generate] Grok research for ${artistName} timed out after 6s`);
+    }, 6000);
+
+    try {
+        const res = await fetch('https://api.x.ai/v1/chat/completions', {
+            method: 'POST',
+            signal: controller.signal,
+            headers: {
+                'Authorization': `Bearer ${grokApiKey}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model: 'grok-3-latest',
+                messages: [{
+                    role: 'user',
+                    content: `Research the digital artist "${artistName}" who works in crypto art, Bitcoin Ordinals, or NFTs. Search X/Twitter and the web for:
+- Their most notable and recent works (2023-2025)
+- Recent sales, exhibitions, or notable events
+- Their current reputation and community standing
+- Any interesting quotes, statements, or controversies
+- What makes their practice distinctive
+
+Summarize the most specific, useful facts in 200 words or less. Focus on concrete details a writer would want.`,
+                }],
+                max_tokens: 500,
+                search_parameters: { mode: 'on' },
+            }),
+        });
+        clearTimeout(timer);
+
+        if (!res.ok) {
+            const err = await res.text().catch(() => '');
+            console.error(`[content-generate] Grok research failed: ${res.status} — ${err.slice(0, 200)}`);
+            return null;
+        }
+
+        const data = await res.json() as { choices: Array<{ message: { content: string } }> };
+        const text = data.choices?.[0]?.message?.content?.trim() || null;
+        if (text) {
+            console.log(`[content-generate] Research for ${artistName}: ${text.slice(0, 100)}…`);
+        }
+        return text;
+    } catch (err: unknown) {
+        clearTimeout(timer);
+        if (err instanceof Error && err.name !== 'AbortError') {
+            console.error('[content-generate] Grok research error:', err.message);
+        }
+        return null;
+    }
 }
 
-// Per-type timeout budget (ms): article is longest output, blog fastest
+// ─── Claude generation ────────────────────────────────────────────────────────
+
 const CALL_TIMEOUT: Record<DraftType, number> = {
-    article: 28000,
+    article: 26000,
     wildcard: 22000,
     blog: 16000,
 };
+
+function snippet(text: string): string {
+    return text.replace(/\s+/g, ' ').trim().slice(0, 220);
+}
 
 async function callClaude(
     apiKey: string,
@@ -93,7 +169,7 @@ async function callClaude(
     const controller = new AbortController();
     const timer = setTimeout(() => {
         controller.abort();
-        console.error(`[content-generate] ${type} call aborted after ${timeout / 1000}s`);
+        console.error(`[content-generate] ${type} aborted after ${timeout / 1000}s`);
     }, timeout);
 
     try {
@@ -117,161 +193,124 @@ async function callClaude(
         if (!res.ok) {
             const errBody = await res.text().catch(() => 'unreadable');
             console.error(`[content-generate] Claude API ${res.status} for ${type}: ${errBody}`);
-            return {
-                ok: false,
-                failure: {
-                    type,
-                    reason: 'http_error',
-                    detail: `Claude API ${res.status}`,
-                    snippet: snippet(errBody),
-                },
-            };
+            return { ok: false, failure: { type, reason: 'http_error', detail: `Claude API ${res.status}`, snippet: snippet(errBody) } };
         }
 
         const data = await res.json() as ClaudeResponse;
-
         if (data.stop_reason === 'max_tokens') {
             console.error(`[content-generate] ${type} hit max_tokens — response was truncated`);
         }
 
         const text = (data.content || [])
-            .filter((part): part is ClaudeContent => part?.type === 'text' && typeof part.text === 'string')
-            .map((part) => part.text)
+            .filter((p): p is ClaudeContent => p?.type === 'text' && typeof p.text === 'string')
+            .map(p => p.text)
             .join('\n')
             .trim();
 
         if (!text) {
-            console.error(`[content-generate] Empty text from Claude for ${type}`);
-            return {
-                ok: false,
-                failure: {
-                    type,
-                    reason: 'empty_response',
-                    detail: 'Claude returned no text content.',
-                    snippet: '',
-                },
-            };
+            return { ok: false, failure: { type, reason: 'empty_response', detail: 'Claude returned no text.', snippet: '' } };
         }
 
         const parsed = parseAndNormalizeDraft(text);
         if (isDraftParseFailure(parsed)) {
             const { failure } = parsed;
-            console.error(
-                `[content-generate] Parse failed for ${type}: ${failure.reason} — ${failure.detail}`
-            );
-            return {
-                ok: false,
-                failure: {
-                    type,
-                    reason: failure.reason,
-                    detail: failure.detail,
-                    snippet: failure.snippet,
-                },
-            };
+            console.error(`[content-generate] Parse failed for ${type}: ${failure.reason} — ${failure.detail}`);
+            return { ok: false, failure: { type, reason: failure.reason, detail: failure.detail, snippet: failure.snippet } };
         }
 
         return { ok: true, draft: parsed.draft };
     } catch (err: unknown) {
         clearTimeout(timer);
         if (err instanceof Error && err.name === 'AbortError') {
-            return {
-                ok: false,
-                failure: {
-                    type,
-                    reason: 'timeout',
-                    detail: 'Claude call aborted after 25s.',
-                    snippet: '',
-                },
-            };
+            return { ok: false, failure: { type, reason: 'timeout', detail: `Aborted after ${timeout / 1000}s.`, snippet: '' } };
         }
         console.error(`[content-generate] callClaude error for ${type}:`, err);
-        return {
-            ok: false,
-            failure: {
-                type,
-                reason: 'request_error',
-                detail: err instanceof Error ? err.message : 'Unknown error',
-                snippet: '',
-            },
-        };
+        return { ok: false, failure: { type, reason: 'request_error', detail: err instanceof Error ? err.message : 'Unknown', snippet: '' } };
     }
 }
 
+// ─── Handler ──────────────────────────────────────────────────────────────────
+
 export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ request, env }) => {
-    // Auth check
     const auth = request.headers.get('x-content-lab-password') || '';
     if (auth !== env.CONTENT_LAB_PASSWORD) {
         return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
     }
 
     if (!env.CLAUDE_API_KEY) {
-        console.error('[content-generate] CLAUDE_API_KEY not set');
         return new Response(JSON.stringify({ error: 'API key not configured' }), { status: 500 });
     }
 
     const db = env.CONTACTS_DB;
     const now = new Date().toISOString();
 
-    // Accept optional artist override from the UI picker
     const body = await request.json().catch(() => ({})) as {
         artistId?: string;
         artistName?: string;
         artistSubtitle?: string;
+        type?: DraftType; // if provided, generate only this one type
     };
 
-    // Fallback pool for when Sanity is unreachable — ensures variety even without live data
-    const FALLBACK_POOL = [
-        { _id: '', name: 'XCOPY', subtitle: 'Dystopian glitch loops, crypto art OG, mortality and dark humor' },
-        { _id: '', name: 'Claire Silver', subtitle: 'AI-collaborative artist, femininity, softness as aesthetic resistance' },
-        { _id: '', name: 'William Mapan', subtitle: 'French generative artist, Dragons and Anticyclone, painterly code' },
-        { _id: '', name: 'Tyler Hobbs', subtitle: 'Generative artist, Fidenza on Art Blocks, flow field algorithms' },
-        { _id: '', name: 'Beeple', subtitle: 'Everydays daily practice since 2007, Christie\'s $69M sale' },
-        { _id: '', name: 'Pak', subtitle: 'Anonymous artist, Merge $91.8M total, token mechanics as artistic medium' },
-        { _id: '', name: 'Rare Scrilla', subtitle: 'Bitcoin OG, Rare Pepe era trading cards, hip-hop aesthetics' },
-        { _id: '', name: 'Robness', subtitle: 'Trash art pioneer, anti-prestige, deliberately low-fi aesthetics' },
-        { _id: '', name: 'Lemonhaze', subtitle: 'Paint Engine, BEST BEFORE with Ordinally, Bitcoin-native generative art' },
-    ];
-
-    let artist: { _id: string; name: string; subtitle: string } | null = null;
+    // ── Resolve artist ──────────────────────────────────────────────────────
+    let artist: SanityArtistResult;
     if (body.artistName) {
-        // UI picker provided a specific artist — use it directly
         artist = { _id: body.artistId || '', name: body.artistName, subtitle: body.artistSubtitle || '' };
     } else {
-        // No selection — pick randomly from the live directory
-        artist = await fetchRandomArtist();
-        // If Sanity unreachable, fall back to known artists rather than a vague placeholder
-        if (!artist) {
-            artist = FALLBACK_POOL[Math.floor(Math.random() * FALLBACK_POOL.length)];
-        }
+        const fetched = await fetchRandomArtist();
+        artist = fetched ?? FALLBACK_POOL[Math.floor(Math.random() * FALLBACK_POOL.length)];
     }
 
-    const artistName = artist.name;
-    const artistSubtitle = artist.subtitle;
+    const { name: artistName, subtitle: artistSubtitle } = artist;
     const topic = WILDCARD_TOPICS[Math.floor(Math.random() * WILDCARD_TOPICS.length)];
 
-    console.log(`[content-generate] Artist: ${artistName} | Topic: ${topic.subject}`);
+    // ── Determine which types to generate ──────────────────────────────────
+    const requestedTypes: DraftType[] = body.type ? [body.type] : ['article', 'blog', 'wildcard'];
+    const needsArtistContent = requestedTypes.some(t => t === 'article' || t === 'blog');
 
-    // Generate all 3 in parallel with Haiku — ~5-10s each, ~12s total in parallel
-    const attempts = await Promise.all([
-        callClaude(env.CLAUDE_API_KEY, ARTICLE_SYSTEM, buildArticlePrompt(artistName, artistSubtitle), 'article'),
-        callClaude(env.CLAUDE_API_KEY, BLOG_SYSTEM, buildBlogPrompt(artistName, artistSubtitle), 'blog'),
-        callClaude(env.CLAUDE_API_KEY, WILDCARD_SYSTEM, buildWildcardPrompt(topic), 'wildcard'),
-    ]);
-    const failures = attempts.filter((attempt): attempt is { ok: false; failure: DraftFailure } => !attempt.ok)
-        .map((attempt) => attempt.failure);
+    console.log(`[content-generate] Artist: ${artistName} | Types: ${requestedTypes.join(',')}${body.type ? ' (single)' : ' (batch)'}`);
 
+    // ── Optional Grok research (only for artist-based content) ─────────────
+    let research: string | null = null;
+    if (needsArtistContent && env.GROK_API_KEY) {
+        research = await fetchArtistResearch(env.GROK_API_KEY, artistName);
+    }
+
+    // ── Generate ────────────────────────────────────────────────────────────
+    const attempts = await Promise.all(
+        requestedTypes.map(type => {
+            switch (type) {
+                case 'article':
+                    return callClaude(env.CLAUDE_API_KEY, ARTICLE_SYSTEM, buildArticlePrompt(artistName, artistSubtitle, research), 'article');
+                case 'blog':
+                    return callClaude(env.CLAUDE_API_KEY, BLOG_SYSTEM, buildBlogPrompt(artistName, artistSubtitle, research), 'blog');
+                case 'wildcard':
+                    return callClaude(env.CLAUDE_API_KEY, WILDCARD_SYSTEM, buildWildcardPrompt(topic), 'wildcard');
+            }
+        })
+    );
+
+    const failures = attempts
+        .filter((a): a is { ok: false; failure: DraftFailure } => !a.ok)
+        .map(a => a.failure);
+
+    // ── Insert into D1 ──────────────────────────────────────────────────────
     const inserts: Promise<unknown>[] = [];
     let created = 0;
 
-    const insertDraft = (
-        type: DraftType,
-        draft: GeneratedDraft | null,
-        sourceArtistId: string | null,
-        sourceArtistName: string | null
-    ) => {
-        if (!draft) { console.error(`[content-generate] No draft for ${type} — skipping insert`); return; }
+    for (let i = 0; i < requestedTypes.length; i++) {
+        const type = requestedTypes[i];
+        const attempt = attempts[i];
+        const draft = attempt.ok ? attempt.draft : null;
+
+        if (!draft) {
+            console.error(`[content-generate] No draft for ${type} — skipping`);
+            continue;
+        }
+
         created++;
         const id = generateId();
+        const isArtistType = type === 'article' || type === 'blog';
+
         inserts.push(
             db.prepare(`
                 INSERT INTO content_drafts
@@ -283,37 +322,23 @@ export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ reques
                 draft.excerpt,
                 draft.content,
                 JSON.stringify(draft.tags || []),
-                sourceArtistId,
-                sourceArtistName,
+                isArtistType ? (artist._id || null) : null,
+                isArtistType ? artistName : null,
                 now
             ).run()
         );
-    };
-
-    const articleAttempt = attempts[0];
-    const blogAttempt = attempts[1];
-    const wildcardAttempt = attempts[2];
-
-    insertDraft('article', articleAttempt.ok ? articleAttempt.draft : null, artist._id || null, artistName);
-    insertDraft('blog', blogAttempt.ok ? blogAttempt.draft : null, artist._id || null, artistName);
-    insertDraft('wildcard', wildcardAttempt.ok ? wildcardAttempt.draft : null, null, null);
+    }
 
     await Promise.all(inserts);
     await pruneDrafts(db, 100);
 
-    console.log(`[content-generate] Done — ${created}/3 drafts created`);
-    if (failures.length) {
-        for (const failure of failures) {
-            console.error(`[content-generate] ${failure.type} failed: ${failure.reason} — ${failure.detail}`);
-        }
-    }
+    console.log(`[content-generate] Done — ${created}/${requestedTypes.length} drafts created${research ? ' (with Grok research)' : ''}`);
 
     return new Response(JSON.stringify({
         ok: true,
         created,
-        attempted: attempts.length,
+        attempted: requestedTypes.length,
         failures,
-    }), {
-        headers: { 'content-type': 'application/json' },
-    });
+        researched: !!research,
+    }), { headers: { 'content-type': 'application/json' } });
 };

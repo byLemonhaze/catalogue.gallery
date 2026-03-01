@@ -427,6 +427,7 @@ export function ContentLab() {
     const [error, setError] = useState('');
     const [artists, setArtists] = useState<Artist[]>([]);
     const [selectedArtistId, setSelectedArtistId] = useState('random');
+    const [selectedType, setSelectedType] = useState<DraftType>('article');
 
     // Fetch artists directly from Sanity public CDN — no auth needed, no Pages Function
     const fetchArtists = useCallback(async () => {
@@ -480,9 +481,12 @@ export function ContentLab() {
         setError('');
         try {
             const selectedArtist = artists.find(a => a._id === selectedArtistId);
-            const body = selectedArtist
-                ? { artistId: selectedArtist._id, artistName: selectedArtist.name, artistSubtitle: selectedArtist.subtitle }
-                : {};
+            const body = {
+                type: selectedType,
+                ...(selectedArtist && selectedType !== 'wildcard'
+                    ? { artistId: selectedArtist._id, artistName: selectedArtist.name, artistSubtitle: selectedArtist.subtitle }
+                    : {}),
+            };
             const res = await fetch('/api/content-generate', {
                 method: 'POST',
                 headers: { 'content-type': 'application/json', 'x-content-lab-password': password },
@@ -530,30 +534,50 @@ export function ContentLab() {
                         <h1 className="text-2xl font-black uppercase tracking-tight text-white">Content Lab</h1>
                         <p className="text-[11px] text-white/30 mt-1">{drafts.length} draft{drafts.length !== 1 ? 's' : ''}</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <select
-                            value={selectedArtistId}
-                            onChange={e => setSelectedArtistId(e.target.value)}
-                            disabled={generating}
-                            className="bg-black border border-white/15 text-[10px] font-mono text-white/50 px-3 py-2.5 focus:border-white/30 outline-none appearance-none cursor-pointer hover:border-white/25 hover:text-white/70 transition-colors disabled:opacity-30 max-w-[180px] truncate"
-                        >
-                            <option value="random">Random artist</option>
-                            {artists.map(a => (
-                                <option key={a._id} value={a._id}>{a.name}</option>
+                    <div className="flex flex-col items-end gap-2">
+                        {/* Type selector */}
+                        <div className="flex items-center gap-1">
+                            {(['article', 'blog', 'wildcard'] as const).map(t => (
+                                <button
+                                    key={t}
+                                    onClick={() => setSelectedType(t)}
+                                    disabled={generating}
+                                    className={`px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest border transition-colors disabled:opacity-30 ${
+                                        selectedType === t
+                                            ? 'border-white/50 text-white'
+                                            : 'border-white/10 text-white/25 hover:border-white/25 hover:text-white/50'
+                                    }`}
+                                >
+                                    {t === 'wildcard' ? 'Wild' : t}
+                                </button>
                             ))}
-                        </select>
-                        <button
-                            onClick={handleGenerate}
-                            disabled={generating}
-                            className="flex items-center gap-2 px-5 py-2.5 border border-white/20 text-[11px] font-bold uppercase tracking-[0.2em] text-white/70 hover:border-white/40 hover:text-white transition-colors disabled:opacity-40 disabled:cursor-wait"
-                        >
-                            {generating ? (
-                                <>
-                                    <span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />
-                                    Writing…
-                                </>
-                            ) : '+ Generate Now'}
-                        </button>
+                        </div>
+                        {/* Artist + generate */}
+                        <div className="flex items-center gap-2">
+                            <select
+                                value={selectedArtistId}
+                                onChange={e => setSelectedArtistId(e.target.value)}
+                                disabled={generating || selectedType === 'wildcard'}
+                                className="bg-black border border-white/15 text-[10px] font-mono text-white/50 px-3 py-2.5 focus:border-white/30 outline-none appearance-none cursor-pointer hover:border-white/25 hover:text-white/70 transition-colors disabled:opacity-20 max-w-[180px] truncate"
+                            >
+                                <option value="random">Random artist</option>
+                                {artists.map(a => (
+                                    <option key={a._id} value={a._id}>{a.name}</option>
+                                ))}
+                            </select>
+                            <button
+                                onClick={handleGenerate}
+                                disabled={generating}
+                                className="flex items-center gap-2 px-5 py-2.5 border border-white/20 text-[11px] font-bold uppercase tracking-[0.2em] text-white/70 hover:border-white/40 hover:text-white transition-colors disabled:opacity-40 disabled:cursor-wait"
+                            >
+                                {generating ? (
+                                    <>
+                                        <span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />
+                                        Writing…
+                                    </>
+                                ) : '+ Generate'}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
