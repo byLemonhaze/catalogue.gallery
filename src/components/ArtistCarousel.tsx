@@ -185,8 +185,9 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
     };
 
     return (
+        <div className="flex flex-col items-center w-full">
         <div
-            className="relative w-full h-[450px] md:h-[560px] flex items-center justify-center overflow-hidden mt-0 cursor-default"
+            className="relative w-full h-[420px] md:h-[540px] flex items-center justify-center overflow-hidden cursor-default"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
@@ -237,12 +238,14 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
                 </svg>
             </button>
 
-            {/* Counter */}
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 z-30">
-                <span className="font-mono text-[11px] tracking-[0.15em] text-white/35 select-none">
-                    {String(activeIndex + 1).padStart(2, '0')} / {String(totalItems).padStart(2, '0')}
-                </span>
-            </div>
+        </div>
+
+        {/* Counter — outside overflow container so it has clean breathing room */}
+        <div className="mt-5">
+            <span className="font-mono text-[11px] tracking-[0.15em] text-white/35 select-none">
+                {String(activeIndex + 1).padStart(2, '0')} / {String(totalItems).padStart(2, '0')}
+            </span>
+        </div>
         </div>
     );
 };
