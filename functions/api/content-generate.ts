@@ -60,7 +60,24 @@ async function fetchRandomArtist(projectId: string, dataset: string): Promise<Sa
     }
 }
 
-async function callClaude(apiKey: string, system: string, userPrompt: string): Promise<GeneratedDraft | null> {
+function extractJson(text: string): GeneratedDraft | null {
+    // Strip markdown code fences if present
+    const stripped = text.replace(/^```(?:json)?\s*/m, '').replace(/\s*```\s*$/m, '').trim();
+    // Find outermost JSON object
+    const start = stripped.indexOf('{');
+    const end = stripped.lastIndexOf('}');
+    if (start === -1 || end === -1 || end <= start) return null;
+    const jsonStr = stripped.slice(start, end + 1);
+    // First attempt — clean JSON
+    try { return JSON.parse(jsonStr) as GeneratedDraft; } catch { /* fall through */ }
+    // Second attempt — replace literal newlines inside strings (common Claude formatting issue)
+    try {
+        const fixedStr = jsonStr.replace(/\n/g, '\\n').replace(/\r/g, '').replace(/\\n/g, '\\n');
+        return JSON.parse(fixedStr) as GeneratedDraft;
+    } catch { return null; }
+}
+
+async function callClaude(apiKey: string, system: string, userPrompt: string, type: string): Promise<GeneratedDraft | null> {
     try {
         const res = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
@@ -71,19 +88,24 @@ async function callClaude(apiKey: string, system: string, userPrompt: string): P
             },
             body: JSON.stringify({
                 model: 'claude-sonnet-4-6',
-                max_tokens: 2048,
+                max_tokens: 4096, // 2048 was too small — article JSON needs ~2k tokens, system prompt ~1.5k input
                 system,
                 messages: [{ role: 'user', content: userPrompt }],
             }),
         });
-        if (!res.ok) return null;
+        if (!res.ok) {
+            const errBody = await res.text().catch(() => 'unreadable');
+            console.error(`[content-generate] Claude API error for ${type}: ${res.status} — ${errBody}`);
+            return null;
+        }
         const data = await res.json() as ClaudeResponse;
         const text = data.content?.[0]?.text || '';
-        // Extract JSON from response (Claude may wrap in markdown code blocks)
-        const match = text.match(/\{[\s\S]*\}/);
-        if (!match) return null;
-        return JSON.parse(match[0]) as GeneratedDraft;
-    } catch {
+        if (!text) { console.error(`[content-generate] Empty text from Claude for ${type}`); return null; }
+        const draft = extractJson(text);
+        if (!draft) { console.error(`[content-generate] JSON parse failed for ${type}. Raw (first 300 chars): ${text.slice(0, 300)}`); }
+        return draft;
+    } catch (err) {
+        console.error(`[content-generate] Fetch error for ${type}:`, err);
         return null;
     }
 }
@@ -107,9 +129,9 @@ export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ reques
         const topic = WILDCARD_TOPICS[Math.floor(Math.random() * WILDCARD_TOPICS.length)];
 
         const [articleDraft, blogDraft, wildcardDraft] = await Promise.all([
-            callClaude(env.CLAUDE_API_KEY, ARTICLE_SYSTEM, buildArticlePrompt(artistName, artistSubtitle)),
-            callClaude(env.CLAUDE_API_KEY, BLOG_SYSTEM, buildBlogPrompt(artistName, artistSubtitle)),
-            callClaude(env.CLAUDE_API_KEY, WILDCARD_SYSTEM, buildWildcardPrompt(topic)),
+            callClaude(env.CLAUDE_API_KEY, ARTICLE_SYSTEM, buildArticlePrompt(artistName, artistSubtitle), 'article'),
+            callClaude(env.CLAUDE_API_KEY, BLOG_SYSTEM, buildBlogPrompt(artistName, artistSubtitle), 'blog'),
+            callClaude(env.CLAUDE_API_KEY, WILDCARD_SYSTEM, buildWildcardPrompt(topic), 'wildcard'),
         ]);
 
         const inserts: Promise<unknown>[] = [];

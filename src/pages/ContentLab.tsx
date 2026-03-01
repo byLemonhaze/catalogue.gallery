@@ -308,7 +308,7 @@ export function ContentLab() {
             if (!res.ok) { setError('Generation failed — check API key in Cloudflare secrets.'); return; }
             // Generation queued in background — show countdown and auto-refresh
             setAwaitingGeneration(true);
-            setCountdown(45);
+            setCountdown(70);
         } catch {
             setError('Generation failed.');
         } finally {
