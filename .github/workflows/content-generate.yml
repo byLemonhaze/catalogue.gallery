@@ -1,0 +1,24 @@
+name: Daily Content Generation
+
+on:
+  schedule:
+    # 2:00 AM CST = 08:00 UTC
+    - cron: '0 8 * * *'
+  workflow_dispatch: # manual trigger from GitHub Actions UI as backup
+
+jobs:
+  generate:
+    name: Generate 3 drafts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger content generation
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST https://catalogue.gallery/api/content-generate \
+            -H "x-content-lab-password: ${{ secrets.CONTENT_LAB_PASSWORD }}")
+          echo "Response: $response"
+          if [ "$response" != "200" ]; then
+            echo "Generation failed with status $response"
+            exit 1
+          fi
+          echo "3 drafts generated successfully"
