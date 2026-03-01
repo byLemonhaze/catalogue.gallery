@@ -15,7 +15,7 @@ export function LegalModal({ isOpen, onClose }: LegalModalProps) {
             />
 
             {/* Modal Content */}
-            <div className="relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-[6px] overflow-hidden shadow-2xl flex flex-col max-h-[85vh] animate-scale-in">
+            <div className="relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 overflow-hidden shadow-2xl flex flex-col max-h-[85vh] animate-scale-in">
                 {/* Header */}
                 <div className="p-8 border-b border-white/10 flex justify-between items-center bg-[#0d0d0d]">
                     <div className="space-y-1">
@@ -24,7 +24,7 @@ export function LegalModal({ isOpen, onClose }: LegalModalProps) {
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-white/5 rounded-[4px] transition-colors text-white/40 hover:text-white"
+                        className="p-2 hover:bg-white/5 transition-colors text-white/40 hover:text-white"
                         aria-label="Close modal"
                     >
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

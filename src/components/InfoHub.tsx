@@ -89,36 +89,25 @@ export function InfoHub({ setIsLegalModalOpen }: InfoHubProps) {
                     <div className="md:hidden relative">
                         {showSocialMenu && (
                             <>
-                                {/* Backdrop to close */}
-                                <div
-                                    className="fixed inset-0 z-40 bg-black/70"
-                                    onClick={() => setShowSocialMenu(false)}
-                                />
-
-                                {/* Menu */}
-                                <div className="absolute bottom-full right-0 mb-4 flex flex-col items-end gap-4 bg-[#0d0d0d] p-6 border border-white/10 shadow-2xl min-w-[140px] z-50 animate-fade-in origin-bottom-right">
+                                <div className="fixed inset-0 z-40" onClick={() => setShowSocialMenu(false)} />
+                                <div className="absolute bottom-full right-0 mb-3 flex flex-col items-end gap-3 z-50 animate-fade-in">
                                     <a
                                         href="https://x.com/CatalogueART"
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="text-xs font-bold text-white/85 hover:text-white uppercase tracking-widest flex items-center gap-2"
+                                        className="text-[10px] font-bold text-white/50 hover:text-white uppercase tracking-widest transition-colors duration-300"
                                     >
-                                        Twitter ↗
+                                        @CatalogueART
                                     </a>
-                                    <div className="w-full h-px bg-white/10" />
                                     <button
-                                        onClick={() => {
-                                            setIsLegalModalOpen(true);
-                                            setShowSocialMenu(false);
-                                        }}
-                                        className="text-xs font-bold text-white/85 hover:text-white uppercase tracking-widest flex items-center gap-2 text-right"
+                                        onClick={() => { setIsLegalModalOpen(true); setShowSocialMenu(false); }}
+                                        className="text-[10px] font-bold text-white/50 hover:text-white uppercase tracking-widest transition-colors duration-300"
                                     >
-                                        Policy ↗
+                                        Policy
                                     </button>
                                 </div>
                             </>
                         )}
-
                         <button
                             onClick={() => setShowSocialMenu(!showSocialMenu)}
                             className={`text-[10px] font-bold transition-colors duration-300 uppercase tracking-widest p-2 -mr-2 relative z-50 ${showSocialMenu ? 'text-white' : 'text-white/20 hover:text-white'}`}
