@@ -2,9 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ArtistCard } from './ArtistCard';
 import { useNavigate } from 'react-router-dom';
 import { urlFor } from '../sanity/image';
+import type { Artist } from '../hooks/useArtists';
 
 interface ArtistCarouselProps {
-    artists: any[];
+    artists: Artist[];
     initialIndex?: number;
     onIndexChange?: (index: number) => void;
     onGlowColor?: (rgb: string) => void;

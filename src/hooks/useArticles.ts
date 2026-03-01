@@ -18,7 +18,19 @@ type SanityPost = {
     sortOrder?: number
 }
 
-let globalArticleCache: ArticleRecord[] | null = null
+// Local article shape from data/articles.ts
+type LegacyArticle = {
+    id: string
+    title: string
+    author?: string
+    date?: string
+    type?: string
+    excerpt?: string
+    content?: string
+    thumbnail?: string
+}
+
+let articleCache: ArticleRecord[] | null = null
 
 function isAbsoluteUrl(value: string) {
     return /^https?:\/\//i.test(value)
@@ -41,7 +53,7 @@ function formatDateFromIso(iso: string | undefined) {
     })
 }
 
-function mapLegacyArticle(article: any, index: number): ArticleRecord {
+function mapLegacyArticle(article: LegacyArticle, index: number): ArticleRecord {
     return {
         id: article.id,
         title: article.title,
@@ -99,11 +111,11 @@ async function fetchSanityArticles(): Promise<ArticleRecord[]> {
 }
 
 export function useArticles() {
-    const [articles, setArticles] = useState<ArticleRecord[]>(globalArticleCache || [])
-    const [loading, setLoading] = useState(!globalArticleCache)
+    const [articles, setArticles] = useState<ArticleRecord[]>(articleCache || [])
+    const [loading, setLoading] = useState(!articleCache)
 
     useEffect(() => {
-        if (globalArticleCache) return
+        if (articleCache) return
 
         let isCancelled = false
 
@@ -115,14 +127,14 @@ export function useArticles() {
                     : legacyArticles.map(mapLegacyArticle)
 
                 if (!isCancelled) {
-                    globalArticleCache = resolved
+                    articleCache = resolved
                     setArticles(resolved)
                 }
             } catch (error) {
                 console.error('Failed to fetch Sanity articles, using local fallback:', error)
                 const fallback = legacyArticles.map(mapLegacyArticle)
                 if (!isCancelled) {
-                    globalArticleCache = fallback
+                    articleCache = fallback
                     setArticles(fallback)
                 }
             } finally {

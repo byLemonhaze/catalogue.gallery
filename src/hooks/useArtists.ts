@@ -1,35 +1,49 @@
 import { useState, useEffect } from 'react';
 import { client } from '../sanity/client';
+import type { SanityImageObject } from '../types/sanity';
+
+// Raw shape returned by the GROQ query
+type SanityArtistRaw = {
+    id: string;
+    type: 'artist' | 'gallery' | 'collector';
+    name: string;
+    subtitle: string;
+    websiteUrl: string;
+    thumbnail: SanityImageObject | null;
+    template?: string;
+    desktopExitPosition?: 'top-right' | 'top-left' | 'top-center' | 'bottom-right' | 'bottom-left';
+    mobileExitPosition?: 'bottom-center' | 'top-right' | 'top-left' | 'top-center';
+};
 
 export interface Artist {
     id: string;
     name: string;
     subtitle: string;
     websiteUrl: string;
-    thumbnail: any; // Can be string (local) or Sanity image object
+    thumbnail: SanityImageObject | string | null | undefined;
     isSanity?: boolean;
     type?: 'artist' | 'gallery' | 'collector' | 'collection';
+    template?: string;
+    provenanceUrl?: string;
     desktopExitPosition?: 'top-right' | 'top-left' | 'top-center' | 'bottom-right' | 'bottom-left';
     mobileExitPosition?: 'bottom-center' | 'top-right' | 'top-left' | 'top-center';
 }
 
-// Simple in-memory cache to preserve data across navigation and restore scroll position
-let globalCache: Artist[] | null = null;
+// Module-level cache — avoids redundant Sanity fetches across navigation.
+// Reset with vi.resetModules() in tests, or migrate to React Query for a proper solution.
+let artistCache: Artist[] | null = null;
 
 export function useArtists() {
-    const [artists, setArtists] = useState<Artist[]>(globalCache || []);
-    const [loading, setLoading] = useState(!globalCache);
+    const [artists, setArtists] = useState<Artist[]>(artistCache || []);
+    const [loading, setLoading] = useState(!artistCache);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        // If we have cache, we don't need to fetch immediately, but we can re-validate silently if needed.
-        // For now, just relying on cache is enough to solve the scroll jump.
-        if (globalCache) return;
+        if (artistCache) return;
 
         async function fetchArtists() {
             let timeoutId: ReturnType<typeof setTimeout> | null = null;
             try {
-                // Fetch artist, gallery, and collector document types (only published or legacy items)
                 const query = `*[_type in ["artist", "gallery", "collector"] && (status == "published" || !defined(status))] | order(name asc) {
                     "id": coalesce(slug.current, _id),
                     "type": _type,
@@ -46,30 +60,30 @@ export function useArtists() {
                 });
 
                 const sanityData = await Promise.race([
-                    client.fetch(query),
+                    client.fetch<SanityArtistRaw[]>(query),
                     timeoutPromise,
-                ]) as any[];
+                ]);
 
                 if (!Array.isArray(sanityData)) {
                     throw new Error('Unexpected Sanity response');
                 }
 
-                const mappedSanity = sanityData.map((a: any) => ({
+                const mappedSanity: Artist[] = sanityData.map((a) => ({
                     id: a.id,
                     name: a.name,
                     subtitle: a.subtitle,
                     websiteUrl: a.websiteUrl,
                     thumbnail: a.thumbnail,
-                    type: a.type, // Now directly from _type
-                    template: a.template, // Added template
+                    type: a.type,
+                    template: a.template,
                     desktopExitPosition: a.desktopExitPosition,
                     mobileExitPosition: a.mobileExitPosition,
-                    isSanity: true
+                    isSanity: true,
                 }));
 
                 setArtists(mappedSanity);
                 if (mappedSanity.length > 0) {
-                    globalCache = mappedSanity; // Update cache only when data exists
+                    artistCache = mappedSanity;
                 }
                 setError(mappedSanity.length === 0 ? 'No artists were returned from Sanity.' : null);
             } catch (err) {

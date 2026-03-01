@@ -62,11 +62,12 @@ export function SubmitArtist() {
             setThumbnailFile(null);
             setPreviewUrl(null);
 
-        } catch (err: any) {
-            const isCorsError = err.message === 'Failed to fetch' || err.name === 'TypeError';
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Submission failed';
+            const isCorsError = message === 'Failed to fetch' || (err instanceof TypeError);
             setStatus({
                 type: 'error',
-                message: isCorsError ? 'Network error. Please check your connection and try again.' : (err.message || 'Submission failed')
+                message: isCorsError ? 'Network error. Please check your connection and try again.' : message
             });
         } finally {
             setIsSubmitting(false);

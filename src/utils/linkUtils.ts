@@ -1,4 +1,10 @@
-export function processArticleContent(content: string, entities: any[]): string {
+type ArticleEntity = {
+    name: string
+    id: string
+    type?: string
+}
+
+export function processArticleContent(content: string, entities: ArticleEntity[]): string {
     // Sort entities by name length descending so "Counterfeit Cards" is linked before "Counterfeit"
     const sortedEntities = [...entities].sort((a, b) => b.name.length - a.name.length);
 

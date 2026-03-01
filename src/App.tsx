@@ -1,11 +1,14 @@
 import { useState, useMemo, lazy, Suspense, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { useArtists } from './hooks/useArtists';
+import { useArticles } from './hooks/useArticles';
+import type { Artist } from './hooks/useArtists';
 import { Navigation } from './components/Navigation';
 import { ArtistCarousel } from './components/ArtistCarousel';
 import { LegalModal } from './components/LegalModal';
 import { GlobalSearch } from './components/GlobalSearch';
-import type { Artist } from './hooks/useArtists';
+import { ScrollToTop } from './components/ScrollToTop';
 
 // Lazy-loaded routes — only fetched when the user navigates to them
 const ArtistList = lazy(() => import('./components/ArtistList').then(m => ({ default: m.ArtistList })));
@@ -163,10 +166,6 @@ function Home({ artists, loading, artistsError, setIsLegalModalOpen }: HomeProps
 
 // Internal Artist Page routes removed
 
-
-import { useArtists } from './hooks/useArtists';
-import { useArticles } from './hooks/useArticles';
-
 const AppContent = () => {
   const location = useLocation();
   const isArtistPage = location.pathname.startsWith('/artist/') || location.pathname.startsWith('/gallery/');
@@ -260,8 +259,6 @@ const AppContent = () => {
     </div>
   );
 };
-
-import { ScrollToTop } from './components/ScrollToTop';
 
 function App() {
   return (

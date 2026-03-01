@@ -9,11 +9,12 @@ export const PortfolioV2: React.FC = () => {
 
     if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-white/50 tracking-widest uppercase text-xs">Initializing...</div>;
 
-    const artist = artists.find(a => (a as any).slug?.current === id || a.id === id);
+    // a.id is already coalesced from slug.current in the GROQ projection
+    const artist = artists.find(a => a.id === id);
 
     if (!artist) {
         return <div className="min-h-screen bg-black flex items-center justify-center text-white font-mono">Artist not found</div>;
     }
 
-    return <PortfolioTemplateV2 artist={artist as any} />;
+    return <PortfolioTemplateV2 artist={artist} />;
 };

@@ -1,9 +1,10 @@
 import { urlFor } from '../sanity/image';
+import type { ThumbnailSource } from '../types/sanity';
 
 interface ArtistProps {
     id: string;
     name: string;
-    thumbnail: any; // Can be string (local) or Sanity image object
+    thumbnail: ThumbnailSource;
     subtitle: string;
     websiteUrl?: string; // Optional custom URL
     badge?: string; // Optional custom badge text
@@ -13,7 +14,9 @@ interface ArtistProps {
 
 export const ArtistCard: React.FC<ArtistProps> = ({ name, thumbnail, subtitle, isSanity }) => {
     // Resolve image URL
-    const imageUrl = isSanity && thumbnail ? urlFor(thumbnail).width(800).url() : thumbnail;
+    const imageUrl = isSanity && thumbnail
+        ? urlFor(thumbnail).width(800).url()
+        : (typeof thumbnail === 'string' ? thumbnail : undefined);
 
     return (
         <div

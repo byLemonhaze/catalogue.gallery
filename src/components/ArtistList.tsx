@@ -1,21 +1,9 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-
-// Define the Artist interface (matching the JSON structure)
-interface Artist {
-    id: string;
-    name: string;
-    thumbnail: any;
-    subtitle: string;
-    websiteUrl?: string;
-    isSanity?: boolean;
-    type?: string;
-}
-
 import { Helmet } from 'react-helmet-async';
-
 import { useArtists } from '../hooks/useArtists';
+import type { Artist } from '../hooks/useArtists';
 import { urlFor } from '../sanity/image';
 
 export const ArtistList: React.FC = () => {
@@ -43,7 +31,7 @@ export const ArtistList: React.FC = () => {
     }
 
     const artistItems = artists.filter(a => a.type === 'artist' || !a.type);
-    const galleries = artists.filter(a => a.type === 'gallery' || (a as any).type === 'collection');
+    const galleries = artists.filter(a => a.type === 'gallery' || a.type === 'collection');
 
     const sortedArtists = [...artistItems].sort((a, b) => a.name.localeCompare(b.name));
 
@@ -53,7 +41,7 @@ export const ArtistList: React.FC = () => {
         if (!groupedArtists[firstLetter]) {
             groupedArtists[firstLetter] = [];
         }
-        groupedArtists[firstLetter].push(artist as any);
+        groupedArtists[firstLetter].push(artist);
     });
 
     const letters = Object.keys(groupedArtists).sort();
@@ -99,7 +87,7 @@ export const ArtistList: React.FC = () => {
                                     <div className="w-10 h-10 shrink-0 overflow-hidden bg-white/5">
                                         {artist.thumbnail ? (
                                             <img
-                                                src={artist.isSanity ? urlFor(artist.thumbnail).width(80).url() : artist.thumbnail}
+                                                src={artist.isSanity && artist.thumbnail ? urlFor(artist.thumbnail).width(80).url() : (typeof artist.thumbnail === 'string' ? artist.thumbnail : undefined)}
                                                 alt={artist.name}
                                                 className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity duration-300"
                                             />
@@ -143,7 +131,7 @@ export const ArtistList: React.FC = () => {
                                 <div className="w-12 h-12 shrink-0 overflow-hidden bg-white/5">
                                     {gallery.thumbnail ? (
                                         <img
-                                            src={gallery.isSanity ? urlFor(gallery.thumbnail).width(100).url() : gallery.thumbnail}
+                                            src={gallery.isSanity && gallery.thumbnail ? urlFor(gallery.thumbnail).width(100).url() : (typeof gallery.thumbnail === 'string' ? gallery.thumbnail : undefined)}
                                             alt={gallery.name}
                                             className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity duration-300"
                                         />

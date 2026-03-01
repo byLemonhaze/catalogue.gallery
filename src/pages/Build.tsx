@@ -135,7 +135,7 @@ export function Build() {
     const buildJson = () => {
         const cleanHighlights = highlights.filter(h => h.trim());
         const cleanPress = press.filter(p => p.title.trim() && p.url.trim());
-        const socialObj: any = {};
+        const socialObj: Record<string, string> = {};
         socials.forEach(s => {
             if (s.url.trim()) socialObj[s.type] = s.url;
         });
@@ -670,8 +670,9 @@ export function Build() {
                                                             try {
                                                                 const artworks = jsonInput ? JSON.parse(jsonInput) : [];
                                                                 if (Array.isArray(artworks) && artworks.length > 0) {
-                                                                    return artworks.slice(0, 9).map((art: any, i: number) => {
-                                                                        const { url, isLive } = resolveArtworkUrl(art.inscription_id);
+                                                                    type PreviewArtwork = { inscription_id?: string; artwork_title?: string; year?: string }
+                                                return (artworks as PreviewArtwork[]).slice(0, 9).map((art, i) => {
+                                                                        const { url, isLive } = resolveArtworkUrl(art.inscription_id ?? '');
                                                                         return (
                                                                             <div key={i} className={`aspect-square rounded-2xl overflow-hidden relative group ${templates[selectedTemplate as keyof typeof templates].accent}`}>
                                                                                 {url ? (
