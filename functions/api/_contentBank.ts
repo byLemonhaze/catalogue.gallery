@@ -64,6 +64,10 @@ export async function updateDraftStatus(
     await db.prepare(`UPDATE content_drafts SET ${sets.join(', ')} WHERE id = ?`).bind(...vals).run();
 }
 
+export async function deleteDraft(db: D1Database, id: string): Promise<void> {
+    await db.prepare(`DELETE FROM content_drafts WHERE id = ?`).bind(id).run();
+}
+
 export async function pruneDrafts(db: D1Database, maxTotal = 100): Promise<void> {
     // Keep newest 100 pending/published, delete oldest beyond that
     await db.prepare(`

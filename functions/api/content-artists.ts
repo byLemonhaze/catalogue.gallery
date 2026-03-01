@@ -17,7 +17,7 @@ export const onRequestGet: PagesFunction<ContentBankBindings> = async ({ request
 
     try {
         const query = encodeURIComponent(
-            `*[_type in ["artist","gallery"] && status == "approved"]{_id, name, subtitle, _type} | order(name asc)`
+            `*[_type in ["artist","gallery"] && status == "published"]{_id, name, subtitle, _type} | order(name asc)`
         );
         const url = `https://${SANITY_PROJECT_ID}.api.sanity.io/v2024-01-01/data/query/${SANITY_DATASET}?query=${query}`;
         const res = await fetch(url);

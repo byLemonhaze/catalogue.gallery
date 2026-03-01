@@ -151,9 +151,12 @@ function DraftCard({ draft, password, onUpdate }: { draft: Draft; password: stri
         onUpdate();
     };
 
-    const handleDismiss = async () => {
+    const handleDelete = async () => {
         setLoading(true);
-        await apiFetch('/api/content-drafts', { id: draft.id, status: 'dismissed' });
+        await fetch(`/api/content-drafts?id=${encodeURIComponent(draft.id)}`, {
+            method: 'DELETE',
+            headers: { 'x-content-lab-password': password },
+        });
         setLoading(false);
         onUpdate();
     };
@@ -278,10 +281,10 @@ function DraftCard({ draft, password, onUpdate }: { draft: Draft; password: stri
                         Revise
                     </button>
                     <button
-                        onClick={handleDismiss}
+                        onClick={handleDelete}
                         disabled={loading}
-                        className="text-white/15 hover:text-white/50 transition-colors text-xs"
-                        title="Dismiss"
+                        className="text-white/20 hover:text-red-400/70 transition-colors text-sm font-mono"
+                        title="Delete draft"
                     >
                         ×
                     </button>

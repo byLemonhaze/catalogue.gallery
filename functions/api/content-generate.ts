@@ -57,7 +57,7 @@ interface DraftFailure {
 async function fetchRandomArtist(): Promise<SanityArtistResult | null> {
     try {
         const query = encodeURIComponent(
-            `*[_type in ["artist","gallery"] && status == "approved"]{_id, name, subtitle}`
+            `*[_type in ["artist","gallery"] && status == "published"]{_id, name, subtitle}`
         );
         const url = `https://${SANITY_PROJECT_ID}.api.sanity.io/v2024-01-01/data/query/${SANITY_DATASET}?query=${query}`;
         const res = await fetch(url);
@@ -76,18 +76,25 @@ function snippet(text: string): string {
     return text.replace(/\s+/g, ' ').trim().slice(0, 220);
 }
 
+// Per-type timeout budget (ms): article is longest output, blog fastest
+const CALL_TIMEOUT: Record<DraftType, number> = {
+    article: 28000,
+    wildcard: 22000,
+    blog: 16000,
+};
+
 async function callClaude(
     apiKey: string,
     system: string,
     userPrompt: string,
     type: DraftType
 ): Promise<{ ok: true; draft: GeneratedDraft } | { ok: false; failure: DraftFailure }> {
-    // 25-second per-call timeout — prevents a single hung request from blocking everything
+    const timeout = CALL_TIMEOUT[type];
     const controller = new AbortController();
     const timer = setTimeout(() => {
         controller.abort();
-        console.error(`[content-generate] ${type} call aborted after 25s`);
-    }, 25000);
+        console.error(`[content-generate] ${type} call aborted after ${timeout / 1000}s`);
+    }, timeout);
 
     try {
         const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -100,7 +107,7 @@ async function callClaude(
             },
             body: JSON.stringify({
                 model: 'claude-haiku-4-5-20251001',
-                max_tokens: 4096,
+                max_tokens: type === 'blog' ? 1024 : 2800,
                 system,
                 messages: [{ role: 'user', content: userPrompt }],
             }),

@@ -3,7 +3,7 @@
  * POST /api/content-drafts          — update a draft (status, deploy_target, revision_note)
  */
 
-import { type ContentBankBindings, getDrafts, updateDraftStatus } from './_contentBank';
+import { type ContentBankBindings, getDrafts, updateDraftStatus, deleteDraft } from './_contentBank';
 
 export const onRequestGet: PagesFunction<ContentBankBindings> = async ({ request, env }) => {
     const auth = request.headers.get('x-content-lab-password') || '';
@@ -43,5 +43,21 @@ export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ reques
         published_at: body.published_at,
     });
 
+    return new Response(JSON.stringify({ ok: true }), { headers: { 'content-type': 'application/json' } });
+};
+
+export const onRequestDelete: PagesFunction<ContentBankBindings> = async ({ request, env }) => {
+    const auth = request.headers.get('x-content-lab-password') || '';
+    if (auth !== env.CONTENT_LAB_PASSWORD) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    }
+
+    const url = new URL(request.url);
+    const id = url.searchParams.get('id');
+    if (!id) {
+        return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400 });
+    }
+
+    await deleteDraft(env.CONTACTS_DB, id);
     return new Response(JSON.stringify({ ok: true }), { headers: { 'content-type': 'application/json' } });
 };

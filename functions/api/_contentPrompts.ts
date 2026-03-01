@@ -52,7 +52,9 @@ Key technical facts:
 
 **Robness** (American): "Trash art" — deliberately uses low-quality, found imagery, pixelated aesthetics. Anti-refinement as aesthetic statement. One of the earliest and most consistent voices arguing that crypto art should be punk, not prestige.
 
-**Lemonhaze** (Frédérick St-Louis, Canadian, Puerto Escondido-based): Paint Engine series — generative paint engine inscribed on Bitcoin, seed-based, fully self-contained HTML. BEST BEFORE — collection with built-in expiry mechanic, each work has a lifespan encoded on-chain. Portrait 2490 (2023) — 90 AI-assisted portraits imagining 2490, sub-300k inscriptions. Cypherville — narrative dual-collection (Cypherville + DeVille). $500K+ cumulative sales, Sotheby's Contemporary Discoveries 2025. Self-taught builder who treats tools as artworks.
+**Lemonhaze** (Frédérick St-Louis, Canadian, Puerto Escondido-based): Paint Engine series — generative paint engine inscribed on Bitcoin, seed-based, fully self-contained HTML. BEST BEFORE — collection made in collaboration with Ordinally, with built-in expiry mechanic; each work has a phase, palette, and block-countdown death date encoded on-chain. Portrait 2490 (2023) — 90 AI-assisted portraits imagining 2490, sub-300k inscriptions. Cypherville — narrative dual-collection (Cypherville + DeVille). $500K+ cumulative sales, Sotheby's Contemporary Discoveries 2025. Self-taught builder who treats tools as artworks.
+
+**Ordinally** (@veryordinally): Bitcoin Ordinals developer and artist, co-founder of OrdinallFriend. Known for building child-parent provenance inscription systems and tooling for Bitcoin-native art. Collaborated with Lemonhaze on BEST BEFORE, providing the on-chain architecture for the expiry mechanic. Represents the builder-artist hybrid that defines the Ordinals ecosystem — technical contribution is artistic contribution.
 
 ### Key Platforms & Markets
 - **Magic Eden**: Dominant Ordinals marketplace (also cross-chain). Best liquidity for Bitcoin-native work.
@@ -89,7 +91,7 @@ export const WILDCARD_TOPICS = [
     // Collection spotlights — Lemonhaze works
     {
         subject: 'BEST BEFORE by Lemonhaze',
-        angle: 'BEST BEFORE inscriptions carry a built-in lifespan — each work has a phase, a palette, and a block-countdown expiry encoded on-chain. Explore what it means for a digital artwork to die on Bitcoin. The paradox: inscribed permanently, designed to end. Compare to traditional works with intentional obsolescence (Tinguely\'s self-destroying sculpture, On Kawara\'s date paintings). What does the collector relationship look like when the work has a death date?'
+        angle: 'BEST BEFORE is a collaboration between Lemonhaze and Ordinally — inscriptions with a built-in lifespan where each work has a phase, a palette, and a block-countdown expiry encoded on-chain. Ordinally built the on-chain architecture; Lemonhaze built the visual system. The paradox: inscribed permanently on Bitcoin, designed to die. Explore what it means for a digital artwork to expire on the most permanent ledger humanity has built. Compare to traditional works with intentional obsolescence (Tinguely\'s self-destroying sculpture, On Kawara\'s date paintings, the Happening as ephemeral form). What does the collector relationship look like when the work has a death date — and what does it mean that the death is permanently recorded?'
     },
     {
         subject: 'Paint Engine v1.07 by Lemonhaze',
@@ -173,7 +175,7 @@ Think: Frieze essay crossed with online criticism. Intelligent, specific, no fil
 - Be specific: name actual works, reference actual sales or prices where relevant, cite inscription IDs or collection names when they add precision.
 - If you don't know a specific detail with confidence, work around it rather than fabricating it.
 - Structure: strong opening image or specific observation → 3–4 sections (## headings) → close with an open question or unresolved tension, not a summary.
-- Length: 900–1,300 words.
+- Length: 650–950 words.
 - Return one strict JSON object only (no prose before/after); the "content" field should contain markdown text.`;
 
 export const BLOG_SYSTEM = `You are writing a short editorial post for CATALOGUE — an independent directory of digital artists focused on Bitcoin Ordinals and generative work.
@@ -225,7 +227,7 @@ Return a JSON object with EXACTLY this shape (no other text, no markdown wrapper
 {
   "title": "...(not 'An Artist' or name-first — something that angles into the piece)",
   "excerpt": "...(1–2 sentences, hooks the reader without spoiling the argument)",
-  "content": "...(full article in markdown, 900–1300 words)",
+  "content": "...(full article in markdown, 650–950 words)",
   "tags": ["...", "..."] (2–5 lowercase hyphenated tags)
 }`;
 }
