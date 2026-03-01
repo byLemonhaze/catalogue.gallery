@@ -88,63 +88,55 @@ async function callClaude(apiKey: string, system: string, userPrompt: string): P
     }
 }
 
-export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ request, env }) => {
+export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ request, env, waitUntil }) => {
     // Auth check
     const auth = request.headers.get('x-content-lab-password') || '';
     if (auth !== env.CONTENT_LAB_PASSWORD) {
         return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
     }
 
-    const db = env.CONTACTS_DB;
-    const now = new Date().toISOString();
-    const results: { type: DraftType; success: boolean; title?: string }[] = [];
+    // Respond immediately — Claude API calls run in the background via waitUntil.
+    // This avoids Cloudflare's 30-second response timeout for 3 parallel LLM calls.
+    waitUntil((async () => {
+        const db = env.CONTACTS_DB;
+        const now = new Date().toISOString();
 
-    // Pick a random artist for article + blog
-    const artist = await fetchRandomArtist(env.VITE_SANITY_PROJECT_ID, env.VITE_SANITY_DATASET);
-    const artistName = artist?.name ?? 'a contemporary digital artist';
-    const artistSubtitle = artist?.subtitle ?? 'Bitcoin-native artist';
+        const artist = await fetchRandomArtist(env.VITE_SANITY_PROJECT_ID, env.VITE_SANITY_DATASET);
+        const artistName = artist?.name ?? 'a contemporary digital artist';
+        const artistSubtitle = artist?.subtitle ?? 'Bitcoin-native artist';
+        const topic = WILDCARD_TOPICS[Math.floor(Math.random() * WILDCARD_TOPICS.length)];
 
-    // Pick a random wildcard topic (avoid recent ones — simple random for now)
-    const topic = WILDCARD_TOPICS[Math.floor(Math.random() * WILDCARD_TOPICS.length)];
+        const [articleDraft, blogDraft, wildcardDraft] = await Promise.all([
+            callClaude(env.CLAUDE_API_KEY, ARTICLE_SYSTEM, buildArticlePrompt(artistName, artistSubtitle)),
+            callClaude(env.CLAUDE_API_KEY, BLOG_SYSTEM, buildBlogPrompt(artistName, artistSubtitle)),
+            callClaude(env.CLAUDE_API_KEY, WILDCARD_SYSTEM, buildWildcardPrompt(topic)),
+        ]);
 
-    // Generate all 3 in parallel
-    const [articleDraft, blogDraft, wildcardDraft] = await Promise.all([
-        callClaude(env.CLAUDE_API_KEY, ARTICLE_SYSTEM, buildArticlePrompt(artistName, artistSubtitle)),
-        callClaude(env.CLAUDE_API_KEY, BLOG_SYSTEM, buildBlogPrompt(artistName, artistSubtitle)),
-        callClaude(env.CLAUDE_API_KEY, WILDCARD_SYSTEM, buildWildcardPrompt(topic)),
-    ]);
+        const inserts: Promise<unknown>[] = [];
+        const insertDraft = (type: DraftType, draft: GeneratedDraft | null, sourceArtistId: string | null, sourceArtistName: string | null) => {
+            if (!draft) return;
+            const id = generateId();
+            inserts.push(
+                db.prepare(`
+                    INSERT INTO content_drafts (id, type, title, excerpt, content, tags, source_artist_id, source_artist_name, status, generated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
+                `).bind(
+                    id, type, draft.title, draft.excerpt, draft.content,
+                    JSON.stringify(draft.tags || []),
+                    sourceArtistId, sourceArtistName, now
+                ).run()
+            );
+        };
 
-    const inserts: Promise<unknown>[] = [];
+        insertDraft('article', articleDraft, artist?._id ?? null, artistName);
+        insertDraft('blog', blogDraft, artist?._id ?? null, artistName);
+        insertDraft('wildcard', wildcardDraft, null, null);
 
-    const insertDraft = (type: DraftType, draft: GeneratedDraft | null, sourceArtistId: string | null, sourceArtistName: string | null) => {
-        if (!draft) {
-            results.push({ type, success: false });
-            return;
-        }
-        const id = generateId();
-        results.push({ type, success: true, title: draft.title });
-        inserts.push(
-            db.prepare(`
-                INSERT INTO content_drafts (id, type, title, excerpt, content, tags, source_artist_id, source_artist_name, status, generated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
-            `).bind(
-                id, type, draft.title, draft.excerpt, draft.content,
-                JSON.stringify(draft.tags || []),
-                sourceArtistId, sourceArtistName, now
-            ).run()
-        );
-    };
+        await Promise.all(inserts);
+        await pruneDrafts(db, 100);
+    })());
 
-    insertDraft('article', articleDraft, artist?._id ?? null, artistName);
-    insertDraft('blog', blogDraft, artist?._id ?? null, artistName);
-    insertDraft('wildcard', wildcardDraft, null, null);
-
-    await Promise.all(inserts);
-
-    // Prune to 100 total
-    await pruneDrafts(db, 100);
-
-    return new Response(JSON.stringify({ ok: true, generated: results }), {
+    return new Response(JSON.stringify({ ok: true, queued: true }), {
         headers: { 'content-type': 'application/json' },
     });
 };
