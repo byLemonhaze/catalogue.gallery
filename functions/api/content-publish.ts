@@ -54,7 +54,8 @@ export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ reques
         content: string;
         tags: string[];
         deploy_target: string;
-        source_artist_id?: string; // Sanity _id of the featured artist, if any
+        source_artist_id?: string;    // Sanity _id of the featured artist, if any
+        thumbnailAssetId?: string;    // asset _ref from upload or artist thumbnail
     };
 
     if (!body.id || !body.deploy_target) {
@@ -85,6 +86,29 @@ export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ reques
     // Attach featured artist reference if we have it
     if (body.source_artist_id) {
         sanityDoc.featuredArtist = { _type: 'reference', _ref: body.source_artist_id };
+    }
+
+    // Resolve thumbnail: prefer explicit upload, then auto-fetch from artist
+    let thumbnailAssetRef = body.thumbnailAssetId;
+    if (!thumbnailAssetRef && body.source_artist_id) {
+        try {
+            const q = encodeURIComponent(`*[_id == "${body.source_artist_id}"][0].thumbnail.asset._ref`);
+            const artistUrl = `https://${SANITY_PROJECT_ID}.api.sanity.io/v2024-01-01/data/query/${SANITY_DATASET}?query=${q}`;
+            const artistRes = await fetch(artistUrl);
+            if (artistRes.ok) {
+                const artistData = await artistRes.json() as { result: string | null };
+                thumbnailAssetRef = artistData.result ?? undefined;
+            }
+        } catch {
+            // skip thumbnail — user can add in Studio
+        }
+    }
+
+    if (thumbnailAssetRef) {
+        sanityDoc.thumbnail = {
+            _type: 'image',
+            asset: { _type: 'reference', _ref: thumbnailAssetRef },
+        };
     }
 
     const mutations = [{ createOrReplace: sanityDoc }];

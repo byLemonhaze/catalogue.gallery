@@ -26,6 +26,7 @@ interface Artist {
     name: string;
     subtitle: string;
     _type: string;
+    thumbnailRef?: string;
 }
 
 interface GenerationFailure {
@@ -42,6 +43,9 @@ interface GenerationResult {
     failures?: GenerationFailure[];
 }
 
+const SANITY_PROJECT_ID = 'ebj9kqfo';
+const SANITY_DATASET = 'production';
+
 const TYPE_LABEL: Record<DraftType, string> = {
     article: 'Article',
     blog: 'Blog',
@@ -54,6 +58,16 @@ const DEPLOY_OPTIONS: { value: DeployTarget; label: string }[] = [
     { value: 'catalogue_interview', label: 'Interview → Catalogue' },
     { value: 'personal_blog', label: 'Personal Blog → lemonhaze.com' },
 ];
+
+// Converts a Sanity image asset _ref to a CDN URL
+function sanityImageUrl(ref: string, size = 200): string {
+    // ref format: "image-{hash}-{w}x{h}-{ext}"
+    const stripped = ref.replace(/^image-/, '');
+    const lastDash = stripped.lastIndexOf('-');
+    const ext = stripped.slice(lastDash + 1);
+    const body = stripped.slice(0, lastDash);
+    return `https://cdn.sanity.io/images/${SANITY_PROJECT_ID}/${SANITY_DATASET}/${body}.${ext}?w=${size}&h=${size}&fit=crop`;
+}
 
 function formatDate(iso: string) {
     return new Date(iso).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -84,7 +98,7 @@ function humanizeFailureReason(reason: string): string {
 
 function formatFailureSummary(failures: GenerationFailure[]): string {
     return failures
-        .map((failure) => `${failure.type}: ${humanizeFailureReason(failure.reason)}`)
+        .map((f) => `${f.type}: ${humanizeFailureReason(f.reason)}`)
         .join(' | ');
 }
 
@@ -116,13 +130,28 @@ function AuthGate({ onAuth }: { onAuth: (pw: string) => void }) {
 }
 
 // ─── Draft card ──────────────────────────────────────────────────────────────
-function DraftCard({ draft, password, onUpdate }: { draft: Draft; password: string; onUpdate: () => void }) {
+function DraftCard({
+    draft,
+    password,
+    onUpdate,
+    artistThumbnailRef,
+}: {
+    draft: Draft;
+    password: string;
+    onUpdate: () => void;
+    artistThumbnailRef?: string;
+}) {
     const [expanded, setExpanded] = useState(false);
     const [showPublish, setShowPublish] = useState(false);
     const [showRevise, setShowRevise] = useState(false);
     const [deployTarget, setDeployTarget] = useState<DeployTarget>('catalogue_article');
     const [revisionNote, setRevisionNote] = useState('');
     const [loading, setLoading] = useState(false);
+    const [uploadedAssetId, setUploadedAssetId] = useState<string | null>(null);
+    const [uploading, setUploading] = useState(false);
+    const [uploadError, setUploadError] = useState('');
+
+    const effectiveThumbnailRef = uploadedAssetId || artistThumbnailRef;
 
     const apiFetch = useCallback((path: string, body: object) =>
         fetch(path, {
@@ -130,6 +159,32 @@ function DraftCard({ draft, password, onUpdate }: { draft: Draft; password: stri
             headers: { 'content-type': 'application/json', 'x-content-lab-password': password },
             body: JSON.stringify(body),
         }), [password]);
+
+    const handleImageUpload = async (file: File) => {
+        setUploading(true);
+        setUploadError('');
+        try {
+            const res = await fetch('/api/content-upload-image', {
+                method: 'POST',
+                headers: {
+                    'x-content-lab-password': password,
+                    'content-type': file.type || 'image/jpeg',
+                },
+                body: await file.arrayBuffer(),
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({})) as { error?: string };
+                setUploadError(err.error || 'Upload failed');
+                return;
+            }
+            const data = await res.json() as { assetId: string };
+            setUploadedAssetId(data.assetId);
+        } catch {
+            setUploadError('Upload failed — check connection.');
+        } finally {
+            setUploading(false);
+        }
+    };
 
     const handlePublish = async () => {
         setLoading(true);
@@ -141,6 +196,7 @@ function DraftCard({ draft, password, onUpdate }: { draft: Draft; password: stri
             tags: draft.tags,
             deploy_target: deployTarget,
             source_artist_id: draft.source_artist_id ?? undefined,
+            thumbnailAssetId: effectiveThumbnailRef ?? undefined,
         });
         if (!res.ok) {
             const body = await res.json().catch(() => ({})) as { error?: string };
@@ -174,13 +230,27 @@ function DraftCard({ draft, password, onUpdate }: { draft: Draft; password: stri
     return (
         <div className="border-b border-white/8 py-5">
             <div className="flex items-start gap-4">
-                {/* Type badge */}
-                <span className="text-[9px] font-mono text-white/20 uppercase tracking-widest shrink-0 mt-0.5 w-10">
-                    {TYPE_LABEL[draft.type]}
-                </span>
+
+                {/* Left col: thumbnail or type badge */}
+                {effectiveThumbnailRef ? (
+                    <img
+                        src={sanityImageUrl(effectiveThumbnailRef, 48)}
+                        alt=""
+                        className="w-10 h-10 object-cover shrink-0 mt-0.5 opacity-70"
+                    />
+                ) : (
+                    <span className="text-[9px] font-mono text-white/20 uppercase tracking-widest shrink-0 mt-0.5 w-10 pt-0.5">
+                        {TYPE_LABEL[draft.type]}
+                    </span>
+                )}
 
                 {/* Main */}
                 <div className="flex-1 min-w-0">
+                    {effectiveThumbnailRef && (
+                        <span className="text-[9px] font-mono text-white/20 uppercase tracking-widest">
+                            {TYPE_LABEL[draft.type]}
+                        </span>
+                    )}
                     <button
                         onClick={() => setExpanded(e => !e)}
                         className="text-left w-full group"
@@ -233,6 +303,58 @@ function DraftCard({ draft, password, onUpdate }: { draft: Draft; password: stri
                                     </button>
                                 ))}
                             </div>
+
+                            {/* Thumbnail */}
+                            <div className="space-y-2">
+                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">Thumbnail</p>
+                                <div className="flex items-center gap-3">
+                                    {effectiveThumbnailRef ? (
+                                        <img
+                                            src={sanityImageUrl(effectiveThumbnailRef, 80)}
+                                            alt="thumbnail preview"
+                                            className="w-16 h-16 object-cover border border-white/15 shrink-0"
+                                        />
+                                    ) : (
+                                        <div className="w-16 h-16 border border-white/10 flex items-center justify-center shrink-0">
+                                            <span className="text-[9px] font-mono text-white/20">none</span>
+                                        </div>
+                                    )}
+                                    <div className="flex-1 space-y-1">
+                                        <label className="cursor-pointer block">
+                                            <span className={`text-[10px] font-bold uppercase tracking-[0.15em] border px-3 py-1.5 block text-center transition-colors ${uploading ? 'border-white/10 text-white/20' : 'border-white/15 text-white/40 hover:border-white/30 hover:text-white/70'}`}>
+                                                {uploading ? 'Uploading…' : effectiveThumbnailRef ? 'Replace image' : 'Upload image'}
+                                            </span>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                disabled={uploading}
+                                                onChange={e => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) handleImageUpload(file);
+                                                }}
+                                            />
+                                        </label>
+                                        {artistThumbnailRef && uploadedAssetId && (
+                                            <button
+                                                onClick={() => setUploadedAssetId(null)}
+                                                className="text-[9px] font-mono text-white/20 hover:text-white/50 transition-colors"
+                                            >
+                                                ← use artist thumbnail
+                                            </button>
+                                        )}
+                                        {!artistThumbnailRef && !uploadedAssetId && (
+                                            <p className="text-[9px] font-mono text-white/20">
+                                                No thumbnail — you can add one in Studio after publishing.
+                                            </p>
+                                        )}
+                                        {uploadError && (
+                                            <p className="text-[9px] text-red-400/70">{uploadError}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
                             <button
                                 onClick={handlePublish}
                                 disabled={loading}
@@ -284,7 +406,7 @@ function DraftCard({ draft, password, onUpdate }: { draft: Draft; password: stri
                         onClick={handleDelete}
                         disabled={loading}
                         className="text-white/20 hover:text-red-400/70 transition-colors text-sm font-mono"
-                        title="Delete draft"
+                        title="Delete draft permanently"
                     >
                         ×
                     </button>
@@ -301,23 +423,29 @@ export function ContentLab() {
     const [drafts, setDrafts] = useState<Draft[]>([]);
     const [loading, setLoading] = useState(false);
     const [generating, setGenerating] = useState(false);
-    const [statusFilter, setStatusFilter] = useState<'pending' | 'published' | 'dismissed'>('pending');
+    const [statusFilter, setStatusFilter] = useState<'pending' | 'published'>('pending');
     const [error, setError] = useState('');
     const [artists, setArtists] = useState<Artist[]>([]);
     const [selectedArtistId, setSelectedArtistId] = useState('random');
 
-    const fetchArtists = useCallback(async (pw: string) => {
+    // Fetch artists directly from Sanity public CDN — no auth needed, no Pages Function
+    const fetchArtists = useCallback(async () => {
         try {
-            const res = await fetch('/api/content-artists', {
-                headers: { 'x-content-lab-password': pw },
-            });
+            const query = encodeURIComponent(
+                `*[_type in ["artist","gallery"] && status == "published"]{_id, name, "subtitle": coalesce(subtitle, ""), _type, "thumbnailRef": thumbnail.asset._ref} | order(name asc)`
+            );
+            const url = `https://${SANITY_PROJECT_ID}.apicdn.sanity.io/v2024-01-01/data/query/${SANITY_DATASET}?query=${query}`;
+            const res = await fetch(url);
             if (!res.ok) return;
-            const data = await res.json() as { artists: Artist[] };
-            setArtists(data.artists || []);
+            const data = await res.json() as { result: Artist[] };
+            setArtists(data.result || []);
         } catch {
-            // non-fatal — artist picker just won't populate
+            // non-fatal — picker just won't show artists
         }
     }, []);
+
+    // Artists are public — load them immediately on mount, no auth required
+    useEffect(() => { fetchArtists(); }, [fetchArtists]);
 
     const fetchDrafts = useCallback(async (pw: string) => {
         setLoading(true);
@@ -340,8 +468,7 @@ export function ContentLab() {
         setPassword(pw);
         setAuthed(true);
         fetchDrafts(pw);
-        fetchArtists(pw);
-    }, [fetchDrafts, fetchArtists]);
+    }, [fetchDrafts]);
 
     useEffect(() => {
         if (authed && password) fetchDrafts(password);
@@ -362,25 +489,22 @@ export function ContentLab() {
                 body: JSON.stringify(body),
             });
             if (!res.ok) {
-                const body = await res.json().catch(() => ({})) as { error?: string };
-                setError(body.error === 'API key not configured'
+                const data = await res.json().catch(() => ({})) as { error?: string };
+                setError(data.error === 'API key not configured'
                     ? 'CLAUDE_API_KEY not set — add it via Cloudflare Pages → Settings → Secrets.'
                     : 'Generation failed. Check Cloudflare logs for details.');
                 return;
             }
             const result = await res.json() as GenerationResult;
             const failures = result.failures || [];
-
             if (result.created === 0) {
-                const summary = failures.length
-                    ? ` Failures: ${formatFailureSummary(failures)}.`
-                    : '';
-                setError(`Generation created 0/${result.attempted || 3} drafts.${summary} Check Cloudflare logs for details.`);
+                const summary = failures.length ? ` Failures: ${formatFailureSummary(failures)}.` : '';
+                setError(`Generation created 0/${result.attempted || 3} drafts.${summary}`);
                 return;
             }
             await fetchDrafts(password);
             if (failures.length > 0) {
-                setError(`Generated ${result.created}/${result.attempted || 3}. Remaining failures: ${formatFailureSummary(failures)}.`);
+                setError(`Generated ${result.created}/${result.attempted || 3}. Remaining: ${formatFailureSummary(failures)}.`);
             }
         } catch {
             setError('Request failed. Check your connection.');
@@ -391,8 +515,7 @@ export function ContentLab() {
 
     if (!authed) return <AuthGate onAuth={handleAuth} />;
 
-    const pending = drafts.filter(d => d.status === 'pending');
-    const groups = groupByDay(pending);
+    const groups = groupByDay(drafts.filter(d => d.status === 'pending'));
 
     return (
         <div className="min-h-screen bg-black text-white selection:bg-white/20">
@@ -434,9 +557,9 @@ export function ContentLab() {
                     </div>
                 </div>
 
-                {/* Filters */}
+                {/* Filters — pending and published only, deleted = gone */}
                 <div className="flex gap-6 mb-10">
-                    {(['pending', 'published', 'dismissed'] as const).map(s => (
+                    {(['pending', 'published'] as const).map(s => (
                         <button
                             key={s}
                             onClick={() => setStatusFilter(s)}
@@ -462,36 +585,44 @@ export function ContentLab() {
                 ) : drafts.length === 0 ? (
                     <div className="py-16 text-center">
                         <p className="text-[11px] font-mono text-white/20 uppercase tracking-[0.3em]">
-                            {statusFilter === 'pending' ? 'No pending drafts — hit Generate Now to create today\'s batch.' : `No ${statusFilter} drafts.`}
+                            {statusFilter === 'pending'
+                                ? "No pending drafts — hit Generate Now to create today's batch."
+                                : `No ${statusFilter} drafts.`}
                         </p>
                     </div>
                 ) : statusFilter === 'pending' ? (
-                    // Grouped by day
                     groups.map(([day, dayDrafts]) => (
                         <div key={day} className="mb-10">
                             <p className="text-[9px] font-mono text-white/20 uppercase tracking-[0.3em] mb-4">
                                 {formatDate(day)}
                             </p>
-                            {dayDrafts.map(draft => (
-                                <DraftCard
-                                    key={draft.id}
-                                    draft={draft}
-                                    password={password}
-                                    onUpdate={() => fetchDrafts(password)}
-                                />
-                            ))}
+                            {dayDrafts.map(draft => {
+                                const artist = artists.find(a => a._id === draft.source_artist_id);
+                                return (
+                                    <DraftCard
+                                        key={draft.id}
+                                        draft={draft}
+                                        password={password}
+                                        artistThumbnailRef={artist?.thumbnailRef}
+                                        onUpdate={() => fetchDrafts(password)}
+                                    />
+                                );
+                            })}
                         </div>
                     ))
                 ) : (
-                    // Flat list for published/dismissed
-                    drafts.map(draft => (
-                        <DraftCard
-                            key={draft.id}
-                            draft={draft}
-                            password={password}
-                            onUpdate={() => fetchDrafts(password)}
-                        />
-                    ))
+                    drafts.map(draft => {
+                        const artist = artists.find(a => a._id === draft.source_artist_id);
+                        return (
+                            <DraftCard
+                                key={draft.id}
+                                draft={draft}
+                                password={password}
+                                artistThumbnailRef={artist?.thumbnailRef}
+                                onUpdate={() => fetchDrafts(password)}
+                            />
+                        );
+                    })
                 )}
             </div>
         </div>

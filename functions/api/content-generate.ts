@@ -219,17 +219,34 @@ export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ reques
         artistSubtitle?: string;
     };
 
+    // Fallback pool for when Sanity is unreachable — ensures variety even without live data
+    const FALLBACK_POOL = [
+        { _id: '', name: 'XCOPY', subtitle: 'Dystopian glitch loops, crypto art OG, mortality and dark humor' },
+        { _id: '', name: 'Claire Silver', subtitle: 'AI-collaborative artist, femininity, softness as aesthetic resistance' },
+        { _id: '', name: 'William Mapan', subtitle: 'French generative artist, Dragons and Anticyclone, painterly code' },
+        { _id: '', name: 'Tyler Hobbs', subtitle: 'Generative artist, Fidenza on Art Blocks, flow field algorithms' },
+        { _id: '', name: 'Beeple', subtitle: 'Everydays daily practice since 2007, Christie\'s $69M sale' },
+        { _id: '', name: 'Pak', subtitle: 'Anonymous artist, Merge $91.8M total, token mechanics as artistic medium' },
+        { _id: '', name: 'Rare Scrilla', subtitle: 'Bitcoin OG, Rare Pepe era trading cards, hip-hop aesthetics' },
+        { _id: '', name: 'Robness', subtitle: 'Trash art pioneer, anti-prestige, deliberately low-fi aesthetics' },
+        { _id: '', name: 'Lemonhaze', subtitle: 'Paint Engine, BEST BEFORE with Ordinally, Bitcoin-native generative art' },
+    ];
+
     let artist: { _id: string; name: string; subtitle: string } | null = null;
     if (body.artistName) {
         // UI picker provided a specific artist — use it directly
         artist = { _id: body.artistId || '', name: body.artistName, subtitle: body.artistSubtitle || '' };
     } else {
-        // No selection — pick randomly from the directory
+        // No selection — pick randomly from the live directory
         artist = await fetchRandomArtist();
+        // If Sanity unreachable, fall back to known artists rather than a vague placeholder
+        if (!artist) {
+            artist = FALLBACK_POOL[Math.floor(Math.random() * FALLBACK_POOL.length)];
+        }
     }
 
-    const artistName = artist?.name ?? 'a contemporary digital artist';
-    const artistSubtitle = artist?.subtitle ?? 'Bitcoin-native artist';
+    const artistName = artist.name;
+    const artistSubtitle = artist.subtitle;
     const topic = WILDCARD_TOPICS[Math.floor(Math.random() * WILDCARD_TOPICS.length)];
 
     console.log(`[content-generate] Artist: ${artistName} | Topic: ${topic.subject}`);
@@ -277,8 +294,8 @@ export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ reques
     const blogAttempt = attempts[1];
     const wildcardAttempt = attempts[2];
 
-    insertDraft('article', articleAttempt.ok ? articleAttempt.draft : null, artist?._id ?? null, artistName);
-    insertDraft('blog', blogAttempt.ok ? blogAttempt.draft : null, artist?._id ?? null, artistName);
+    insertDraft('article', articleAttempt.ok ? articleAttempt.draft : null, artist._id || null, artistName);
+    insertDraft('blog', blogAttempt.ok ? blogAttempt.draft : null, artist._id || null, artistName);
     insertDraft('wildcard', wildcardAttempt.ok ? wildcardAttempt.draft : null, null, null);
 
     await Promise.all(inserts);
