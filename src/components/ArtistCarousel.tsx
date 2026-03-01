@@ -140,44 +140,43 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
         const isPrev = diff === -1;
         const isNext = diff === 1;
 
-        // Base styles
-        let style: React.CSSProperties = {
+        const base: React.CSSProperties = {
             transition: isDragging ? 'none' : 'all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1)',
             position: 'absolute',
             left: '50%',
-            transform: 'translateX(-50%)',
+            transform: 'translateX(-50%) scale(0.75)',
             opacity: 0,
             zIndex: 0,
             pointerEvents: 'none',
-            scale: '0.8',
             filter: 'blur(5px) grayscale(100%)',
         };
 
+        let style: React.CSSProperties = base;
+
         if (isActive) {
             style = {
-                ...style,
+                ...base,
                 opacity: 1,
                 zIndex: 20,
                 pointerEvents: 'auto',
-                scale: '1',
                 filter: 'blur(0px) grayscale(0%)',
-                transform: `translateX(calc(-50% + ${dragOffset}px))`,
+                transform: `translateX(calc(-50% + ${dragOffset}px)) scale(1)`,
             };
         } else if (isPrev) {
             style = {
-                ...style,
-                opacity: 0.3,
+                ...base,
+                opacity: 0.15,
                 zIndex: 10,
-                pointerEvents: 'none',
-                transform: `translateX(calc(-100% + ${dragOffset}px)) scale(0.9)`, // Adjusted for visibility
+                filter: 'blur(2px) grayscale(100%)',
+                transform: `translateX(calc(-100% + ${dragOffset}px)) scale(0.72)`,
             };
         } else if (isNext) {
             style = {
-                ...style,
-                opacity: 0.3,
+                ...base,
+                opacity: 0.15,
                 zIndex: 10,
-                pointerEvents: 'none',
-                transform: `translateX(calc(0% + ${dragOffset}px)) scale(0.9)`, // Adjusted for visibility
+                filter: 'blur(2px) grayscale(100%)',
+                transform: `translateX(calc(0% + ${dragOffset}px)) scale(0.72)`,
             };
         }
 

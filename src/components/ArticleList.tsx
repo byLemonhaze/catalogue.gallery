@@ -22,7 +22,7 @@ export const ArticleList: React.FC<ArticleListProps> = ({ filter = 'all', articl
             <Helmet>
                 <title>Archives | CATALOGUE</title>
             </Helmet>
-            <div className="pt-56 md:pt-52 p-6 max-w-4xl mx-auto min-h-screen">
+            <div className="pt-28 md:pt-24 p-6 max-w-4xl mx-auto min-h-screen">
 
 
 

@@ -22,14 +22,14 @@ export const ArtistList: React.FC = () => {
     const { artists, loading, error } = useArtists();
 
     if (loading) return (
-        <div className="flex items-center justify-center min-h-screen pt-40">
+        <div className="flex items-center justify-center min-h-screen pt-24">
             <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
         </div>
     );
 
     if (!artists.length) {
         return (
-            <div className="min-h-screen bg-black text-white pt-44 px-6">
+            <div className="min-h-screen bg-black text-white pt-24 px-6">
                 <div className="max-w-xl mx-auto border border-white/10 bg-[#0d0d0d]  p-6 text-center">
                     <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/70">Unable to load directory</p>
                     <p className="mt-3 text-sm text-white/50">{error || 'Could not reach Sanity right now.'}</p>
@@ -69,7 +69,7 @@ export const ArtistList: React.FC = () => {
                 <title>Directory | CATALOGUE</title>
             </Helmet>
 
-            <div className="pt-60 md:pt-56 p-6 max-w-7xl mx-auto min-h-screen space-y-24">
+            <div className="pt-28 md:pt-24 p-6 max-w-7xl mx-auto min-h-screen space-y-24">
 
                 {/* Individual Artists Section */}
                 <section className="space-y-8">

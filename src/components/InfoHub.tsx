@@ -15,7 +15,7 @@ export function InfoHub({ setIsLegalModalOpen }: InfoHubProps) {
                 <title>Apply | CATALOGUE</title>
             </Helmet>
 
-            <div className="pt-32 md:pt-28 p-6 max-w-5xl mx-auto min-h-screen animate-fade-in relative pb-32">
+            <div className="pt-28 md:pt-24 p-6 max-w-5xl mx-auto min-h-screen animate-fade-in relative pb-32">
 
                 {/* Content */}
                 <div className="mt-12 divide-y divide-white/10">
@@ -60,12 +60,6 @@ export function InfoHub({ setIsLegalModalOpen }: InfoHubProps) {
                                 className="inline-flex items-center justify-center px-6 py-3 bg-transparent hover:bg-white/5 text-white border border-white/25 hover:border-white/40 text-xs font-bold uppercase tracking-widest transition-colors"
                             >
                                 Apply to Catalogue
-                            </Link>
-                            <Link
-                                to="/build"
-                                className="inline-flex items-center justify-center px-6 py-3 bg-transparent hover:bg-white/5 text-white/60 hover:text-white border border-white/10 hover:border-white/25 text-xs font-bold uppercase tracking-widest transition-colors"
-                            >
-                                Build Universe
                             </Link>
                         </div>
                     </section>

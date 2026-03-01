@@ -1,11 +1,13 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
+interface NavigationProps {
+    onSearchOpen?: () => void;
+}
 
-export const Navigation: React.FC = () => {
+export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen }) => {
     const location = useLocation();
     const path = location.pathname;
-
 
     const isActive = (route: string) => {
         if (route === '/' && path === '/') return true;
@@ -25,6 +27,7 @@ export const Navigation: React.FC = () => {
 
     return (
         <header className="fixed inset-x-0 top-0 z-50 pointer-events-none">
+            {/* Mobile */}
             <div className="md:hidden pointer-events-auto mt-4">
                 <div className="flex items-center justify-center">
                     <Link to="/" className="text-base uppercase tracking-[0.16em] text-white transition-opacity hover:opacity-80 font-display">
@@ -32,29 +35,22 @@ export const Navigation: React.FC = () => {
                     </Link>
                 </div>
                 <nav className="mt-2 flex items-center justify-center gap-6">
-                    <Link
-                        to="/artists"
-                        className={`${mobileLinkClass} ${isActive('/artists') ? activeLinkClass : ''}`}
-                    >
-                        Directory
-                    </Link>
-
-                    <Link
-                        to="/blog"
-                        className={`${mobileLinkClass} ${isActive('/blog') ? activeLinkClass : ''}`}
-                    >
-                        Blog
-                    </Link>
-
-                    <Link
-                        to="/info"
-                        className={`${mobileLinkClass} ${isActive('/info') ? activeLinkClass : ''}`}
-                    >
-                        Apply
-                    </Link>
+                    <Link to="/artists" className={`${mobileLinkClass} ${isActive('/artists') ? activeLinkClass : ''}`}>Directory</Link>
+                    <Link to="/blog" className={`${mobileLinkClass} ${isActive('/blog') ? activeLinkClass : ''}`}>Blog</Link>
+                    <Link to="/info" className={`${mobileLinkClass} ${isActive('/info') ? activeLinkClass : ''}`}>Apply</Link>
+                    {onSearchOpen && (
+                        <button
+                            onClick={onSearchOpen}
+                            className={`${mobileLinkClass}`}
+                            aria-label="Search"
+                        >
+                            Search
+                        </button>
+                    )}
                 </nav>
             </div>
 
+            {/* Desktop */}
             <nav className="pointer-events-auto mx-auto mt-6 hidden w-full max-w-7xl items-center justify-between gap-5 px-8 md:flex">
                 <div className="shrink-0">
                     <Link to="/" className="text-base md:text-lg uppercase tracking-[0.16em] text-white transition-opacity hover:opacity-80 font-display">
@@ -63,26 +59,21 @@ export const Navigation: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-5 overflow-x-auto scrollbar-hide">
-                    <Link
-                        to="/artists"
-                        className={`${baseLinkClass} ${isActive('/artists') ? activeLinkClass : ''}`}
-                    >
-                        Directory
-                    </Link>
+                    <Link to="/artists" className={`${baseLinkClass} ${isActive('/artists') ? activeLinkClass : ''}`}>Directory</Link>
+                    <Link to="/blog" className={`${baseLinkClass} ${isActive('/blog') ? activeLinkClass : ''}`}>Blog</Link>
+                    <Link to="/info" className={`${baseLinkClass} ${isActive('/info') ? activeLinkClass : ''}`}>Apply</Link>
 
-                    <Link
-                        to="/blog"
-                        className={`${baseLinkClass} ${isActive('/blog') ? activeLinkClass : ''}`}
-                    >
-                        Blog
-                    </Link>
-
-                    <Link
-                        to="/info"
-                        className={`${baseLinkClass} ${isActive('/info') ? activeLinkClass : ''}`}
-                    >
-                        Apply
-                    </Link>
+                    {onSearchOpen && (
+                        <button
+                            onClick={onSearchOpen}
+                            className="inline-flex items-center gap-2 pb-1 text-[11px] uppercase tracking-[0.12em] text-white/40 hover:text-white transition-colors duration-200 font-display border-l border-white/10 pl-5 ml-1 cursor-pointer"
+                            aria-label="Search"
+                        >
+                            <span className="text-sm">⌕</span>
+                            <span>Search</span>
+                            <kbd className="text-[9px] font-mono text-white/20 border border-white/10 px-1.5 py-0.5 leading-tight">⌘K</kbd>
+                        </button>
+                    )}
                 </div>
             </nav>
         </header>

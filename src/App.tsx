@@ -1,18 +1,20 @@
-import { useState } from 'react';
+import { useState, useMemo, lazy, Suspense, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { Navigation } from './components/Navigation';
 import { ArtistCarousel } from './components/ArtistCarousel';
-import { ArtistList } from './components/ArtistList';
-import { ArticleView } from './components/ArticleView';
-import { ArticleList } from './components/ArticleList';
-import { InfoHub } from './components/InfoHub';
 import { LegalModal } from './components/LegalModal';
 import { GlobalSearch } from './components/GlobalSearch';
-import { ArtistFrame } from './pages/ArtistFrame';
-import { SubmitArtist } from './pages/SubmitArtist';
-import { Build } from './pages/Build';
 import type { Artist } from './hooks/useArtists';
+
+// Lazy-loaded routes — only fetched when the user navigates to them
+const ArtistList = lazy(() => import('./components/ArtistList').then(m => ({ default: m.ArtistList })));
+const ArticleView = lazy(() => import('./components/ArticleView').then(m => ({ default: m.ArticleView })));
+const ArticleList = lazy(() => import('./components/ArticleList').then(m => ({ default: m.ArticleList })));
+const InfoHub = lazy(() => import('./components/InfoHub').then(m => ({ default: m.InfoHub })));
+const ArtistFrame = lazy(() => import('./pages/ArtistFrame').then(m => ({ default: m.ArtistFrame })));
+const SubmitArtist = lazy(() => import('./pages/SubmitArtist').then(m => ({ default: m.SubmitArtist })));
+const Build = lazy(() => import('./pages/Build').then(m => ({ default: m.Build })));
 
 interface HomeProps {
   artists: Artist[];
@@ -58,7 +60,7 @@ function Home({ artists, loading, artistsError, setIsLegalModalOpen }: HomeProps
       />
 
       {/* Main Content */}
-      <main className="relative h-full flex flex-col items-center justify-start px-0 md:px-6 max-w-7xl mx-auto pt-52 pb-8 md:justify-center md:pt-36 md:pb-0">
+      <main className="relative h-full flex flex-col items-center justify-center px-0 md:px-6 max-w-7xl mx-auto pt-0 pb-0 md:pt-36">
 
         {/* Carousel Container */}
         {/* Mobile: Flex-1 to push it to center vertically. Desktop: Normal flow. */}
@@ -94,6 +96,8 @@ function Home({ artists, loading, artistsError, setIsLegalModalOpen }: HomeProps
             />
           )}
         </div>
+
+
       </main>
 
       {/* Footer - Fixed at bottom */}
@@ -176,28 +180,36 @@ import { useArticles } from './hooks/useArticles';
 
 const AppContent = () => {
   const location = useLocation();
-  const isSearchPage =
-    location.pathname === '/' ||
-    location.pathname === '/artists' ||
-    location.pathname === '/blog';
-  const isSubmitPage = location.pathname === '/submit';
-  const isBuildPage = location.pathname === '/build';
   const isArtistPage = location.pathname.startsWith('/artist/') || location.pathname.startsWith('/gallery/');
 
   const { artists, loading, error: artistsError } = useArtists();
   const { articles, loading: articlesLoading } = useArticles();
   const [search, setSearch] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
 
-  // Randomized artists for the Home page
-  const randomizedArtists = [...artists];
-  // Fisher-Yates shuffle for all artists (only shuffle when loading is finished)
-  if (!loading) {
-    for (let i = randomizedArtists.length - 1; i > 0; i--) {
+  // Cmd+K / Ctrl+K to open search
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        if (!isArtistPage) setIsSearchOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [isArtistPage]);
+
+  // Randomized artists — memoized so the order is stable across re-renders
+  const randomizedArtists = useMemo(() => {
+    if (loading) return artists;
+    const arr = [...artists];
+    for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [randomizedArtists[i], randomizedArtists[j]] = [randomizedArtists[j], randomizedArtists[i]];
+      [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-  }
+    return arr;
+  }, [artists, loading]);
 
   const filteredArtists = randomizedArtists.filter(artist =>
     artist.name.toLowerCase().includes(search.toLowerCase())
@@ -209,24 +221,28 @@ const AppContent = () => {
   );
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans selection:bg-white/20">
-      <Navigation />
+    <div className="min-h-screen bg-black text-white font-display selection:bg-white/20">
+      <Navigation onSearchOpen={() => setIsSearchOpen(true)} />
 
       <LegalModal
         isOpen={isLegalModalOpen}
         onClose={() => setIsLegalModalOpen(false)}
       />
 
-      {/* Show global search on home, directory, and blog list */}
-      {isSearchPage && !isSubmitPage && !isBuildPage && !isArtistPage && !isLegalModalOpen && (
-        <GlobalSearch
-          search={search}
-          setSearch={setSearch}
-          filteredArtists={filteredArtists}
-          filteredArticles={filteredArticles}
-        />
-      )}
+      <GlobalSearch
+        search={search}
+        setSearch={setSearch}
+        filteredArtists={filteredArtists}
+        filteredArticles={filteredArticles}
+        isOpen={isSearchOpen && !isArtistPage}
+        onClose={() => setIsSearchOpen(false)}
+      />
 
+      <Suspense fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+        </div>
+      }>
       <Routes>
         <Route
           path="/"
@@ -251,6 +267,7 @@ const AppContent = () => {
         <Route path="/build" element={<Build />} />
         <Route path="/info" element={<InfoHub setIsLegalModalOpen={setIsLegalModalOpen} />} />
       </Routes>
+      </Suspense>
     </div>
   );
 };

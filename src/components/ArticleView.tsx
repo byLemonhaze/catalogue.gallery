@@ -3,7 +3,6 @@ import { useParams, Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { useArtists } from '../hooks/useArtists';
 import { processArticleContent } from '../utils/linkUtils';
-import { Navigation } from './Navigation';
 import { Helmet } from 'react-helmet-async';
 import type { ArticleRecord } from '../types/article';
 
@@ -33,7 +32,6 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
     if (loading && !article) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-black text-white">
-                <Navigation />
                 <div className="text-xs text-white/40 font-mono uppercase tracking-widest">Loading article...</div>
             </div>
         );
@@ -42,7 +40,6 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
     if (!article) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-black text-white">
-                <Navigation />
                 <div className="text-center">
                     <h1 className="text-4xl font-bold mb-4">404</h1>
                     <p className="text-white/50 mb-8">Article not found.</p>
@@ -69,11 +66,9 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
                 <meta name="twitter:description" content={article.excerpt} />
                 <meta name="twitter:image" content={socialImage} />
             </Helmet>
-            {/* Header / Nav */}
-            <Navigation />
 
             {/* Article Content */}
-            <article className="pt-60 pb-32 px-6 max-w-4xl mx-auto">
+            <article className="pt-28 md:pt-24 pb-32 px-6 max-w-4xl mx-auto">
                 <header className="mb-16 text-center border-b border-white/10 pb-10">
                     <div className="inline-block mb-6">
                         <span className="px-3 py-1 border border-white/20 rounded-[4px] text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">
