@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ArtistCard } from './ArtistCard';
 import { useNavigate } from 'react-router-dom';
 import { urlFor } from '../sanity/image';
@@ -21,23 +21,20 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
     // Add "Coming Soon" as a virtual item
     const totalItems = artists.length;
 
-    const next = () => {
-        setActiveIndex((current: number) => {
-            const newIndex = (current + 1) % totalItems;
-            onIndexChange?.(newIndex);
-            return newIndex;
-        });
-    };
+    const next = useCallback(() => {
+        setActiveIndex((current: number) => (current + 1) % totalItems);
+    }, [totalItems]);
 
-    const prev = () => {
-        setActiveIndex((current: number) => {
-            const newIndex = (current - 1 + totalItems) % totalItems;
-            onIndexChange?.(newIndex);
-            return newIndex;
-        });
-    };
+    const prev = useCallback(() => {
+        setActiveIndex((current: number) => (current - 1 + totalItems) % totalItems);
+    }, [totalItems]);
 
-    // Keyboard navigation
+    // Notify parent when index changes — kept out of the state updater
+    useEffect(() => {
+        onIndexChange?.(activeIndex);
+    }, [activeIndex, onIndexChange]);
+
+    // Keyboard navigation — stable deps via useCallback
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'ArrowLeft') prev();
@@ -45,15 +42,13 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, []);
+    }, [prev, next]);
 
     // Auto-play
     useEffect(() => {
-        const timer = setTimeout(() => {
-            next();
-        }, 5000); // 5 seconds auto-switch
+        const timer = setTimeout(next, 5000);
         return () => clearTimeout(timer);
-    }, [activeIndex]);
+    }, [activeIndex, next]);
 
     // Sample dominant color from active artist thumbnail
     useEffect(() => {
