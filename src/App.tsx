@@ -24,6 +24,7 @@ interface HomeProps {
 function Home({ artists, loading, artistsError, setIsLegalModalOpen }: HomeProps) {
   // Restore carousel position from location state (exit navigation) or sessionStorage
   const location = useLocation();
+  const [glowColor, setGlowColor] = useState('20, 20, 20');
   const [carouselIndex, setCarouselIndex] = useState(() => {
     const state = location.state as { returnFromUniverse?: boolean; slideIndex?: number } | null;
     if (state?.returnFromUniverse && typeof state.slideIndex === 'number') {
@@ -40,8 +41,21 @@ function Home({ artists, loading, artistsError, setIsLegalModalOpen }: HomeProps
       <Helmet>
         <title>CATALOGUE</title>
       </Helmet>
-      {/* Background Ambience */}
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(255,255,255,0.08),transparent_48%),linear-gradient(to_bottom,#050505,#000000)] pointer-events-none" />
+      {/* Background Ambience — reactive color bleed from active artist */}
+      <div className="fixed inset-0 bg-gradient-to-b from-[#050505] to-black pointer-events-none" />
+      <div
+        className="fixed pointer-events-none"
+        style={{
+          top: 0, left: '50%',
+          width: '900px', height: '700px',
+          transform: 'translateX(-50%) translateY(-42%)',
+          backgroundColor: `rgb(${glowColor})`,
+          filter: 'blur(160px)',
+          opacity: 0.14,
+          transition: 'background-color 2s ease',
+          borderRadius: '50%',
+        }}
+      />
 
       {/* Main Content */}
       <main className="relative h-full flex flex-col items-center justify-start px-0 md:px-6 max-w-7xl mx-auto pt-52 pb-8 md:justify-center md:pt-36 md:pb-0">
@@ -74,9 +88,9 @@ function Home({ artists, loading, artistsError, setIsLegalModalOpen }: HomeProps
               initialIndex={carouselIndex}
               onIndexChange={(index) => {
                 setCarouselIndex(index);
-                // Persist carousel position to sessionStorage
                 sessionStorage.setItem('carouselIndex', index.toString());
               }}
+              onGlowColor={setGlowColor}
             />
           )}
         </div>
@@ -119,7 +133,7 @@ function Home({ artists, loading, artistsError, setIsLegalModalOpen }: HomeProps
               />
 
               {/* Menu */}
-              <div className="absolute bottom-full right-0 mb-4 flex flex-col items-end gap-4 bg-[#0d0d0d] p-6 rounded-md border border-white/10 shadow-2xl min-w-[140px] z-50 animate-fade-in origin-bottom-right">
+              <div className="absolute bottom-full right-0 mb-4 flex flex-col items-end gap-4 bg-[#0d0d0d] p-6 border border-white/10 shadow-2xl min-w-[140px] z-50 animate-fade-in origin-bottom-right">
                 <a
                   href="https://x.com/CatalogueART"
                   target="_blank"

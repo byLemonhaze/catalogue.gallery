@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { ArtistCard } from './ArtistCard';
 import { useNavigate } from 'react-router-dom';
+import { urlFor } from '../sanity/image';
 
 interface ArtistCarouselProps {
     artists: any[];
     initialIndex?: number;
     onIndexChange?: (index: number) => void;
+    onGlowColor?: (rgb: string) => void;
 }
 
-export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initialIndex = 0, onIndexChange }) => {
+export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initialIndex = 0, onIndexChange, onGlowColor }) => {
     const navigate = useNavigate();
     const [activeIndex, setActiveIndex] = useState(initialIndex);
     const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -52,6 +54,41 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
         }, 5000); // 5 seconds auto-switch
         return () => clearTimeout(timer);
     }, [activeIndex]);
+
+    // Sample dominant color from active artist thumbnail
+    useEffect(() => {
+        if (!onGlowColor) return;
+        const artist = artists[activeIndex];
+        if (!artist?.thumbnail) { onGlowColor('20, 20, 20'); return; }
+
+        const imageUrl = artist.isSanity
+            ? urlFor(artist.thumbnail).width(80).height(80).url()
+            : typeof artist.thumbnail === 'string' ? artist.thumbnail : null;
+
+        if (!imageUrl) { onGlowColor('20, 20, 20'); return; }
+
+        let cancelled = false;
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            if (cancelled) return;
+            const canvas = document.createElement('canvas');
+            canvas.width = 40; canvas.height = 40;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            ctx.drawImage(img, 0, 0, 40, 40);
+            const data = ctx.getImageData(0, 0, 40, 40).data;
+            let r = 0, g = 0, b = 0;
+            const n = data.length / 4;
+            for (let i = 0; i < data.length; i += 4) {
+                r += data[i]; g += data[i + 1]; b += data[i + 2];
+            }
+            onGlowColor(`${Math.round(r / n)}, ${Math.round(g / n)}, ${Math.round(b / n)}`);
+        };
+        img.onerror = () => { if (!cancelled) onGlowColor('20, 20, 20'); };
+        img.src = imageUrl;
+        return () => { cancelled = true; };
+    }, [activeIndex, artists, onGlowColor]);
 
     // Swipe handlers
     const onTouchStart = (e: React.TouchEvent) => {
