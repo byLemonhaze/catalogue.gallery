@@ -185,7 +185,7 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
             {/* Controls - Side Navigation */}
             <button
                 onClick={prev}
-                className="absolute left-4 md:left-12 top-1/2 -translate-y-1/2 z-30 text-white/30 hover:text-white transition-all duration-300 hover:scale-125 hover:-translate-x-1 cursor-pointer"
+                className="absolute left-4 md:left-12 top-1/2 -translate-y-1/2 z-30 text-white/30 hover:text-white transition-colors duration-300 cursor-pointer"
             >
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="15 18 9 12 15 6"></polyline>
@@ -193,7 +193,7 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
             </button>
             <button
                 onClick={next}
-                className="absolute right-4 md:right-12 top-1/2 -translate-y-1/2 z-30 text-white/30 hover:text-white transition-all duration-300 hover:scale-125 hover:translate-x-1 cursor-pointer"
+                className="absolute right-4 md:right-12 top-1/2 -translate-y-1/2 z-30 text-white/30 hover:text-white transition-colors duration-300 cursor-pointer"
             >
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="9 18 15 12 9 6"></polyline>
@@ -201,7 +201,7 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
             </button>
 
             {/* Pagination Dots */}
-            <div className="fixed bottom-20 left-1/2 -translate-x-1/2 flex gap-2 z-30 md:bottom-16">
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex gap-2 z-30">
                 {Array.from({ length: totalItems }).map((_, i) => (
                     <div
                         key={i}

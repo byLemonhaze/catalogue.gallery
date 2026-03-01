@@ -41,10 +41,10 @@ function Home({ artists, loading, artistsError, setIsLegalModalOpen }: HomeProps
         <title>CATALOGUE</title>
       </Helmet>
       {/* Background Ambience */}
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-black to-black pointer-events-none" />
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(255,255,255,0.08),transparent_48%),linear-gradient(to_bottom,#050505,#000000)] pointer-events-none" />
 
       {/* Main Content */}
-      <main className="relative h-full flex flex-col items-center justify-start px-0 md:px-6 max-w-7xl mx-auto pt-40 pb-8 md:justify-center md:pt-32 md:pb-0">
+      <main className="relative h-full flex flex-col items-center justify-start px-0 md:px-6 max-w-7xl mx-auto pt-52 pb-8 md:justify-center md:pt-36 md:pb-0">
 
         {/* Carousel Container */}
         {/* Mobile: Flex-1 to push it to center vertically. Desktop: Normal flow. */}
@@ -83,34 +83,26 @@ function Home({ artists, loading, artistsError, setIsLegalModalOpen }: HomeProps
       </main>
 
       {/* Footer - Fixed at bottom */}
-      <footer className="fixed bottom-8 left-0 right-0 text-center text-[10px] text-white/15 font-mono tracking-wider pointer-events-none">
+      <footer className="fixed bottom-4 left-1/2 -translate-x-1/2 text-center text-[11px] text-white/25 font-display tracking-[0.2em] uppercase pointer-events-none">
         CATALOGUE © 2026
       </footer>
 
       {/* Floating Social Link */}
       {/* Floating Socials */}
-      <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end gap-1">
+      <div className="fixed bottom-5 right-6 z-50 flex flex-col items-end gap-1.5">
         {/* Desktop: Stacked Links */}
         <div className="hidden md:flex flex-col items-end gap-1">
           <a
             href="https://x.com/CatalogueART"
             target="_blank"
             rel="noreferrer"
-            className="text-[10px] font-bold text-white/20 hover:text-white transition-colors duration-300 uppercase tracking-widest"
+            className="text-[11px] font-mono text-white/45 hover:text-white transition-colors duration-300 uppercase tracking-[0.12em]"
           >
             @CATALOGUEART - X
           </a>
-          <a
-            href="https://discord.gg/QHWnyNNB"
-            target="_blank"
-            rel="noreferrer"
-            className="text-[10px] font-bold text-white/20 hover:text-white transition-colors duration-300 uppercase tracking-widest"
-          >
-            @CATALOGUE - DISCORD
-          </a>
           <button
             onClick={() => setIsLegalModalOpen(true)}
-            className="text-[10px] font-bold text-white/20 hover:text-white transition-colors duration-300 uppercase tracking-widest mt-1"
+            className="text-[10px] font-display text-white/35 hover:text-white transition-colors duration-300 uppercase tracking-[0.18em] mt-1"
           >
             Catalogue Policy
           </button>
@@ -122,28 +114,19 @@ function Home({ artists, loading, artistsError, setIsLegalModalOpen }: HomeProps
             <>
               {/* Backdrop to close */}
               <div
-                className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+                className="fixed inset-0 z-40 bg-black/70"
                 onClick={() => setShowSocialMenu(false)}
               />
 
               {/* Menu */}
-              <div className="absolute bottom-full right-0 mb-4 flex flex-col items-end gap-4 bg-[#111] p-6 rounded-xl border border-white/10 shadow-2xl min-w-[140px] z-50 animate-fade-in origin-bottom-right">
+              <div className="absolute bottom-full right-0 mb-4 flex flex-col items-end gap-4 bg-[#0d0d0d] p-6 rounded-md border border-white/10 shadow-2xl min-w-[140px] z-50 animate-fade-in origin-bottom-right">
                 <a
                   href="https://x.com/CatalogueART"
                   target="_blank"
                   rel="noreferrer"
-                  className="text-xs font-bold text-white hover:text-purple-400 uppercase tracking-widest flex items-center gap-2"
+                  className="text-xs font-bold text-white/85 hover:text-white uppercase tracking-widest flex items-center gap-2"
                 >
                   Twitter ↗
-                </a>
-                <div className="w-full h-px bg-white/10" />
-                <a
-                  href="https://discord.gg/QHWnyNNB"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-xs font-bold text-white hover:text-purple-400 uppercase tracking-widest flex items-center gap-2"
-                >
-                  Discord ↗
                 </a>
                 <div className="w-full h-px bg-white/10" />
                 <button
@@ -151,7 +134,7 @@ function Home({ artists, loading, artistsError, setIsLegalModalOpen }: HomeProps
                     setIsLegalModalOpen(true);
                     setShowSocialMenu(false);
                   }}
-                  className="text-xs font-bold text-white hover:text-purple-400 uppercase tracking-widest flex items-center gap-2"
+                  className="text-xs font-bold text-white/85 hover:text-white uppercase tracking-widest flex items-center gap-2"
                 >
                   Policy ↗
                 </button>
@@ -179,6 +162,10 @@ import { useArticles } from './hooks/useArticles';
 
 const AppContent = () => {
   const location = useLocation();
+  const isSearchPage =
+    location.pathname === '/' ||
+    location.pathname === '/artists' ||
+    location.pathname === '/blog';
   const isSubmitPage = location.pathname === '/submit';
   const isBuildPage = location.pathname === '/build';
   const isArtistPage = location.pathname.startsWith('/artist/') || location.pathname.startsWith('/gallery/');
@@ -208,7 +195,7 @@ const AppContent = () => {
   );
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans selection:bg-purple-500/30">
+    <div className="min-h-screen bg-black text-white font-sans selection:bg-white/20">
       <Navigation />
 
       <LegalModal
@@ -216,8 +203,8 @@ const AppContent = () => {
         onClose={() => setIsLegalModalOpen(false)}
       />
 
-      {/* Hide Search on Submit, Build, and Artist pages */}
-      {!isSubmitPage && !isBuildPage && !isArtistPage && !isLegalModalOpen && (
+      {/* Show global search on home, directory, and blog list */}
+      {isSearchPage && !isSubmitPage && !isBuildPage && !isArtistPage && !isLegalModalOpen && (
         <GlobalSearch
           search={search}
           setSearch={setSearch}

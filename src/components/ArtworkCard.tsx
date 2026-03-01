@@ -58,7 +58,7 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork, artist, simpl
             src={imgSrc}
             alt={artwork.name}
             onError={() => setUseIframe(true)}
-            className={`object-contain transition-transform duration-500 ${simple ? 'max-w-full max-h-full w-auto h-auto p-0' : 'w-full h-full p-4 group-hover:scale-105'} ${artwork.artwork_type === 'PNG' ? 'image-pixelated' : ''}`}
+            className={`object-contain transition-opacity duration-300 ${simple ? 'max-w-full max-h-full w-auto h-auto p-0' : 'w-full h-full p-4 opacity-85 group-hover:opacity-100'} ${artwork.artwork_type === 'PNG' ? 'image-pixelated' : ''}`}
             loading="lazy"
         />
     );

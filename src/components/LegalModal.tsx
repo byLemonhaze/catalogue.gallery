@@ -10,21 +10,21 @@ export function LegalModal({ isOpen, onClose }: LegalModalProps) {
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 md:p-6 animate-fade-in">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/80 backdrop-blur-xl"
+                className="absolute inset-0 bg-black/85"
                 onClick={onClose}
             />
 
             {/* Modal Content */}
-            <div className="relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-[32px] overflow-hidden shadow-2xl flex flex-col max-h-[85vh] animate-scale-in">
+            <div className="relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-[6px] overflow-hidden shadow-2xl flex flex-col max-h-[85vh] animate-scale-in">
                 {/* Header */}
-                <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                <div className="p-8 border-b border-white/10 flex justify-between items-center bg-[#0d0d0d]">
                     <div className="space-y-1">
                         <h2 className="text-2xl font-black uppercase tracking-tighter">LEGAL FRAMEWORK</h2>
                         <p className="text-[9px] font-mono uppercase tracking-[0.3em] text-white/30">Last Updated: Jan 30, 2026</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-white/5 rounded-full transition-colors text-white/40 hover:text-white"
+                        className="p-2 hover:bg-white/5 rounded-[4px] transition-colors text-white/40 hover:text-white"
                         aria-label="Close modal"
                     >
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

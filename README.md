@@ -136,12 +136,6 @@ Use Resend to send mail and ProtonMail to receive replies:
 
 This keeps deliverability high (Resend) while all replies route back to ProtonMail.
 
-## Security Notes
-
-- A previous committed `.env` exposed a token. Rotate that token in Sanity immediately.
-- After rotating, update local and production env vars.
-- If needed, scrub old secrets from git history before making the repo public.
-
 ## Useful Scripts
 
 - Build app: `npm run build`

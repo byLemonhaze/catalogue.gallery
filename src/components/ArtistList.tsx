@@ -30,7 +30,7 @@ export const ArtistList: React.FC = () => {
     if (!artists.length) {
         return (
             <div className="min-h-screen bg-black text-white pt-44 px-6">
-                <div className="max-w-xl mx-auto border border-white/10 bg-white/[0.02] rounded-2xl p-6 text-center">
+                <div className="max-w-xl mx-auto border border-white/10 bg-[#0d0d0d] rounded-[6px] p-6 text-center">
                     <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/70">Unable to load directory</p>
                     <p className="mt-3 text-sm text-white/50">{error || 'Could not reach Sanity right now.'}</p>
                     <p className="mt-2 text-xs text-white/35">
@@ -64,12 +64,12 @@ export const ArtistList: React.FC = () => {
     const letters = Object.keys(groupedArtists).sort();
 
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-purple-500/30">
+        <div className="min-h-screen bg-black text-white selection:bg-white/20">
             <Helmet>
                 <title>Directory | CATALOGUE</title>
             </Helmet>
 
-            <div className="pt-44 md:pt-40 p-6 max-w-7xl mx-auto min-h-screen space-y-24">
+            <div className="pt-60 md:pt-56 p-6 max-w-7xl mx-auto min-h-screen space-y-24">
 
                 {/* Individual Artists Section */}
                 <section className="space-y-8">
@@ -81,7 +81,7 @@ export const ArtistList: React.FC = () => {
                     <div className="space-y-12">
                         {letters.map(letter => (
                             <div key={letter} className="relative">
-                                <div className="sticky top-24 z-10 bg-black/90 backdrop-blur-sm py-2 border-b border-white/10 mb-4 flex items-center gap-4">
+                                <div className="py-2 border-b border-white/10 mb-4 flex items-center gap-4">
                                     <h2 className="text-xl font-black text-white/20">{letter}</h2>
                                     <div className="h-px flex-1 bg-white/5"></div>
                                 </div>
@@ -92,23 +92,23 @@ export const ArtistList: React.FC = () => {
                                             key={artist.id}
                                             to={`/artist/${artist.id}`}
                                             state={{ from: 'directory' }}
-                                            className="group flex items-center gap-4 p-3 bg-[#111] hover:bg-[#1a1a1a] border border-white/5 hover:border-white/20 rounded-xl transition-all duration-300 cursor-pointer"
+                                            className="group flex items-center gap-4 p-3 bg-[#101010] hover:bg-[#131313] border border-white/10 hover:border-white/25 rounded-[6px] transition-colors duration-300 cursor-pointer"
                                         >
-                                            <div className="w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden bg-neutral-900 border border-white/5">
+                                            <div className="w-12 h-12 flex-shrink-0 rounded-[4px] overflow-hidden bg-neutral-900 border border-white/10">
                                                 {artist.thumbnail ? (
                                                     <img
                                                         src={artist.isSanity ? urlFor(artist.thumbnail).width(100).url() : artist.thumbnail}
                                                         alt={artist.name}
-                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"
                                                     />
                                                 ) : (
-                                                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900/20 to-black">
+                                                    <div className="w-full h-full flex items-center justify-center bg-[#0f0f0f]">
                                                         <span className="text-xl font-bold text-white/20 uppercase">{artist.name.charAt(0)}</span>
                                                     </div>
                                                 )}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="text-lg font-bold text-white group-hover:text-purple-300 truncate transition-colors">
+                                                <h3 className="text-lg font-bold text-white group-hover:text-white truncate transition-colors">
                                                     {artist.name}
                                                 </h3>
                                                 <p className="text-xs text-white/40 font-mono truncate">
@@ -140,23 +140,23 @@ export const ArtistList: React.FC = () => {
                                     key={gallery.id}
                                     to={`/gallery/${gallery.id}`}
                                     state={{ from: 'directory' }}
-                                    className="group flex items-center gap-4 p-3 bg-[#111] hover:bg-[#1a1a1a] border border-white/5 hover:border-white/20 rounded-xl transition-all duration-300 cursor-pointer"
+                                    className="group flex items-center gap-4 p-3 bg-[#101010] hover:bg-[#131313] border border-white/10 hover:border-white/25 rounded-[6px] transition-colors duration-300 cursor-pointer"
                                 >
-                                    <div className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-neutral-900 border border-white/5">
+                                    <div className="w-16 h-16 flex-shrink-0 rounded-[4px] overflow-hidden bg-neutral-900 border border-white/10">
                                         {gallery.thumbnail ? (
                                             <img
                                                 src={gallery.isSanity ? urlFor(gallery.thumbnail).width(120).url() : gallery.thumbnail}
                                                 alt={gallery.name}
-                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"
                                             />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900/40 to-black">
+                                            <div className="w-full h-full flex items-center justify-center bg-[#0f0f0f]">
                                                 <span className="text-2xl font-black text-white/10 uppercase">{gallery.name.charAt(0)}</span>
                                             </div>
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h3 className="text-xl font-black text-white group-hover:text-purple-300 truncate transition-colors tracking-tight">
+                                        <h3 className="text-xl font-black text-white group-hover:text-white truncate transition-colors tracking-tight">
                                             {gallery.name}
                                         </h3>
                                         <p className="text-xs text-white/40 font-mono truncate">
@@ -179,7 +179,7 @@ export const ArtistList: React.FC = () => {
                         <div className="h-px flex-1 bg-white/5"></div>
                     </div>
 
-                    <div className="py-12 border border-white/5 bg-white/[0.02] rounded-2xl text-center">
+                    <div className="py-12 border border-white/10 bg-[#0d0d0d] rounded-[6px] text-center">
                         <p className="text-[10px] font-mono text-white/20 uppercase tracking-[0.4em]">
                             Coming soon
                         </p>

@@ -15,61 +15,59 @@ export function InfoHub({ setIsLegalModalOpen }: InfoHubProps) {
                 <title>Apply | CATALOGUE</title>
             </Helmet>
 
-            <div className="pt-32 md:pt-28 p-6 max-w-4xl mx-auto min-h-screen animate-fade-in relative pb-32">
+            <div className="pt-32 md:pt-28 p-6 max-w-5xl mx-auto min-h-screen animate-fade-in relative pb-32">
 
                 {/* Content */}
-                <div className="space-y-8 md:space-y-10 mt-8 text-center">
+                <div className="space-y-4 md:space-y-5 mt-8">
 
-                    {/* Intro */}
-                    <section className="space-y-3 flex flex-col items-center">
-                        <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight text-white mb-2">CATALOGUE</h2>
-                        <p className="text-white/60 text-xs sm:text-sm leading-relaxed">
-                            CATALOGUE is a directory of digital artists linking directly to their personal websites, alongside curated galleries, interviews, and art-focused content. Chain & marketplace agnostic - for collectors, from the lens of the artists.
+                    <section className="bg-[#0d0d0d] border border-white/10 rounded-[6px] p-6 md:p-8 space-y-3">
+                        <h2 className="text-xl md:text-2xl font-black uppercase tracking-[0.12em] text-white">CATALOGUE</h2>
+                        <p className="text-white/65 text-xs sm:text-sm leading-relaxed max-w-4xl">
+                            CATALOGUE is a directory of digital artists linking directly to their personal websites, alongside curated galleries, interviews, and art-focused content. Chain and marketplace agnostic, for collectors from the lens of artists.
                         </p>
                     </section>
 
-                    {/* For Collectors */}
-                    <section className="space-y-4 flex flex-col items-center">
-                        <h3 className="text-white font-bold text-base">For Collectors</h3>
-                        <p className="text-white/60 text-xs sm:text-sm leading-relaxed max-w-3xl md:max-w-4xl mx-auto">
-                            Showcase your art collection and explore the unique universes of your favorite artists through their own websites - unfiltered, self-curated, and independent.
+                    <section className="bg-[#0d0d0d] border border-white/10 rounded-[6px] p-6 md:p-8 space-y-3">
+                        <h3 className="text-white font-bold text-base uppercase tracking-[0.08em]">For Collectors</h3>
+                        <p className="text-white/65 text-xs sm:text-sm leading-relaxed max-w-4xl">
+                            Showcase your art collection and explore the unique universes of your favorite artists through their own websites: unfiltered, self-curated, and independent.
                         </p>
                     </section>
 
-                    {/* For Artists */}
-                    <section className="space-y-6 flex flex-col items-center">
-                        <div className="space-y-4 max-w-3xl md:max-w-4xl mx-auto">
-                            <h3 className="text-white font-bold text-base">For Artists</h3>
-                            <p className="text-white/60 text-xs sm:text-sm leading-relaxed">
-                                CATALOGUE is built around artist-owned universes, connecting collectors directly to your own website — where authorship, context, and independence remain fully under your control.
-                            </p>
-                        </div>
+                    <section className="bg-[#0d0d0d] border border-white/10 rounded-[6px] p-6 md:p-8 space-y-3">
+                        <h3 className="text-white font-bold text-base uppercase tracking-[0.08em]">For Artists</h3>
+                        <p className="text-white/65 text-xs sm:text-sm leading-relaxed max-w-4xl">
+                            CATALOGUE is built around artist-owned universes, connecting collectors directly to your own website where authorship, context, and independence remain fully under your control.
+                        </p>
                     </section>
 
-                    {/* For Galleries */}
-                    <section className="space-y-6 flex flex-col items-center">
-                        <div className="space-y-4 max-w-3xl md:max-w-4xl mx-auto">
-                            <h3 className="text-white font-bold text-base">For Galleries</h3>
-                            <p className="text-white/60 text-xs sm:text-sm leading-relaxed">
-                                CATALOGUE features curated spaces for galleries and platforms, presenting cohesive curatorial visions and collective practices. These listings represent distinct art-focused environments, separate from individual artist profiles and personal domains.
-                            </p>
-                        </div>
+                    <section className="bg-[#0d0d0d] border border-white/10 rounded-[6px] p-6 md:p-8 space-y-3">
+                        <h3 className="text-white font-bold text-base uppercase tracking-[0.08em]">For Galleries</h3>
+                        <p className="text-white/65 text-xs sm:text-sm leading-relaxed max-w-4xl">
+                            CATALOGUE features curated spaces for galleries and platforms, presenting cohesive curatorial visions and collective practices. These listings represent distinct art-focused environments, separate from individual artist profiles and personal domains.
+                        </p>
                     </section>
 
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                        <Link
-                            to="/submit"
-                            className="inline-block px-8 py-3 bg-white hover:bg-neutral-200 text-black border border-white/20 rounded-lg text-xs font-bold uppercase tracking-widest transition-all hover:scale-105"
-                        >
-                            Apply to Catalogue
-                        </Link>
-                        <Link
-                            to="/build"
-                            className="inline-block px-8 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-lg text-xs font-bold uppercase tracking-widest transition-all hover:scale-105"
-                        >
-                            Build Universe
-                        </Link>
-                    </div>
+                    <section className="bg-[#0d0d0d] border border-white/10 rounded-[6px] p-6 md:p-8 space-y-4">
+                        <h3 className="text-white font-bold text-base uppercase tracking-[0.08em]">Apply</h3>
+                        <p className="text-white/55 text-xs sm:text-sm leading-relaxed">
+                            Submit your artist or gallery profile for review.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <Link
+                                to="/submit"
+                                className="inline-flex items-center justify-center px-6 py-3 bg-[#111111] hover:bg-[#141414] text-white border border-white/20 rounded-[6px] text-xs font-bold uppercase tracking-widest transition-colors"
+                            >
+                                Apply to Catalogue
+                            </Link>
+                            <Link
+                                to="/build"
+                                className="inline-flex items-center justify-center px-6 py-3 bg-[#0d0d0d] hover:bg-[#121212] text-white border border-white/12 rounded-[6px] text-xs font-bold uppercase tracking-widest transition-colors"
+                            >
+                                Build Universe
+                            </Link>
+                        </div>
+                    </section>
                 </div>
 
                 {/* Footer Overhaul */}
@@ -83,14 +81,6 @@ export function InfoHub({ setIsLegalModalOpen }: InfoHubProps) {
                             className="text-[10px] font-bold text-white/20 hover:text-white transition-colors duration-300 uppercase tracking-widest"
                         >
                             @CATALOGUEART - X
-                        </a>
-                        <a
-                            href="https://discord.gg/QHWnyNNB"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-[10px] font-bold text-white/20 hover:text-white transition-colors duration-300 uppercase tracking-widest"
-                        >
-                            @CATALOGUE - DISCORD
                         </a>
                         <button
                             onClick={() => setIsLegalModalOpen(true)}
@@ -106,28 +96,19 @@ export function InfoHub({ setIsLegalModalOpen }: InfoHubProps) {
                             <>
                                 {/* Backdrop to close */}
                                 <div
-                                    className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+                                    className="fixed inset-0 z-40 bg-black/70"
                                     onClick={() => setShowSocialMenu(false)}
                                 />
 
                                 {/* Menu */}
-                                <div className="absolute bottom-full right-0 mb-4 flex flex-col items-end gap-4 bg-[#111] p-6 rounded-xl border border-white/10 shadow-2xl min-w-[140px] z-50 animate-fade-in origin-bottom-right">
+                                <div className="absolute bottom-full right-0 mb-4 flex flex-col items-end gap-4 bg-[#0d0d0d] p-6 rounded-[6px] border border-white/10 shadow-2xl min-w-[140px] z-50 animate-fade-in origin-bottom-right">
                                     <a
                                         href="https://x.com/CatalogueART"
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="text-xs font-bold text-white hover:text-purple-400 uppercase tracking-widest flex items-center gap-2"
+                                        className="text-xs font-bold text-white/85 hover:text-white uppercase tracking-widest flex items-center gap-2"
                                     >
                                         Twitter ↗
-                                    </a>
-                                    <div className="w-full h-px bg-white/10" />
-                                    <a
-                                        href="https://discord.gg/QHWnyNNB"
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="text-xs font-bold text-white hover:text-purple-400 uppercase tracking-widest flex items-center gap-2"
-                                    >
-                                        Discord ↗
                                     </a>
                                     <div className="w-full h-px bg-white/10" />
                                     <button
@@ -135,7 +116,7 @@ export function InfoHub({ setIsLegalModalOpen }: InfoHubProps) {
                                             setIsLegalModalOpen(true);
                                             setShowSocialMenu(false);
                                         }}
-                                        className="text-xs font-bold text-white hover:text-purple-400 uppercase tracking-widest flex items-center gap-2 text-right"
+                                        className="text-xs font-bold text-white/85 hover:text-white uppercase tracking-widest flex items-center gap-2 text-right"
                                     >
                                         Policy ↗
                                     </button>

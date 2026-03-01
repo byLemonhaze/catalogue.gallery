@@ -17,7 +17,7 @@ export const ArtistCard: React.FC<ArtistProps> = ({ name, thumbnail, subtitle, i
 
     return (
         <div
-            className="group relative flex flex-col h-96 bg-[#1a1a1a]/50 backdrop-blur-xl border border-white/5 rounded-[32px] overflow-hidden hover:scale-[1.02] transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10 cursor-default"
+            className="group relative flex flex-col h-96 bg-[#0c0c0c] border border-white/10 rounded-[6px] overflow-hidden transition-colors duration-300 hover:border-white/25 cursor-default"
         >
             {/* Image Container - Visual only, parent handles click */}
             <div className="flex-1 relative overflow-hidden cursor-pointer block">
@@ -26,10 +26,10 @@ export const ArtistCard: React.FC<ArtistProps> = ({ name, thumbnail, subtitle, i
                     <img
                         src={imageUrl}
                         alt={name}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:rotate-1"
+                        className="w-full h-full object-cover opacity-85 group-hover:opacity-100 transition-opacity duration-300"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900/20 to-black">
+                    <div className="w-full h-full flex items-center justify-center bg-[#101010]">
                         <span className="text-9xl font-bold text-white/20 uppercase">{name.charAt(0)}</span>
                     </div>
                 )}
@@ -37,7 +37,7 @@ export const ArtistCard: React.FC<ArtistProps> = ({ name, thumbnail, subtitle, i
 
             {/* Content Container - Visual only, strictly non-interactive to pass clicks to the Link behind */}
             <div className="absolute bottom-0 inset-x-0 p-6 z-20 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500 pointer-events-none">
-                <h3 className="text-2xl font-bold text-white mb-2 tracking-tight group-hover:text-purple-200 transition-colors">
+                <h3 className="text-2xl font-bold text-white mb-2 tracking-tight group-hover:text-white transition-colors">
                     {name}
                 </h3>
                 <p className="text-sm text-white/60 line-clamp-2 leading-relaxed">

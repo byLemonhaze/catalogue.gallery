@@ -1,13 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Sora:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --ink: #f0f0f0;
+  --muted: #747474;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.2);
+  --surface: #0a0a0a;
+  --surface-alt: #0d0d0d;
+  --surface-elevated: #111111;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+
+  font-family: 'Sora', sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color: var(--ink);
+  background-color: #000;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -20,6 +30,26 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background-color: #000;
-  color: #fff;
+  color: var(--ink);
   overscroll-behavior: none;
+}
+
+code,
+pre,
+.font-mono {
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+h1,
+h2,
+h3,
+h4,
+.font-display {
+  font-family: 'Syne', sans-serif;
+  letter-spacing: 0.03em;
+  font-weight: 700;
+}
+
+a {
+  color: inherit;
 }

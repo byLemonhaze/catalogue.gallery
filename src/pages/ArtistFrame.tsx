@@ -141,7 +141,7 @@ export function ArtistFrame() {
                         onClick={handleExit}
                         title="Exit Application"
                         aria-label="Exit Artist Universe"
-                        className="px-4 py-2 bg-black/60 backdrop-blur-xl rounded-full text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 hover:text-white border border-white/5 hover:border-white/20 transition-all flex items-center gap-2 group hover:bg-black/90 shadow-[0_0_50px_rgba(0,0,0,0.5)] hover:scale-105"
+                        className="px-4 py-2 bg-[#0c0c0c] rounded-[6px] text-[10px] font-bold uppercase tracking-[0.2em] text-white/60 hover:text-white border border-white/10 hover:border-white/25 transition-colors flex items-center gap-2"
                     >
                         <span>Exit ✕</span>
                     </Link>

@@ -15,40 +15,73 @@ export const Navigation: React.FC = () => {
     };
 
     // Hide navigation on artist pages
-    if (path.startsWith('/artist/')) return null;
+    if (path.startsWith('/artist/') || path.startsWith('/gallery/')) return null;
+
+    const baseLinkClass =
+        'inline-flex items-center pb-1 text-[11px] md:text-[12px] uppercase tracking-[0.12em] md:tracking-[0.16em] text-white/50 transition-colors duration-200 hover:text-white font-display';
+    const mobileLinkClass =
+        'inline-flex items-center pb-1 text-[11px] uppercase tracking-[0.12em] text-white/50 transition-colors duration-200 hover:text-white font-display';
+    const activeLinkClass = 'text-white underline decoration-white underline-offset-4';
 
     return (
-        <header className="fixed top-6 inset-x-0 mx-auto w-fit max-w-[95vw] md:max-w-fit z-50 animate-fade-in-down">
-            <nav className="flex items-center gap-1 md:gap-2 p-1.5 bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl ring-1 ring-white/5 overflow-x-auto md:overflow-visible scrollbar-hide">
-                {/* Logo Sector */}
-                <div className="px-3 md:px-4 py-2 bg-white/5 rounded-full border border-white/5 shrink-0">
-                    <Link to="/" className="text-xs font-black tracking-tighter text-white hover:opacity-80 transition-opacity cursor-pointer">
+        <header className="fixed inset-x-0 top-0 z-50 pointer-events-none">
+            <div className="md:hidden pointer-events-auto mt-4">
+                <div className="flex items-center justify-center">
+                    <Link to="/" className="text-base uppercase tracking-[0.16em] text-white transition-opacity hover:opacity-80 font-display">
                         CATALOGUE
                     </Link>
                 </div>
-
-                {/* Links Sector */}
-                <div className="flex items-center gap-1 px-1 shrink-0">
+                <nav className="mt-2 flex items-center justify-center gap-6">
                     <Link
                         to="/artists"
-                        className={`px-3 md:px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full transition-all duration-300 cursor-pointer ${isActive('/artists') ? 'bg-white text-black' : 'text-white/50 hover:text-white hover:bg-white/10'}`}
+                        className={`${mobileLinkClass} ${isActive('/artists') ? activeLinkClass : ''}`}
                     >
                         Directory
                     </Link>
 
                     <Link
                         to="/blog"
-                        className={`px-3 md:px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full transition-all duration-300 cursor-pointer ${isActive('/blog') ? 'bg-white text-black' : 'text-white/50 hover:text-white hover:bg-white/10'}`}
+                        className={`${mobileLinkClass} ${isActive('/blog') ? activeLinkClass : ''}`}
                     >
                         Blog
                     </Link>
 
-                    {/* Apply Link (Mission Statement) */}
                     <Link
                         to="/info"
-                        className={`px-3 md:px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full transition-all duration-300 cursor-pointer ${isActive('/info') ? 'bg-white text-black' : 'text-white/50 hover:text-white hover:bg-white/10'}`}
+                        className={`${mobileLinkClass} ${isActive('/info') ? activeLinkClass : ''}`}
                     >
-                        APPLY
+                        Apply
+                    </Link>
+                </nav>
+            </div>
+
+            <nav className="pointer-events-auto mx-auto mt-6 hidden w-full max-w-7xl items-center justify-between gap-5 px-8 md:flex">
+                <div className="shrink-0">
+                    <Link to="/" className="text-base md:text-lg uppercase tracking-[0.16em] text-white transition-opacity hover:opacity-80 font-display">
+                        CATALOGUE
+                    </Link>
+                </div>
+
+                <div className="flex items-center gap-5 overflow-x-auto scrollbar-hide">
+                    <Link
+                        to="/artists"
+                        className={`${baseLinkClass} ${isActive('/artists') ? activeLinkClass : ''}`}
+                    >
+                        Directory
+                    </Link>
+
+                    <Link
+                        to="/blog"
+                        className={`${baseLinkClass} ${isActive('/blog') ? activeLinkClass : ''}`}
+                    >
+                        Blog
+                    </Link>
+
+                    <Link
+                        to="/info"
+                        className={`${baseLinkClass} ${isActive('/info') ? activeLinkClass : ''}`}
+                    >
+                        Apply
                     </Link>
                 </div>
             </nav>

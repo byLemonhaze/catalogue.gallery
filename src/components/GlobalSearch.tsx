@@ -20,23 +20,23 @@ const SearchResultItem: React.FC<SearchResultItemProps> = ({ artist, onSelect })
     <a
         href={artist.type === 'gallery' ? `/gallery/${artist.id}` : `/artist/${artist.id}`}
         onClick={onSelect}
-        className="flex items-center gap-3 p-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 group"
+    className="flex items-center gap-3 p-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 group"
     >
-        <div className="w-8 h-8 flex-shrink-0 rounded-md overflow-hidden bg-neutral-900 border border-white/5">
+        <div className="w-8 h-8 flex-shrink-0 rounded-[4px] overflow-hidden bg-neutral-900 border border-white/8">
             {artist.thumbnail ? (
                 <img
                     src={artist.isSanity ? urlFor(artist.thumbnail).width(80).url() : (artist.thumbnail as string)}
                     alt={artist.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"
                 />
             ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900/20 to-black">
+                <div className="w-full h-full flex items-center justify-center bg-[#0f0f0f]">
                     <span className="text-[10px] font-bold text-white/30 uppercase">{artist.name.charAt(0)}</span>
                 </div>
             )}
         </div>
         <div className="flex-1 min-w-0">
-            <h3 className="text-xs font-bold text-white group-hover:text-purple-300 truncate transition-colors">
+            <h3 className="text-xs font-bold text-white group-hover:text-white truncate transition-colors">
                 {artist.name}
             </h3>
         </div>
@@ -53,7 +53,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ search, setSearch, f
 
     return (
         <>
-            <div className="fixed top-28 inset-x-0 z-40 flex justify-center pointer-events-none px-4">
+            <div className="fixed top-32 md:top-32 inset-x-0 z-40 flex justify-center pointer-events-none px-4">
                 <div className="w-full max-w-md pointer-events-auto animate-fade-in relative">
                     <div className="relative group">
                         <input
@@ -61,7 +61,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ search, setSearch, f
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="SEARCH..."
-                            className="w-full px-6 py-3 bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-full text-white placeholder-white/30 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all text-base md:text-xs font-bold uppercase tracking-widest shadow-2xl ring-1 ring-white/5"
+                            className="w-full px-5 py-3 bg-[#0c0c0c] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:border-white/30 focus:bg-[#101010] transition-all text-base md:text-xs font-bold uppercase tracking-widest"
                         />
                         {search && (
                             <button
@@ -74,7 +74,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ search, setSearch, f
 
                         {/* Dropdown Results */}
                         {search && (filteredArtists.length > 0 || filteredArticles.length > 0) && (
-                            <div className="absolute top-full mt-2 w-full bg-black/95 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl shadow-purple-500/10 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                            <div className="absolute top-full mt-2 w-full bg-[#070707] border border-white/10 rounded-md overflow-hidden shadow-2xl max-h-[60vh] overflow-y-auto custom-scrollbar">
 
                                 {/* Categorize Artists by Type */}
                                 {(() => {
@@ -87,7 +87,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ search, setSearch, f
                                             {/* ARTISTS */}
                                             {artistsOnly.length > 0 && (
                                                 <div>
-                                                    <div className="px-4 py-2 bg-white/5 border-b border-white/5 text-[10px] font-bold text-white/40 uppercase tracking-widest sticky top-0 backdrop-blur-md z-10">
+                                                    <div className="px-4 py-2 bg-white/5 border-b border-white/5 text-[10px] font-bold text-white/40 uppercase tracking-widest sticky top-0 z-10">
                                                         Artists
                                                     </div>
                                                     {artistsOnly.map((artist) => (
@@ -99,7 +99,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ search, setSearch, f
                                             {/* GALLERIES */}
                                             {galleriesOnly.length > 0 && (
                                                 <div>
-                                                    <div className="px-4 py-2 bg-white/5 border-b border-white/5 border-t border-white/5 text-[10px] font-bold text-white/40 uppercase tracking-widest sticky top-0 backdrop-blur-md z-10">
+                                                    <div className="px-4 py-2 bg-white/5 border-b border-white/5 border-t border-white/5 text-[10px] font-bold text-white/40 uppercase tracking-widest sticky top-0 z-10">
                                                         Galleries
                                                     </div>
                                                     {galleriesOnly.map((artist) => (
@@ -111,7 +111,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ search, setSearch, f
                                             {/* COLLECTORS */}
                                             {collectorsOnly.length > 0 && (
                                                 <div>
-                                                    <div className="px-4 py-2 bg-white/5 border-b border-white/5 border-t border-white/5 text-[10px] font-bold text-white/40 uppercase tracking-widest sticky top-0 backdrop-blur-md z-10">
+                                                    <div className="px-4 py-2 bg-white/5 border-b border-white/5 border-t border-white/5 text-[10px] font-bold text-white/40 uppercase tracking-widest sticky top-0 z-10">
                                                         Collectors
                                                     </div>
                                                     {collectorsOnly.map((artist) => (
@@ -126,7 +126,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ search, setSearch, f
                                 {/* INTERVIEWS */}
                                 {filteredArticles.some(a => a.type === 'Interview') && (
                                     <div>
-                                        <div className="px-4 py-2 bg-white/5 border-b border-white/5 border-t border-white/5 text-[10px] font-bold text-white/40 uppercase tracking-widest sticky top-0 backdrop-blur-md z-10">
+                                        <div className="px-4 py-2 bg-white/5 border-b border-white/5 border-t border-white/5 text-[10px] font-bold text-white/40 uppercase tracking-widest sticky top-0 z-10">
                                             Interviews
                                         </div>
                                         {filteredArticles.filter(a => a.type === 'Interview').map((article) => (
@@ -137,13 +137,13 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ search, setSearch, f
                                                 className="flex items-center gap-3 p-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 group"
                                             >
                                                 {/* Q&A / Chat Icon */}
-                                                <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-md bg-white/5 border border-white/5 text-white/60 group-hover:text-white transition-colors">
+                                                <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-[4px] bg-white/5 border border-white/8 text-white/60 group-hover:text-white transition-colors">
                                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                                                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                                                     </svg>
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <h3 className="text-xs font-bold text-white group-hover:text-purple-300 truncate transition-colors">
+                                                    <h3 className="text-xs font-bold text-white group-hover:text-white truncate transition-colors">
                                                         {article.title}
                                                     </h3>
                                                     <p className="text-[10px] text-white/40 truncate">Conversation</p>
@@ -157,7 +157,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ search, setSearch, f
                                 {/* ARTICLES (Blog & Articles) */}
                                 {filteredArticles.some(a => a.type !== 'Interview') && (
                                     <div>
-                                        <div className="px-4 py-2 bg-white/5 border-b border-white/5 border-t border-white/5 text-[10px] font-bold text-white/40 uppercase tracking-widest sticky top-0 backdrop-blur-md z-10">
+                                        <div className="px-4 py-2 bg-white/5 border-b border-white/5 border-t border-white/5 text-[10px] font-bold text-white/40 uppercase tracking-widest sticky top-0 z-10">
                                             Articles
                                         </div>
                                         {filteredArticles.filter(a => a.type !== 'Interview').map((article) => (
@@ -168,7 +168,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ search, setSearch, f
                                                 className="flex items-center gap-3 p-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 group"
                                             >
                                                 {/* Manuscript / Paper Icon */}
-                                                <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-md bg-white/5 border border-white/5 text-white/60 group-hover:text-white transition-colors">
+                                                <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-[4px] bg-white/5 border border-white/8 text-white/60 group-hover:text-white transition-colors">
                                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                                                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                                         <polyline points="14 2 14 8 20 8"></polyline>
@@ -178,7 +178,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ search, setSearch, f
                                                     </svg>
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <h3 className="text-xs font-bold text-white group-hover:text-purple-300 truncate transition-colors">
+                                                    <h3 className="text-xs font-bold text-white group-hover:text-white truncate transition-colors">
                                                         {article.title}
                                                     </h3>
                                                     <p className="text-[10px] text-white/40 truncate">{article.type}</p>
@@ -192,7 +192,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ search, setSearch, f
                         )}
 
                         {search && filteredArtists.length === 0 && filteredArticles.length === 0 && (
-                            <div className="absolute top-full mt-2 w-full bg-black/95 backdrop-blur-xl border border-white/10 rounded-2xl p-4 text-center">
+                            <div className="absolute top-full mt-2 w-full bg-[#070707] border border-white/10 rounded-md p-4 text-center">
                                 <p className="text-xs text-white/40 font-mono">No results found</p>
                             </div>
                         )}
@@ -203,7 +203,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ search, setSearch, f
             {/* Backdrop overlay when search is active */}
             {search && (
                 <div
-                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 transition-opacity"
+                    className="fixed inset-0 bg-black/65 z-30 transition-opacity"
                     onClick={() => setSearch('')}
                 />
             )}

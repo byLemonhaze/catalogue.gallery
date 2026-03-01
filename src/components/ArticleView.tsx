@@ -46,7 +46,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
                 <div className="text-center">
                     <h1 className="text-4xl font-bold mb-4">404</h1>
                     <p className="text-white/50 mb-8">Article not found.</p>
-                    <Link to="/blog" className="px-6 py-3 bg-white/10 rounded-full hover:bg-white/20 transition-colors">
+                    <Link to="/blog" className="px-6 py-3 bg-[#0d0d0d] rounded-[6px] border border-white/10 hover:bg-[#121212] transition-colors">
                         Return to Archives
                     </Link>
                 </div>
@@ -76,7 +76,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
             <article className="pt-60 pb-32 px-6 max-w-4xl mx-auto">
                 <header className="mb-16 text-center border-b border-white/10 pb-10">
                     <div className="inline-block mb-6">
-                        <span className="px-3 py-1 border border-white/20 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">
+                        <span className="px-3 py-1 border border-white/20 rounded-[4px] text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">
                             {article.type}
                         </span>
                     </div>
@@ -134,7 +134,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
                             ),
                             ul: ({ node, ...props }) => <ul className="list-disc list-outside ml-6 mb-6 text-white/70 space-y-2" {...props} />,
                             li: ({ node, ...props }) => <li className="pl-2" {...props} />,
-                            code: ({ node, ...props }) => <code className="bg-white/10 px-2 py-1 rounded text-xs font-mono text-purple-300" {...props} />,
+                            code: ({ node, ...props }) => <code className="bg-white/10 px-2 py-1 rounded-[4px] text-xs font-mono text-white/90" {...props} />,
                             a: ({ node, href, children, ...props }) => {
                                 const isInternal = href?.startsWith('/') || href?.includes(window.location.host);
                                 if (isInternal) {
