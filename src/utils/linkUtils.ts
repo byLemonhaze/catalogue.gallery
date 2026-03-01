@@ -1,8 +1,16 @@
 export function processArticleContent(content: string, entities: any[]): string {
-    // Sort entities by name length descending to ensure we match "Counterfeit Cards" before "Counterfeit"
+    // Sort entities by name length descending so "Counterfeit Cards" is linked before "Counterfeit"
     const sortedEntities = [...entities].sort((a, b) => b.name.length - a.name.length);
 
-    let processedContent = content;
+    // Protect existing markdown links by swapping them out for null-byte placeholders.
+    // This prevents the entity regex from matching names that appear inside URLs or
+    // link labels that were added in a previous pass.
+    const existingLinks: string[] = [];
+    let processedContent = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match) => {
+        const index = existingLinks.length;
+        existingLinks.push(match);
+        return `\x00LINK${index}\x00`;
+    });
 
     sortedEntities.forEach(entity => {
         const name = entity.name;
@@ -12,28 +20,19 @@ export function processArticleContent(content: string, entities: any[]): string 
             ? `/gallery/${id}`
             : (type === 'collection' ? `/collection/${id}` : `/artist/${id}`);
 
-        // Regex explanation:
-        // (?<!\[)           - Not preceded by '[' (not already inside a link label)
-        // \b                - Word boundary
-        // ${name}           - The entity name
-        // \b                - Word boundary
-        // (?!\]\s*\()       - Not followed by '](...)' (not already a link)
-        // Note: JS doesn't support complex negative lookbehind/lookahead in all environments, 
-        // but for basic word boundaries and simple lookaheads it should work in modern browsers.
-        // We'll use a simpler approach to avoid breaking existing markdown links.
-
-        // Escape name for regex
         const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`\\b${escapedName}\\b`, 'gi');
 
-        // Find occurrences that are NOT already part of a markdown link
-        // This is a basic heuristic: find name followed by word boundary, 
-        // and ensure it's not followed by ']' part of a link.
-        const regex = new RegExp(`\\b${escapedName}\\b(?![^\\[]*\\])`, 'gi');
+        processedContent = processedContent.replace(regex, (match) => `[${match}](${linkPath})`);
 
-        processedContent = processedContent.replace(regex, (match) => {
-            return `[${match}](${linkPath})`;
+        // Re-protect any links just created before processing the next (shorter) entity
+        processedContent = processedContent.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match) => {
+            const index = existingLinks.length;
+            existingLinks.push(match);
+            return `\x00LINK${index}\x00`;
         });
     });
 
-    return processedContent;
+    // Restore all placeholders
+    return processedContent.replace(/\x00LINK(\d+)\x00/g, (_, index) => existingLinks[Number(index)]);
 }
