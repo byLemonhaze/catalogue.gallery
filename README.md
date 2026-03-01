@@ -112,27 +112,9 @@ Use Resend to send mail and ProtonMail to receive replies:
    - `RESEND_FROM_EMAIL=CATALOGUE <apply@catalogue.gallery>`
    - `RESEND_REPLY_TO=yourname@proton.me`
 3. In Sanity webhook settings:
-   - URL: `https://catalogue.gallery/api/webhook`
+   - URL: your deployed webhook endpoint
    - Trigger: document create/update for `artist` and `gallery`
-   - Projection body:
-     ```json
-     {
-       "_type": _type,
-       "status": status,
-       "contactId": contactId,
-       "email": email,
-       "name": name,
-       "slug": slug.current,
-       "websiteUrl": websiteUrl,
-       "approvalMessage": approvalMessage,
-       "rejectionReasonCode": rejectionReasonCode,
-       "rejectionReason": rejectionReason
-     }
-     ```
-     Notes:
-     - Keep `email` in the projection temporarily for legacy records.
-     - `contactId` is required for new D1-backed records.
-   - Header: `x-webhook-secret: <WEBHOOK_SHARED_SECRET>`
+   - Configure the shared secret header using `WEBHOOK_SHARED_SECRET`
 
 This keeps deliverability high (Resend) while all replies route back to ProtonMail.
 
