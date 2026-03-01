@@ -18,6 +18,7 @@ const InfoHub = lazy(() => import('./components/InfoHub').then(m => ({ default: 
 const ArtistFrame = lazy(() => import('./pages/ArtistFrame').then(m => ({ default: m.ArtistFrame })));
 const SubmitArtist = lazy(() => import('./pages/SubmitArtist').then(m => ({ default: m.SubmitArtist })));
 const Build = lazy(() => import('./pages/Build').then(m => ({ default: m.Build })));
+const ContentLab = lazy(() => import('./pages/ContentLab').then(m => ({ default: m.ContentLab })));
 
 interface HomeProps {
   artists: Artist[];
@@ -253,6 +254,7 @@ const AppContent = () => {
 
         <Route path="/artists" element={<ArtistList />} />
         <Route path="/build" element={<Build />} />
+        <Route path="/content-lab" element={<ContentLab />} />
         <Route path="/info" element={<InfoHub setIsLegalModalOpen={setIsLegalModalOpen} />} />
       </Routes>
       </Suspense>
