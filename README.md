@@ -118,6 +118,18 @@ Use Resend to send mail and ProtonMail to receive replies:
 
 This keeps deliverability high (Resend) while all replies route back to ProtonMail.
 
+## Testing
+
+```bash
+npm test          # Watch mode
+npm test -- --run # Run once (CI)
+```
+
+19 unit tests across 3 suites:
+- `linkUtils.ts` — entity linking, double-link prevention, sort-by-length correctness
+- `useArtists` hook — loading state, Sanity mapping, fetch error paths
+- `useArticles` hook — post mapping, legacy fallback, thumbnail normalization
+
 ## Useful Scripts
 
 - Build app: `npm run build`
