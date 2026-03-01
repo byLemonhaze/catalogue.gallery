@@ -243,7 +243,7 @@ function DraftCard({ draft, password, onUpdate }: { draft: Draft; password: stri
 
 // ─── Main dashboard ──────────────────────────────────────────────────────────
 export function ContentLab() {
-    const [password, setPassword] = useState(() => sessionStorage.getItem('cl_pw') || '');
+    const [password, setPassword] = useState('');
     const [authed, setAuthed] = useState(false);
     const [drafts, setDrafts] = useState<Draft[]>([]);
     const [loading, setLoading] = useState(false);
@@ -270,7 +270,6 @@ export function ContentLab() {
 
     const handleAuth = useCallback((pw: string) => {
         setPassword(pw);
-        sessionStorage.setItem('cl_pw', pw);
         setAuthed(true);
         fetchDrafts(pw);
     }, [fetchDrafts]);
@@ -278,11 +277,6 @@ export function ContentLab() {
     useEffect(() => {
         if (authed && password) fetchDrafts(password);
     }, [authed, password, statusFilter, fetchDrafts]);
-
-    // Auto-auth if password in session
-    useEffect(() => {
-        if (password && !authed) handleAuth(password);
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleGenerate = async () => {
         setGenerating(true);
