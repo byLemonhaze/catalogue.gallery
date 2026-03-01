@@ -107,8 +107,8 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
 
                             {/* Tooltip feedback */}
                             {copied && (
-                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white text-black text-[9px] px-2 py-1 font-bold animate-bounce">
-                                    Link Copied!
+                                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-white text-black text-[9px] px-2 py-1 font-bold animate-fade-in whitespace-nowrap">
+                                    Copied
                                 </div>
                             )}
                         </button>
@@ -145,10 +145,12 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
 
                 {/* Footer Section */}
                 <hr className="my-20 border-white/10" />
-                <div className="text-center">
-                    <p className="text-white/30 text-sm mb-8">Thanks for reading.</p>
-                    <Link to="/" className="text-xs font-bold uppercase tracking-widest hover:underline text-white/50 hover:text-white">
-                        Back to Home
+                <div className="flex items-center justify-between">
+                    <Link to="/blog" className="text-[10px] font-bold uppercase tracking-widest text-white/30 hover:text-white transition-colors">
+                        ← Archives
+                    </Link>
+                    <Link to="/" className="text-[10px] font-bold uppercase tracking-widest text-white/30 hover:text-white transition-colors">
+                        Home →
                     </Link>
                 </div>
             </article>
