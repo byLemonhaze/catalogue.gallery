@@ -18,51 +18,52 @@ export function InfoHub({ setIsLegalModalOpen }: InfoHubProps) {
             <div className="pt-32 md:pt-28 p-6 max-w-5xl mx-auto min-h-screen animate-fade-in relative pb-32">
 
                 {/* Content */}
-                <div className="space-y-4 md:space-y-5 mt-8">
+                <div className="mt-12 divide-y divide-white/10">
 
-                    <section className="bg-[#0d0d0d] border border-white/10 rounded-[6px] p-6 md:p-8 space-y-3">
-                        <h2 className="text-xl md:text-2xl font-black uppercase tracking-[0.12em] text-white">CATALOGUE</h2>
-                        <p className="text-white/65 text-xs sm:text-sm leading-relaxed max-w-4xl">
-                            CATALOGUE is a directory of digital artists linking directly to their personal websites, alongside curated galleries, interviews, and art-focused content. Chain and marketplace agnostic, for collectors from the lens of artists.
+                    <section className="py-10 md:py-14 space-y-4">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/30">About</p>
+                        <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-white leading-none">CATALOGUE</h2>
+                        <p className="text-white/60 text-sm sm:text-base leading-relaxed max-w-2xl">
+                            A directory of digital artists linking directly to their personal websites, alongside curated galleries, interviews, and art-focused content. Chain and marketplace agnostic, for collectors from the lens of artists.
                         </p>
                     </section>
 
-                    <section className="bg-[#0d0d0d] border border-white/10 rounded-[6px] p-6 md:p-8 space-y-3">
-                        <h3 className="text-white font-bold text-base uppercase tracking-[0.08em]">For Collectors</h3>
-                        <p className="text-white/65 text-xs sm:text-sm leading-relaxed max-w-4xl">
+                    <section className="py-10 md:py-12 space-y-3">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/30">For Collectors</p>
+                        <p className="text-white/60 text-sm sm:text-base leading-relaxed max-w-2xl">
                             Showcase your art collection and explore the unique universes of your favorite artists through their own websites: unfiltered, self-curated, and independent.
                         </p>
                     </section>
 
-                    <section className="bg-[#0d0d0d] border border-white/10 rounded-[6px] p-6 md:p-8 space-y-3">
-                        <h3 className="text-white font-bold text-base uppercase tracking-[0.08em]">For Artists</h3>
-                        <p className="text-white/65 text-xs sm:text-sm leading-relaxed max-w-4xl">
+                    <section className="py-10 md:py-12 space-y-3">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/30">For Artists</p>
+                        <p className="text-white/60 text-sm sm:text-base leading-relaxed max-w-2xl">
                             CATALOGUE is built around artist-owned universes, connecting collectors directly to your own website where authorship, context, and independence remain fully under your control.
                         </p>
                     </section>
 
-                    <section className="bg-[#0d0d0d] border border-white/10 rounded-[6px] p-6 md:p-8 space-y-3">
-                        <h3 className="text-white font-bold text-base uppercase tracking-[0.08em]">For Galleries</h3>
-                        <p className="text-white/65 text-xs sm:text-sm leading-relaxed max-w-4xl">
+                    <section className="py-10 md:py-12 space-y-3">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/30">For Galleries</p>
+                        <p className="text-white/60 text-sm sm:text-base leading-relaxed max-w-2xl">
                             CATALOGUE features curated spaces for galleries and platforms, presenting cohesive curatorial visions and collective practices. These listings represent distinct art-focused environments, separate from individual artist profiles and personal domains.
                         </p>
                     </section>
 
-                    <section className="bg-[#0d0d0d] border border-white/10 rounded-[6px] p-6 md:p-8 space-y-4">
-                        <h3 className="text-white font-bold text-base uppercase tracking-[0.08em]">Apply</h3>
-                        <p className="text-white/55 text-xs sm:text-sm leading-relaxed">
+                    <section className="py-10 md:py-14 space-y-6">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/30">Apply</p>
+                        <p className="text-white/50 text-sm leading-relaxed">
                             Submit your artist or gallery profile for review.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3">
                             <Link
                                 to="/submit"
-                                className="inline-flex items-center justify-center px-6 py-3 bg-[#111111] hover:bg-[#141414] text-white border border-white/20 rounded-[6px] text-xs font-bold uppercase tracking-widest transition-colors"
+                                className="inline-flex items-center justify-center px-6 py-3 bg-transparent hover:bg-white/5 text-white border border-white/25 hover:border-white/40 text-xs font-bold uppercase tracking-widest transition-colors"
                             >
                                 Apply to Catalogue
                             </Link>
                             <Link
                                 to="/build"
-                                className="inline-flex items-center justify-center px-6 py-3 bg-[#0d0d0d] hover:bg-[#121212] text-white border border-white/12 rounded-[6px] text-xs font-bold uppercase tracking-widest transition-colors"
+                                className="inline-flex items-center justify-center px-6 py-3 bg-transparent hover:bg-white/5 text-white/60 hover:text-white border border-white/10 hover:border-white/25 text-xs font-bold uppercase tracking-widest transition-colors"
                             >
                                 Build Universe
                             </Link>
@@ -101,7 +102,7 @@ export function InfoHub({ setIsLegalModalOpen }: InfoHubProps) {
                                 />
 
                                 {/* Menu */}
-                                <div className="absolute bottom-full right-0 mb-4 flex flex-col items-end gap-4 bg-[#0d0d0d] p-6 rounded-[6px] border border-white/10 shadow-2xl min-w-[140px] z-50 animate-fade-in origin-bottom-right">
+                                <div className="absolute bottom-full right-0 mb-4 flex flex-col items-end gap-4 bg-[#0d0d0d] p-6 border border-white/10 shadow-2xl min-w-[140px] z-50 animate-fade-in origin-bottom-right">
                                     <a
                                         href="https://x.com/CatalogueART"
                                         target="_blank"

@@ -30,7 +30,7 @@ export const ArtistList: React.FC = () => {
     if (!artists.length) {
         return (
             <div className="min-h-screen bg-black text-white pt-44 px-6">
-                <div className="max-w-xl mx-auto border border-white/10 bg-[#0d0d0d] rounded-[6px] p-6 text-center">
+                <div className="max-w-xl mx-auto border border-white/10 bg-[#0d0d0d]  p-6 text-center">
                     <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/70">Unable to load directory</p>
                     <p className="mt-3 text-sm text-white/50">{error || 'Could not reach Sanity right now.'}</p>
                     <p className="mt-2 text-xs text-white/35">
@@ -92,9 +92,9 @@ export const ArtistList: React.FC = () => {
                                             key={artist.id}
                                             to={`/artist/${artist.id}`}
                                             state={{ from: 'directory' }}
-                                            className="group flex items-center gap-4 p-3 bg-[#101010] hover:bg-[#131313] border border-white/10 hover:border-white/25 rounded-[6px] transition-colors duration-300 cursor-pointer"
+                                            className="group flex items-center gap-4 p-3 bg-[#101010] hover:bg-[#131313] border border-white/10 hover:border-white/25  transition-colors duration-300 cursor-pointer"
                                         >
-                                            <div className="w-12 h-12 flex-shrink-0 rounded-[4px] overflow-hidden bg-neutral-900 border border-white/10">
+                                            <div className="w-12 h-12 flex-shrink-0  overflow-hidden bg-neutral-900 border border-white/10">
                                                 {artist.thumbnail ? (
                                                     <img
                                                         src={artist.isSanity ? urlFor(artist.thumbnail).width(100).url() : artist.thumbnail}
@@ -140,9 +140,9 @@ export const ArtistList: React.FC = () => {
                                     key={gallery.id}
                                     to={`/gallery/${gallery.id}`}
                                     state={{ from: 'directory' }}
-                                    className="group flex items-center gap-4 p-3 bg-[#101010] hover:bg-[#131313] border border-white/10 hover:border-white/25 rounded-[6px] transition-colors duration-300 cursor-pointer"
+                                    className="group flex items-center gap-4 p-3 bg-[#101010] hover:bg-[#131313] border border-white/10 hover:border-white/25  transition-colors duration-300 cursor-pointer"
                                 >
-                                    <div className="w-16 h-16 flex-shrink-0 rounded-[4px] overflow-hidden bg-neutral-900 border border-white/10">
+                                    <div className="w-16 h-16 flex-shrink-0  overflow-hidden bg-neutral-900 border border-white/10">
                                         {gallery.thumbnail ? (
                                             <img
                                                 src={gallery.isSanity ? urlFor(gallery.thumbnail).width(120).url() : gallery.thumbnail}
@@ -179,7 +179,7 @@ export const ArtistList: React.FC = () => {
                         <div className="h-px flex-1 bg-white/5"></div>
                     </div>
 
-                    <div className="py-12 border border-white/10 bg-[#0d0d0d] rounded-[6px] text-center">
+                    <div className="py-12 border border-white/10 bg-[#0d0d0d]  text-center">
                         <p className="text-[10px] font-mono text-white/20 uppercase tracking-[0.4em]">
                             Coming soon
                         </p>

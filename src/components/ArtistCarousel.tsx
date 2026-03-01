@@ -200,14 +200,11 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
                 </svg>
             </button>
 
-            {/* Pagination Dots */}
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex gap-2 z-30">
-                {Array.from({ length: totalItems }).map((_, i) => (
-                    <div
-                        key={i}
-                        className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${i === activeIndex ? 'bg-white w-4' : 'bg-white/20'}`}
-                    />
-                ))}
+            {/* Counter */}
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 z-30">
+                <span className="font-mono text-[11px] tracking-[0.15em] text-white/35 select-none">
+                    {String(activeIndex + 1).padStart(2, '0')} / {String(totalItems).padStart(2, '0')}
+                </span>
             </div>
         </div>
     );

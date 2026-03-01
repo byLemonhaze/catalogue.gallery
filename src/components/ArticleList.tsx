@@ -34,11 +34,11 @@ export const ArticleList: React.FC<ArticleListProps> = ({ filter = 'all', articl
                         <Link
                             key={article.id}
                             to={`/blog/${article.id}`}
-                            className="group relative block bg-[#0d0d0d] border border-white/10 rounded-[6px] p-6 md:p-8 hover:bg-[#111111] hover:border-white/25 transition-colors duration-300"
+                            className="group relative block bg-[#0d0d0d] border border-white/10 p-6 md:p-8 hover:bg-[#111111] hover:border-white/25 transition-colors duration-300"
                         >
                             <div className="flex flex-col md:flex-row gap-6 md:gap-8">
                                 {/* Thumbnail */}
-                                <div className="w-full md:w-48 h-48 md:h-32 rounded-[4px] overflow-hidden bg-white/5 shrink-0 border border-white/10">
+                                <div className="w-full md:w-48 h-48 md:h-32 overflow-hidden bg-white/5 shrink-0 border border-white/10">
                                     <img
                                         src={article.thumbnailUrl || '/logo.png'}
                                         alt=""
@@ -51,7 +51,7 @@ export const ArticleList: React.FC<ArticleListProps> = ({ filter = 'all', articl
                                         <div className="space-y-3">
                                             {/* Metadata Row */}
                                             <div className="flex items-center gap-3">
-                                                <span className="px-2 py-1 rounded-[4px] bg-white/5 border border-white/10 text-[9px] font-mono uppercase tracking-widest text-white/50 group-hover:text-white/70 transition-colors">
+                                                <span className="px-2 py-1 bg-white/5 border border-white/10 text-[9px] font-mono uppercase tracking-widest text-white/50 group-hover:text-white/70 transition-colors">
                                                     {article.type}
                                                 </span>
                                                 <span className="text-[10px] font-mono text-white/30">{article.date}</span>

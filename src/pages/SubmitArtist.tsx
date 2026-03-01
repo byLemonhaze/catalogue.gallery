@@ -98,7 +98,7 @@ export function SubmitArtist() {
             {/* Close Button */}
             <Link
                 to="/info"
-                className="fixed top-8 right-8 z-50 px-3 py-2 bg-[#0c0c0c] border border-white/10 rounded-[6px] text-white/45 hover:text-white hover:border-white/25 transition-colors duration-300 group"
+                className="fixed top-8 right-8 z-50 px-3 py-2 bg-[#0c0c0c] border border-white/10  text-white/45 hover:text-white hover:border-white/25 transition-colors duration-300 group"
                 title="Exit Application"
             >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:rotate-90 transition-transform duration-500">
@@ -121,23 +121,23 @@ export function SubmitArtist() {
                         </div>
 
                         {/* Type Selector Tabs */}
-                        <div className="flex bg-[#0d0d0d] p-1 rounded-[6px] border border-white/10 w-full max-w-sm">
+                        <div className="flex bg-[#0d0d0d] p-1  border border-white/10 w-full max-w-sm">
                             <button
                                 onClick={() => setFormData({ ...formData, type: 'artist' })}
-                                className={`flex-1 py-1.5 md:py-2 text-[10px] font-bold uppercase tracking-widest rounded-[4px] border transition-colors cursor-pointer ${formData.type === 'artist' ? 'bg-[#141414] text-white border-white/20' : 'text-white/45 border-transparent hover:text-white hover:border-white/12'}`}
+                                className={`flex-1 py-1.5 md:py-2 text-[10px] font-bold uppercase tracking-widest  border transition-colors cursor-pointer ${formData.type === 'artist' ? 'bg-[#141414] text-white border-white/20' : 'text-white/45 border-transparent hover:text-white hover:border-white/12'}`}
                             >
                                 Artist
                             </button>
                             <button
                                 onClick={() => setFormData({ ...formData, type: 'gallery' })}
-                                className={`flex-1 py-1.5 md:py-2 text-[10px] font-bold uppercase tracking-widest rounded-[4px] border transition-colors cursor-pointer ${formData.type === 'gallery' ? 'bg-[#141414] text-white border-white/20' : 'text-white/45 border-transparent hover:text-white hover:border-white/12'}`}
+                                className={`flex-1 py-1.5 md:py-2 text-[10px] font-bold uppercase tracking-widest  border transition-colors cursor-pointer ${formData.type === 'gallery' ? 'bg-[#141414] text-white border-white/20' : 'text-white/45 border-transparent hover:text-white hover:border-white/12'}`}
                             >
                                 Gallery
                             </button>
                             <button
                                 type="button"
                                 disabled
-                                className="group relative flex-1 py-1.5 md:py-2 rounded-[4px] border border-transparent cursor-not-allowed opacity-35"
+                                className="group relative flex-1 py-1.5 md:py-2  border border-transparent cursor-not-allowed opacity-35"
                             >
                                 <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Collector</span>
                                 <span className="absolute inset-x-0 -bottom-4 text-center text-[8px] font-mono uppercase tracking-widest text-white/25 whitespace-nowrap">Soon</span>
@@ -192,7 +192,7 @@ export function SubmitArtist() {
                                     </ul>
                                 )}
 
-                                <div className="p-3 bg-[#0d0d0d] border border-white/10 rounded-[6px]">
+                                <div className="p-3 bg-[#0d0d0d] border border-white/10 ">
                                     <p className="text-[10px] text-white/30 font-mono italic">
                                         * Ensure your website is iframe-compatible.
                                     </p>
@@ -202,7 +202,7 @@ export function SubmitArtist() {
                     </div>
 
                     {/* Right Column: The Form */}
-                    <div className="bg-[#0d0d0d] border border-white/10 p-6 md:p-8 rounded-[6px] space-y-4 md:space-y-5 flex flex-col items-center">
+                    <div className="bg-[#0d0d0d] border border-white/10 p-6 md:p-8  space-y-4 md:space-y-5 flex flex-col items-center">
 
                         {formData.type === 'collector' ? (
                             <div className="py-20 text-center space-y-4 animate-fade-in w-full">
@@ -215,7 +215,7 @@ export function SubmitArtist() {
                                 {/* Top: Card Preview / Upload */}
                                 {/* Aspect Ratio matches Homepage (600w x 384h = 1.5625) ~25/16 */}
                                 <div className="flex flex-col w-full items-center">
-                                    <div className="relative w-full max-w-[500px] aspect-[25/16] bg-[#0b0b0b] border border-white/10 rounded-[6px] overflow-hidden group hover:border-white/25 transition-colors cursor-pointer">
+                                    <div className="relative w-full max-w-[500px] aspect-[25/16] bg-[#0b0b0b] border border-white/10  overflow-hidden group hover:border-white/25 transition-colors cursor-pointer">
                                         <input
                                             type="file"
                                             accept="image/*"
@@ -281,7 +281,7 @@ export function SubmitArtist() {
                                             required
                                             value={formData.name}
                                             onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                            className="w-full bg-[#090909] border border-white/10 rounded-[6px] px-4 py-2.5 text-sm font-mono text-white focus:border-white/30 outline-none transition-colors placeholder-white/20"
+                                            className="w-full bg-[#090909] border border-white/10  px-4 py-2.5 text-sm font-mono text-white focus:border-white/30 outline-none transition-colors placeholder-white/20"
                                             placeholder={formData.type === 'artist' ? "Artist Name (e.g. XCOPY)" : "Gallery Name (e.g. Verse, Sovrn, Art Blocks etc.)"}
                                         />
                                     </div>
@@ -294,7 +294,7 @@ export function SubmitArtist() {
                                             maxLength={35}
                                             value={formData.subtitle}
                                             onChange={e => setFormData({ ...formData, subtitle: e.target.value })}
-                                            className="w-full bg-[#090909] border border-white/10 rounded-[6px] px-4 py-2.5 text-sm font-mono text-white focus:border-white/30 outline-none transition-colors placeholder-white/20"
+                                            className="w-full bg-[#090909] border border-white/10  px-4 py-2.5 text-sm font-mono text-white focus:border-white/30 outline-none transition-colors placeholder-white/20"
                                             placeholder={formData.type === 'artist' ? "Subtitle / Tagline (e.g. Crypto Artist)" : "Subtitle (e.g. Curatorial Mission)"}
                                         />
                                         <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-white/20 pointer-events-none">
@@ -309,13 +309,13 @@ export function SubmitArtist() {
                                             required
                                             value={formData.websiteUrl}
                                             onChange={e => setFormData({ ...formData, websiteUrl: e.target.value })}
-                                            className="w-full bg-[#090909] border border-white/10 rounded-[6px] px-4 py-2.5 text-sm font-mono text-white focus:border-white/30 outline-none transition-colors placeholder-white/20"
+                                            className="w-full bg-[#090909] border border-white/10  px-4 py-2.5 text-sm font-mono text-white focus:border-white/30 outline-none transition-colors placeholder-white/20"
                                             placeholder="https://your-website.com"
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setIsTesterOpen(true)}
-                                            className="px-4 py-2.5 bg-[#101010] border border-white/10 rounded-[6px] text-[10px] font-bold uppercase tracking-widest text-white/60 hover:text-white hover:border-white/25 transition-colors whitespace-nowrap"
+                                            className="px-4 py-2.5 bg-[#101010] border border-white/10  text-[10px] font-bold uppercase tracking-widest text-white/60 hover:text-white hover:border-white/25 transition-colors whitespace-nowrap"
                                         >
                                             Test
                                         </button>
@@ -328,14 +328,14 @@ export function SubmitArtist() {
                                             required
                                             value={formData.email}
                                             onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                            className="w-full bg-[#090909] border border-white/10 rounded-[6px] px-4 py-2 text-sm font-mono text-white focus:border-white/30 outline-none transition-colors placeholder-white/20"
+                                            className="w-full bg-[#090909] border border-white/10  px-4 py-2 text-sm font-mono text-white focus:border-white/30 outline-none transition-colors placeholder-white/20"
                                             placeholder="Email Address"
                                         />
                                     </div>
 
                                     {/* Status Message */}
                                     {status && (
-                                        <div className={`p-2 rounded-[6px] text-[10px] font-mono text-center ${status.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                                        <div className={`p-2  text-[10px] font-mono text-center ${status.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
                                             {status.message}
                                         </div>
                                     )}
@@ -344,7 +344,7 @@ export function SubmitArtist() {
                                     <button
                                         type="submit"
                                         disabled={isSubmitting}
-                                        className={`w-full font-black uppercase tracking-[0.2em] py-3 rounded-[6px] transition-colors mt-1 flex items-center justify-center gap-3 ${isSubmitting ? 'bg-[#0f0f0f] text-white/50 border border-white/10 cursor-wait' : 'bg-[#141414] border border-white/20 text-white hover:bg-[#1a1a1a] hover:border-white/30 cursor-pointer'}`}
+                                        className={`w-full font-black uppercase tracking-[0.2em] py-3  transition-colors mt-1 flex items-center justify-center gap-3 ${isSubmitting ? 'bg-[#0f0f0f] text-white/50 border border-white/10 cursor-wait' : 'bg-[#141414] border border-white/20 text-white hover:bg-[#1a1a1a] hover:border-white/30 cursor-pointer'}`}
                                     >
                                         {isSubmitting ? (
                                             <>

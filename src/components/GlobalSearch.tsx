@@ -22,7 +22,7 @@ const SearchResultItem: React.FC<SearchResultItemProps> = ({ artist, onSelect })
         onClick={onSelect}
     className="flex items-center gap-3 p-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 group"
     >
-        <div className="w-8 h-8 flex-shrink-0 rounded-[4px] overflow-hidden bg-neutral-900 border border-white/8">
+        <div className="w-8 h-8 flex-shrink-0  overflow-hidden bg-neutral-900 border border-white/8">
             {artist.thumbnail ? (
                 <img
                     src={artist.isSanity ? urlFor(artist.thumbnail).width(80).url() : (artist.thumbnail as string)}
@@ -61,7 +61,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ search, setSearch, f
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="SEARCH..."
-                            className="w-full px-5 py-3 bg-[#0c0c0c] border border-white/10 rounded-md text-white placeholder-white/30 focus:outline-none focus:border-white/30 focus:bg-[#101010] transition-all text-base md:text-xs font-bold uppercase tracking-widest"
+                            className="w-full px-5 py-3 bg-[#0c0c0c] border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-white/30 focus:bg-[#101010] transition-all text-base md:text-xs font-bold uppercase tracking-widest"
                         />
                         {search && (
                             <button
@@ -74,7 +74,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ search, setSearch, f
 
                         {/* Dropdown Results */}
                         {search && (filteredArtists.length > 0 || filteredArticles.length > 0) && (
-                            <div className="absolute top-full mt-2 w-full bg-[#070707] border border-white/10 rounded-md overflow-hidden shadow-2xl max-h-[60vh] overflow-y-auto custom-scrollbar">
+                            <div className="absolute top-full mt-2 w-full bg-[#070707] border border-white/10 overflow-hidden shadow-2xl max-h-[60vh] overflow-y-auto custom-scrollbar">
 
                                 {/* Categorize Artists by Type */}
                                 {(() => {
@@ -137,7 +137,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ search, setSearch, f
                                                 className="flex items-center gap-3 p-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 group"
                                             >
                                                 {/* Q&A / Chat Icon */}
-                                                <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-[4px] bg-white/5 border border-white/8 text-white/60 group-hover:text-white transition-colors">
+                                                <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center  bg-white/5 border border-white/8 text-white/60 group-hover:text-white transition-colors">
                                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                                                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                                                     </svg>
@@ -168,7 +168,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ search, setSearch, f
                                                 className="flex items-center gap-3 p-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 group"
                                             >
                                                 {/* Manuscript / Paper Icon */}
-                                                <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-[4px] bg-white/5 border border-white/8 text-white/60 group-hover:text-white transition-colors">
+                                                <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center  bg-white/5 border border-white/8 text-white/60 group-hover:text-white transition-colors">
                                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                                                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                                         <polyline points="14 2 14 8 20 8"></polyline>
@@ -192,7 +192,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ search, setSearch, f
                         )}
 
                         {search && filteredArtists.length === 0 && filteredArticles.length === 0 && (
-                            <div className="absolute top-full mt-2 w-full bg-[#070707] border border-white/10 rounded-md p-4 text-center">
+                            <div className="absolute top-full mt-2 w-full bg-[#070707] border border-white/10 p-4 text-center">
                                 <p className="text-xs text-white/40 font-mono">No results found</p>
                             </div>
                         )}
