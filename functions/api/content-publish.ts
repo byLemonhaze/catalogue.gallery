@@ -1,23 +1,50 @@
 /**
  * POST /api/content-publish
- * Publishes a draft to Sanity as a post document (status: draft).
- * The user then reviews and publishes in Sanity Studio when ready.
+ * Sends a Content Lab draft to Sanity as a post document.
+ * The post lands as a DRAFT in Studio — add a thumbnail there, then publish.
+ *
+ * Required Cloudflare secret: SANITY_WRITE_TOKEN
+ *   wrangler pages secret put SANITY_WRITE_TOKEN
  */
 
 import { type ContentBankBindings, updateDraftStatus } from './_contentBank';
+
+// Hardcoded — VITE_ vars are build-time only, not available in Pages Function runtime.
+const SANITY_PROJECT_ID = 'ebj9kqfo';
+const SANITY_DATASET = 'production';
+
+// post.type field values as defined in the Sanity schema
+const DEPLOY_TARGET_TO_POST_TYPE: Record<string, string> = {
+    catalogue_article: 'Article',
+    catalogue_blog: 'Blog',
+    catalogue_interview: 'Interview',
+    personal_blog: 'Blog', // personal blog posts land as Blog type; add thumbnail in Studio
+};
 
 function slugify(text: string): string {
     return text
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '')
-        .slice(0, 80);
+        .slice(0, 96);
+}
+
+function formatDisplayDate(): string {
+    return new Date().toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric',
+    });
 }
 
 export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ request, env }) => {
     const auth = request.headers.get('x-content-lab-password') || '';
     if (auth !== env.CONTENT_LAB_PASSWORD) {
         return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    }
+
+    if (!env.SANITY_WRITE_TOKEN) {
+        return new Response(JSON.stringify({
+            error: 'SANITY_WRITE_TOKEN not set. Run: wrangler pages secret put SANITY_WRITE_TOKEN',
+        }), { status: 500 });
     }
 
     const body = await request.json() as {
@@ -27,6 +54,7 @@ export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ reques
         content: string;
         tags: string[];
         deploy_target: string;
+        source_artist_id?: string; // Sanity _id of the featured artist, if any
     };
 
     if (!body.id || !body.deploy_target) {
@@ -35,58 +63,50 @@ export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ reques
 
     const slug = slugify(body.title);
     const docId = `post-contentbank-${body.id}`;
+    const postType = DEPLOY_TARGET_TO_POST_TYPE[body.deploy_target] ?? 'Article';
 
-    // Map deploy target to Sanity post category tag
-    const categoryMap: Record<string, string> = {
-        catalogue_article: 'article',
-        catalogue_blog: 'blog',
-        catalogue_interview: 'interview',
-        personal_blog: 'personal',
-    };
-    const category = categoryMap[body.deploy_target] || 'article';
-
-    // Build minimal portable text from markdown content
-    const bodyBlocks = body.content.split(/\n\n+/).filter(Boolean).map((para: string, i: number) => ({
-        _type: 'block',
-        _key: `block_${i}`,
-        style: para.startsWith('## ') ? 'h2' : para.startsWith('# ') ? 'h1' : 'normal',
-        children: [{ _type: 'span', _key: `span_${i}`, text: para.replace(/^#+\s*/, ''), marks: [] }],
-        markDefs: [],
-    }));
-
-    const sanityDoc = {
+    // Build the Sanity post document matching the actual schema:
+    // title (string), slug, type ("Article"|"Blog"|"Interview"), author (string),
+    // displayDate (string), publishedAt (datetime), excerpt (text), content (text/markdown),
+    // featuredArtist (reference, optional), thumbnail (image, required in Studio but optional via API)
+    const sanityDoc: Record<string, unknown> = {
         _id: docId,
         _type: 'post',
         title: body.title,
         slug: { _type: 'slug', current: slug },
-        excerpt: body.excerpt,
-        body: bodyBlocks,
-        tags: body.tags,
-        category,
+        type: postType,
+        author: 'Catalogue Content Lab',
+        displayDate: formatDisplayDate(),
         publishedAt: new Date().toISOString(),
-        // status field lets Studio know this came from the content bank
-        source: 'content-bank',
+        excerpt: body.excerpt,
+        content: body.content, // plain markdown — schema field is type: 'text'
     };
 
-    const projectId = env.VITE_SANITY_PROJECT_ID;
-    const dataset = env.VITE_SANITY_DATASET;
-    const token = env.SANITY_WRITE_TOKEN;
+    // Attach featured artist reference if we have it
+    if (body.source_artist_id) {
+        sanityDoc.featuredArtist = { _type: 'reference', _ref: body.source_artist_id };
+    }
 
     const mutations = [{ createOrReplace: sanityDoc }];
-    const url = `https://${projectId}.api.sanity.io/v2024-01-01/data/mutate/${dataset}`;
+    const url = `https://${SANITY_PROJECT_ID}.api.sanity.io/v2024-01-01/data/mutate/${SANITY_DATASET}`;
 
     const sanityRes = await fetch(url, {
         method: 'POST',
         headers: {
             'content-type': 'application/json',
-            authorization: `Bearer ${token}`,
+            authorization: `Bearer ${env.SANITY_WRITE_TOKEN}`,
         },
         body: JSON.stringify({ mutations }),
     });
 
     if (!sanityRes.ok) {
-        const err = await sanityRes.text();
-        return new Response(JSON.stringify({ error: `Sanity error: ${err}` }), { status: 502 });
+        const errText = await sanityRes.text().catch(() => 'unreadable');
+        console.error(`[content-publish] Sanity error ${sanityRes.status}: ${errText}`);
+        return new Response(JSON.stringify({
+            error: sanityRes.status === 401
+                ? 'Sanity token invalid or lacks write permission. Check SANITY_WRITE_TOKEN.'
+                : `Sanity mutation failed (${sanityRes.status})`,
+        }), { status: 502 });
     }
 
     // Mark as published in D1
@@ -96,7 +116,13 @@ export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ reques
         published_at: new Date().toISOString(),
     });
 
-    return new Response(JSON.stringify({ ok: true, sanity_doc_id: docId, slug }), {
-        headers: { 'content-type': 'application/json' },
-    });
+    console.log(`[content-publish] Created Sanity draft: ${docId} (${postType}, slug: ${slug})`);
+
+    return new Response(JSON.stringify({
+        ok: true,
+        sanity_doc_id: docId,
+        slug,
+        type: postType,
+        note: 'Draft created in Sanity. Open Studio to add a thumbnail and publish.',
+    }), { headers: { 'content-type': 'application/json' } });
 };

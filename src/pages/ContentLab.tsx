@@ -12,12 +12,20 @@ interface Draft {
     excerpt: string;
     content: string;
     tags: string[];
+    source_artist_id: string | null;
     source_artist_name: string | null;
     status: DraftStatus;
     deploy_target: DeployTarget | null;
     revision_note: string | null;
     generated_at: string;
     published_at: string | null;
+}
+
+interface Artist {
+    _id: string;
+    name: string;
+    subtitle: string;
+    _type: string;
 }
 
 interface GenerationFailure {
@@ -125,10 +133,19 @@ function DraftCard({ draft, password, onUpdate }: { draft: Draft; password: stri
 
     const handlePublish = async () => {
         setLoading(true);
-        await apiFetch('/api/content-publish', {
-            id: draft.id, title: draft.title, excerpt: draft.excerpt,
-            content: draft.content, tags: draft.tags, deploy_target: deployTarget,
+        const res = await apiFetch('/api/content-publish', {
+            id: draft.id,
+            title: draft.title,
+            excerpt: draft.excerpt,
+            content: draft.content,
+            tags: draft.tags,
+            deploy_target: deployTarget,
+            source_artist_id: draft.source_artist_id ?? undefined,
         });
+        if (!res.ok) {
+            const body = await res.json().catch(() => ({})) as { error?: string };
+            alert(body.error || 'Publish failed — check Cloudflare logs.');
+        }
         setLoading(false);
         setShowPublish(false);
         onUpdate();
@@ -283,6 +300,21 @@ export function ContentLab() {
     const [generating, setGenerating] = useState(false);
     const [statusFilter, setStatusFilter] = useState<'pending' | 'published' | 'dismissed'>('pending');
     const [error, setError] = useState('');
+    const [artists, setArtists] = useState<Artist[]>([]);
+    const [selectedArtistId, setSelectedArtistId] = useState('random');
+
+    const fetchArtists = useCallback(async (pw: string) => {
+        try {
+            const res = await fetch('/api/content-artists', {
+                headers: { 'x-content-lab-password': pw },
+            });
+            if (!res.ok) return;
+            const data = await res.json() as { artists: Artist[] };
+            setArtists(data.artists || []);
+        } catch {
+            // non-fatal — artist picker just won't populate
+        }
+    }, []);
 
     const fetchDrafts = useCallback(async (pw: string) => {
         setLoading(true);
@@ -305,7 +337,8 @@ export function ContentLab() {
         setPassword(pw);
         setAuthed(true);
         fetchDrafts(pw);
-    }, [fetchDrafts]);
+        fetchArtists(pw);
+    }, [fetchDrafts, fetchArtists]);
 
     useEffect(() => {
         if (authed && password) fetchDrafts(password);
@@ -316,9 +349,14 @@ export function ContentLab() {
         setGenerating(true);
         setError('');
         try {
+            const selectedArtist = artists.find(a => a._id === selectedArtistId);
+            const body = selectedArtist
+                ? { artistId: selectedArtist._id, artistName: selectedArtist.name, artistSubtitle: selectedArtist.subtitle }
+                : {};
             const res = await fetch('/api/content-generate', {
                 method: 'POST',
-                headers: { 'x-content-lab-password': password },
+                headers: { 'content-type': 'application/json', 'x-content-lab-password': password },
+                body: JSON.stringify(body),
             });
             if (!res.ok) {
                 const body = await res.json().catch(() => ({})) as { error?: string };
@@ -366,18 +404,31 @@ export function ContentLab() {
                         <h1 className="text-2xl font-black uppercase tracking-tight text-white">Content Lab</h1>
                         <p className="text-[11px] text-white/30 mt-1">{drafts.length} draft{drafts.length !== 1 ? 's' : ''}</p>
                     </div>
-                    <button
-                        onClick={handleGenerate}
-                        disabled={generating}
-                        className="flex items-center gap-2 px-5 py-2.5 border border-white/20 text-[11px] font-bold uppercase tracking-[0.2em] text-white/70 hover:border-white/40 hover:text-white transition-colors disabled:opacity-40 disabled:cursor-wait"
-                    >
-                        {generating ? (
-                            <>
-                                <span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />
-                                Writing…
-                            </>
-                        ) : '+ Generate Now'}
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <select
+                            value={selectedArtistId}
+                            onChange={e => setSelectedArtistId(e.target.value)}
+                            disabled={generating}
+                            className="bg-black border border-white/15 text-[10px] font-mono text-white/50 px-3 py-2.5 focus:border-white/30 outline-none appearance-none cursor-pointer hover:border-white/25 hover:text-white/70 transition-colors disabled:opacity-30 max-w-[180px] truncate"
+                        >
+                            <option value="random">Random artist</option>
+                            {artists.map(a => (
+                                <option key={a._id} value={a._id}>{a.name}</option>
+                            ))}
+                        </select>
+                        <button
+                            onClick={handleGenerate}
+                            disabled={generating}
+                            className="flex items-center gap-2 px-5 py-2.5 border border-white/20 text-[11px] font-bold uppercase tracking-[0.2em] text-white/70 hover:border-white/40 hover:text-white transition-colors disabled:opacity-40 disabled:cursor-wait"
+                        >
+                            {generating ? (
+                                <>
+                                    <span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />
+                                    Writing…
+                                </>
+                            ) : '+ Generate Now'}
+                        </button>
+                    </div>
                 </div>
 
                 {/* Filters */}

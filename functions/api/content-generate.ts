@@ -205,8 +205,22 @@ export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ reques
     const db = env.CONTACTS_DB;
     const now = new Date().toISOString();
 
-    // Fetch a real artist from the directory (VITE_ vars not available at runtime — hardcoded above)
-    const artist = await fetchRandomArtist();
+    // Accept optional artist override from the UI picker
+    const body = await request.json().catch(() => ({})) as {
+        artistId?: string;
+        artistName?: string;
+        artistSubtitle?: string;
+    };
+
+    let artist: { _id: string; name: string; subtitle: string } | null = null;
+    if (body.artistName) {
+        // UI picker provided a specific artist — use it directly
+        artist = { _id: body.artistId || '', name: body.artistName, subtitle: body.artistSubtitle || '' };
+    } else {
+        // No selection — pick randomly from the directory
+        artist = await fetchRandomArtist();
+    }
+
     const artistName = artist?.name ?? 'a contemporary digital artist';
     const artistSubtitle = artist?.subtitle ?? 'Bitcoin-native artist';
     const topic = WILDCARD_TOPICS[Math.floor(Math.random() * WILDCARD_TOPICS.length)];
