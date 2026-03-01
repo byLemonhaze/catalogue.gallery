@@ -18,7 +18,7 @@ export function InfoHub({ setIsLegalModalOpen }: InfoHubProps) {
             <div className="pt-28 md:pt-24 p-6 max-w-5xl mx-auto min-h-screen animate-fade-in relative pb-32">
 
                 {/* Content */}
-                <div className="mt-12 divide-y divide-white/10">
+                <div className="mt-4 divide-y divide-white/10">
 
                     <section className="py-10 md:py-14 space-y-4">
                         <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/30">About</p>
