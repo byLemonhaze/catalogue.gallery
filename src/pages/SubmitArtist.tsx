@@ -98,7 +98,7 @@ export function SubmitArtist() {
             {/* Close Button */}
             <Link
                 to="/info"
-                className="fixed top-8 right-8 z-50 px-3 py-2 bg-[#0c0c0c] border border-white/10  text-white/45 hover:text-white hover:border-white/25 transition-colors duration-300 group"
+                className="fixed top-[5.5rem] md:top-8 right-4 md:right-8 z-50 px-2 py-1.5 md:px-3 md:py-2 bg-[#0c0c0c] border border-white/10 text-white/45 hover:text-white hover:border-white/25 transition-colors duration-300 group"
                 title="Exit Application"
             >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:rotate-90 transition-transform duration-500">
