@@ -248,8 +248,6 @@ export function ContentLab() {
     const [drafts, setDrafts] = useState<Draft[]>([]);
     const [loading, setLoading] = useState(false);
     const [generating, setGenerating] = useState(false);
-    const [awaitingGeneration, setAwaitingGeneration] = useState(false);
-    const [countdown, setCountdown] = useState(0);
     const [statusFilter, setStatusFilter] = useState<'pending' | 'published' | 'dismissed'>('pending');
     const [error, setError] = useState('');
 
@@ -280,24 +278,8 @@ export function ContentLab() {
         if (authed && password) fetchDrafts(password);
     }, [authed, password, statusFilter, fetchDrafts]);
 
-    // Countdown tick — auto-refresh when it hits 0
-    useEffect(() => {
-        if (countdown <= 0) return;
-        const t = setTimeout(() => {
-            setCountdown(c => {
-                if (c <= 1) {
-                    setAwaitingGeneration(false);
-                    fetchDrafts(password);
-                    return 0;
-                }
-                return c - 1;
-            });
-        }, 1000);
-        return () => clearTimeout(t);
-    }, [countdown, password, fetchDrafts]);
-
     const handleGenerate = async () => {
-        if (generating || awaitingGeneration) return;
+        if (generating) return;
         setGenerating(true);
         setError('');
         try {
@@ -305,12 +287,21 @@ export function ContentLab() {
                 method: 'POST',
                 headers: { 'x-content-lab-password': password },
             });
-            if (!res.ok) { setError('Generation failed — check API key in Cloudflare secrets.'); return; }
-            // Generation queued in background — show countdown and auto-refresh
-            setAwaitingGeneration(true);
-            setCountdown(70);
+            if (!res.ok) {
+                const body = await res.json().catch(() => ({})) as { error?: string };
+                setError(body.error === 'API key not configured'
+                    ? 'CLAUDE_API_KEY not set — add it via Cloudflare Pages → Settings → Secrets.'
+                    : 'Generation failed. Check Cloudflare logs for details.');
+                return;
+            }
+            const result = await res.json() as { ok: boolean; created: number };
+            if (result.created === 0) {
+                setError('Generation ran but produced 0 drafts — check Cloudflare logs (likely a JSON parse issue).');
+                return;
+            }
+            await fetchDrafts(password);
         } catch {
-            setError('Generation failed.');
+            setError('Request failed. Check your connection.');
         } finally {
             setGenerating(false);
         }
@@ -336,32 +327,17 @@ export function ContentLab() {
                     </div>
                     <button
                         onClick={handleGenerate}
-                        disabled={generating || awaitingGeneration}
+                        disabled={generating}
                         className="flex items-center gap-2 px-5 py-2.5 border border-white/20 text-[11px] font-bold uppercase tracking-[0.2em] text-white/70 hover:border-white/40 hover:text-white transition-colors disabled:opacity-40 disabled:cursor-wait"
                     >
                         {generating ? (
                             <>
                                 <span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />
-                                Queuing…
-                            </>
-                        ) : awaitingGeneration ? (
-                            <>
-                                <span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />
-                                Generating ({countdown}s)
+                                Writing…
                             </>
                         ) : '+ Generate Now'}
                     </button>
                 </div>
-
-                {/* Background generation banner */}
-                {awaitingGeneration && (
-                    <div className="mb-8 px-4 py-3 border border-white/15 flex items-center gap-3">
-                        <span className="w-2.5 h-2.5 border border-white/30 border-t-white rounded-full animate-spin shrink-0" />
-                        <p className="text-[10px] font-mono text-white/40 uppercase tracking-[0.2em]">
-                            Claude is writing — auto-refreshing in {countdown}s
-                        </p>
-                    </div>
-                )}
 
                 {/* Filters */}
                 <div className="flex gap-6 mb-10">
