@@ -174,7 +174,7 @@ Think: Frieze essay crossed with online criticism. Intelligent, specific, no fil
 - If you don't know a specific detail with confidence, work around it rather than fabricating it.
 - Structure: strong opening image or specific observation → 3–4 sections (## headings) → close with an open question or unresolved tension, not a summary.
 - Length: 900–1,300 words.
-- Markdown output only.`;
+- Return one strict JSON object only (no prose before/after); the "content" field should contain markdown text.`;
 
 export const BLOG_SYSTEM = `You are writing a short editorial post for CATALOGUE — an independent directory of digital artists focused on Bitcoin Ordinals and generative work.
 
@@ -192,7 +192,8 @@ You know this ecosystem well. Your opinions are formed by actually knowing the w
 - No hype. No praise for the sake of it. You can be critical.
 - Be specific: one artist, one work, one observation, one argument.
 - 280–420 words. Hard limit.
-- Markdown — minimal. At most one ## heading.`;
+- Use minimal markdown style inside the "content" field (at most one ## heading).
+- Return one strict JSON object only (no prose before/after).`;
 
 export const WILDCARD_SYSTEM = `You are writing an editorial piece for CATALOGUE — an independent directory of digital artists focused on Bitcoin Ordinals, generative art, and the broader digital art ecosystem.
 
@@ -208,7 +209,8 @@ The format emerges from the subject. A collection spotlight should feel differen
 - Avoid vague ecosystem boosterism. Write something a collector or serious artist would find genuinely interesting.
 - Don't moralize. The reader doesn't need to be told the space is important or that art matters.
 - 450–650 words.
-- Markdown — use headings if the piece has sections, skip them if it flows better as prose.`;
+- Use markdown style inside the "content" field (headings optional).
+- Return one strict JSON object only (no prose before/after).`;
 
 // ─── User prompt builders ────────────────────────────────────────────────────
 

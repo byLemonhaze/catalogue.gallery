@@ -20,6 +20,12 @@ import {
     buildBlogPrompt,
     buildWildcardPrompt,
 } from './_contentPrompts';
+import {
+    type DraftParseReason,
+    type GeneratedDraft,
+    isDraftParseFailure,
+    parseAndNormalizeDraft,
+} from './_draftParser';
 
 // Hardcoded — VITE_ prefixed vars are build-time only, not available in Pages Function runtime.
 const SANITY_PROJECT_ID = 'ebj9kqfo';
@@ -41,11 +47,11 @@ interface ClaudeResponse {
     stop_reason?: string;
 }
 
-interface GeneratedDraft {
-    title: string;
-    excerpt: string;
-    content: string;
-    tags: string[];
+interface DraftFailure {
+    type: DraftType;
+    reason: DraftParseReason | 'http_error' | 'request_error' | 'timeout' | 'empty_response';
+    detail: string;
+    snippet: string;
 }
 
 async function fetchRandomArtist(): Promise<SanityArtistResult | null> {
@@ -66,30 +72,16 @@ async function fetchRandomArtist(): Promise<SanityArtistResult | null> {
     }
 }
 
-function extractJson(text: string): GeneratedDraft | null {
-    // Strip markdown code fences if present
-    const stripped = text.replace(/^```(?:json)?\s*/m, '').replace(/\s*```\s*$/m, '').trim();
-    const start = stripped.indexOf('{');
-    const end = stripped.lastIndexOf('}');
-    if (start === -1 || end === -1 || end <= start) return null;
-    const jsonStr = stripped.slice(start, end + 1);
-
-    // First attempt — clean JSON
-    try { return JSON.parse(jsonStr) as GeneratedDraft; } catch { /* fall through */ }
-
-    // Second attempt — replace literal newlines inside strings
-    try {
-        const fixedStr = jsonStr.replace(/\r\n/g, '\\n').replace(/\r/g, '\\n').replace(/\n/g, '\\n');
-        return JSON.parse(fixedStr) as GeneratedDraft;
-    } catch { return null; }
+function snippet(text: string): string {
+    return text.replace(/\s+/g, ' ').trim().slice(0, 220);
 }
 
 async function callClaude(
     apiKey: string,
     system: string,
     userPrompt: string,
-    type: string
-): Promise<GeneratedDraft | null> {
+    type: DraftType
+): Promise<{ ok: true; draft: GeneratedDraft } | { ok: false; failure: DraftFailure }> {
     // 25-second per-call timeout — prevents a single hung request from blocking everything
     const controller = new AbortController();
     const timer = setTimeout(() => {
@@ -118,7 +110,15 @@ async function callClaude(
         if (!res.ok) {
             const errBody = await res.text().catch(() => 'unreadable');
             console.error(`[content-generate] Claude API ${res.status} for ${type}: ${errBody}`);
-            return null;
+            return {
+                ok: false,
+                failure: {
+                    type,
+                    reason: 'http_error',
+                    detail: `Claude API ${res.status}`,
+                    snippet: snippet(errBody),
+                },
+            };
         }
 
         const data = await res.json() as ClaudeResponse;
@@ -127,19 +127,66 @@ async function callClaude(
             console.error(`[content-generate] ${type} hit max_tokens — response was truncated`);
         }
 
-        const text = data.content?.[0]?.text || '';
-        if (!text) { console.error(`[content-generate] Empty text from Claude for ${type}`); return null; }
+        const text = (data.content || [])
+            .filter((part): part is ClaudeContent => part?.type === 'text' && typeof part.text === 'string')
+            .map((part) => part.text)
+            .join('\n')
+            .trim();
 
-        const draft = extractJson(text);
-        if (!draft) {
-            console.error(`[content-generate] JSON parse failed for ${type}. First 400 chars: ${text.slice(0, 400)}`);
+        if (!text) {
+            console.error(`[content-generate] Empty text from Claude for ${type}`);
+            return {
+                ok: false,
+                failure: {
+                    type,
+                    reason: 'empty_response',
+                    detail: 'Claude returned no text content.',
+                    snippet: '',
+                },
+            };
         }
-        return draft;
+
+        const parsed = parseAndNormalizeDraft(text);
+        if (isDraftParseFailure(parsed)) {
+            const { failure } = parsed;
+            console.error(
+                `[content-generate] Parse failed for ${type}: ${failure.reason} — ${failure.detail}`
+            );
+            return {
+                ok: false,
+                failure: {
+                    type,
+                    reason: failure.reason,
+                    detail: failure.detail,
+                    snippet: failure.snippet,
+                },
+            };
+        }
+
+        return { ok: true, draft: parsed.draft };
     } catch (err: unknown) {
         clearTimeout(timer);
-        if (err instanceof Error && err.name === 'AbortError') return null; // already logged
+        if (err instanceof Error && err.name === 'AbortError') {
+            return {
+                ok: false,
+                failure: {
+                    type,
+                    reason: 'timeout',
+                    detail: 'Claude call aborted after 25s.',
+                    snippet: '',
+                },
+            };
+        }
         console.error(`[content-generate] callClaude error for ${type}:`, err);
-        return null;
+        return {
+            ok: false,
+            failure: {
+                type,
+                reason: 'request_error',
+                detail: err instanceof Error ? err.message : 'Unknown error',
+                snippet: '',
+            },
+        };
     }
 }
 
@@ -167,11 +214,13 @@ export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ reques
     console.log(`[content-generate] Artist: ${artistName} | Topic: ${topic.subject}`);
 
     // Generate all 3 in parallel with Haiku — ~5-10s each, ~12s total in parallel
-    const [articleDraft, blogDraft, wildcardDraft] = await Promise.all([
+    const attempts = await Promise.all([
         callClaude(env.CLAUDE_API_KEY, ARTICLE_SYSTEM, buildArticlePrompt(artistName, artistSubtitle), 'article'),
         callClaude(env.CLAUDE_API_KEY, BLOG_SYSTEM, buildBlogPrompt(artistName, artistSubtitle), 'blog'),
         callClaude(env.CLAUDE_API_KEY, WILDCARD_SYSTEM, buildWildcardPrompt(topic), 'wildcard'),
     ]);
+    const failures = attempts.filter((attempt): attempt is { ok: false; failure: DraftFailure } => !attempt.ok)
+        .map((attempt) => attempt.failure);
 
     const inserts: Promise<unknown>[] = [];
     let created = 0;
@@ -203,16 +252,30 @@ export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ reques
         );
     };
 
-    insertDraft('article', articleDraft, artist?._id ?? null, artistName);
-    insertDraft('blog', blogDraft, artist?._id ?? null, artistName);
-    insertDraft('wildcard', wildcardDraft, null, null);
+    const articleAttempt = attempts[0];
+    const blogAttempt = attempts[1];
+    const wildcardAttempt = attempts[2];
+
+    insertDraft('article', articleAttempt.ok ? articleAttempt.draft : null, artist?._id ?? null, artistName);
+    insertDraft('blog', blogAttempt.ok ? blogAttempt.draft : null, artist?._id ?? null, artistName);
+    insertDraft('wildcard', wildcardAttempt.ok ? wildcardAttempt.draft : null, null, null);
 
     await Promise.all(inserts);
     await pruneDrafts(db, 100);
 
     console.log(`[content-generate] Done — ${created}/3 drafts created`);
+    if (failures.length) {
+        for (const failure of failures) {
+            console.error(`[content-generate] ${failure.type} failed: ${failure.reason} — ${failure.detail}`);
+        }
+    }
 
-    return new Response(JSON.stringify({ ok: true, created }), {
+    return new Response(JSON.stringify({
+        ok: true,
+        created,
+        attempted: attempts.length,
+        failures,
+    }), {
         headers: { 'content-type': 'application/json' },
     });
 };

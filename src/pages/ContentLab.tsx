@@ -20,6 +20,20 @@ interface Draft {
     published_at: string | null;
 }
 
+interface GenerationFailure {
+    type: DraftType;
+    reason: string;
+    detail: string;
+    snippet: string;
+}
+
+interface GenerationResult {
+    ok: boolean;
+    created: number;
+    attempted: number;
+    failures?: GenerationFailure[];
+}
+
 const TYPE_LABEL: Record<DraftType, string> = {
     article: 'Article',
     blog: 'Blog',
@@ -45,6 +59,25 @@ function groupByDay(drafts: Draft[]): [string, Draft[]][] {
         groups[day].push(d);
     }
     return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a));
+}
+
+function humanizeFailureReason(reason: string): string {
+    const map: Record<string, string> = {
+        timeout: 'timed out',
+        http_error: 'API error',
+        request_error: 'request failed',
+        empty_response: 'empty response',
+        no_json_object: 'no JSON found',
+        json_parse_failed: 'invalid JSON',
+        invalid_shape: 'wrong JSON shape',
+    };
+    return map[reason] || reason.replace(/_/g, ' ');
+}
+
+function formatFailureSummary(failures: GenerationFailure[]): string {
+    return failures
+        .map((failure) => `${failure.type}: ${humanizeFailureReason(failure.reason)}`)
+        .join(' | ');
 }
 
 // ─── Auth gate ───────────────────────────────────────────────────────────────
@@ -294,12 +327,20 @@ export function ContentLab() {
                     : 'Generation failed. Check Cloudflare logs for details.');
                 return;
             }
-            const result = await res.json() as { ok: boolean; created: number };
+            const result = await res.json() as GenerationResult;
+            const failures = result.failures || [];
+
             if (result.created === 0) {
-                setError('Generation ran but produced 0 drafts — check Cloudflare logs (likely a JSON parse issue).');
+                const summary = failures.length
+                    ? ` Failures: ${formatFailureSummary(failures)}.`
+                    : '';
+                setError(`Generation created 0/${result.attempted || 3} drafts.${summary} Check Cloudflare logs for details.`);
                 return;
             }
             await fetchDrafts(password);
+            if (failures.length > 0) {
+                setError(`Generated ${result.created}/${result.attempted || 3}. Remaining failures: ${formatFailureSummary(failures)}.`);
+            }
         } catch {
             setError('Request failed. Check your connection.');
         } finally {
