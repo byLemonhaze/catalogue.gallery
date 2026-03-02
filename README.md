@@ -100,6 +100,41 @@ npm run migrate:articles
 
 This imports current local articles using the same slug ids, preserving existing `/blog/...` links.
 
+## Content Lab
+
+A password-protected editorial tool at `/content-lab` for generating, reviewing, and publishing articles — without touching Sanity directly.
+
+**Flow:**
+
+1. Select an artist from the directory (or generate for a random one)
+2. Optionally hit **Research** to scrape the artist's website and cache a factual bio in Sanity (`contentBio` field)
+3. Hit **Generate** — Grok-4 searches X/Twitter and the web in real time and writes from what it actually finds
+4. Review the draft, edit inline, then publish directly to Sanity
+
+**Content types:**
+
+| Type | Voice | Length |
+|------|-------|--------|
+| Article | Cultural criticism, third person, structured sections | 700–950 words |
+| Blog | Short editorial, first person, one strong observation | 250–380 words |
+| Wildcard | Deep-dive on a collection, concept, or moment | 450–700 words |
+
+**API endpoints** (`functions/api/`):
+
+| Endpoint | Purpose |
+|----------|---------|
+| `content-generate` | Grok-4 with live web + X search → drafts → D1 |
+| `content-scrape` | Scrapes artist website → Claude Haiku summarizes → saves to Sanity `contentBio` |
+| `content-publish` | Publishes approved draft from D1 → Sanity `post` |
+| `content-drafts` | Lists drafts stored in D1 |
+| `content-update` | Updates draft status (approve / dismiss / edit) |
+
+**Additional env vars required:**
+
+- `GROK_API_KEY` — xAI API key (Grok-4, primary generation model)
+- `CLAUDE_API_KEY` — Anthropic API key (Claude Haiku, used for website summarization only)
+- `CONTENT_LAB_PASSWORD` — auth password for the `/content-lab` route
+
 ## ProtonMail + Resend Setup (Recommended)
 
 Use Resend to send mail and ProtonMail to receive replies:
