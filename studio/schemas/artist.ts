@@ -122,6 +122,20 @@ export default {
             },
         },
         {
+            name: 'contentBio',
+            title: 'Research Bio (Content Lab)',
+            type: 'text',
+            rows: 8,
+            description: 'Auto-generated from artist website. Used by Content Lab as primary source for article/blog generation. Can be manually curated.',
+        },
+        {
+            name: 'contentBioUpdatedAt',
+            title: 'Research Bio Last Updated',
+            type: 'datetime',
+            readOnly: true,
+            hidden: true,
+        },
+        {
             name: 'template',
             title: 'Template',
             type: 'string',

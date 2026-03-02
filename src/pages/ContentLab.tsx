@@ -27,6 +27,8 @@ interface Artist {
     subtitle: string;
     _type: string;
     thumbnailRef?: string;
+    websiteUrl?: string;
+    contentBio?: string;
 }
 
 interface GenerationFailure {
@@ -428,12 +430,14 @@ export function ContentLab() {
     const [artists, setArtists] = useState<Artist[]>([]);
     const [selectedArtistId, setSelectedArtistId] = useState('random');
     const [selectedType, setSelectedType] = useState<DraftType>('article');
+    const [scraping, setScraping] = useState(false);
+    const [scrapeStatus, setScrapeStatus] = useState<{ ok: boolean; msg: string } | null>(null);
 
     // Fetch artists directly from Sanity public CDN — no auth needed, no Pages Function
     const fetchArtists = useCallback(async () => {
         try {
             const query = encodeURIComponent(
-                `*[_type in ["artist","gallery"] && status == "published"]{_id, name, "subtitle": coalesce(subtitle, ""), _type, "thumbnailRef": thumbnail.asset._ref} | order(name asc)`
+                `*[_type in ["artist","gallery"] && status == "published"]{_id, name, "subtitle": coalesce(subtitle, ""), _type, "thumbnailRef": thumbnail.asset._ref, websiteUrl, contentBio} | order(name asc)`
             );
             const url = `https://${SANITY_PROJECT_ID}.apicdn.sanity.io/v2024-01-01/data/query/${SANITY_DATASET}?query=${query}`;
             const res = await fetch(url);
@@ -517,6 +521,31 @@ export function ContentLab() {
         }
     };
 
+    const handleScrape = async () => {
+        if (scraping || selectedArtistId === 'random') return;
+        setScraping(true);
+        setScrapeStatus(null);
+        try {
+            const res = await fetch('/api/content-scrape', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json', 'x-content-lab-password': password },
+                body: JSON.stringify({ artistId: selectedArtistId }),
+            });
+            const data = await res.json() as { ok?: boolean; error?: string; artistName?: string };
+            if (!res.ok || !data.ok) {
+                setScrapeStatus({ ok: false, msg: data.error || 'Scrape failed.' });
+            } else {
+                setScrapeStatus({ ok: true, msg: `Research saved for ${data.artistName}` });
+                // Refresh artists to pick up new contentBio
+                await fetchArtists();
+            }
+        } catch {
+            setScrapeStatus({ ok: false, msg: 'Request failed.' });
+        } finally {
+            setScraping(false);
+        }
+    };
+
     if (!authed) return <AuthGate onAuth={handleAuth} />;
 
     const groups = groupByDay(drafts.filter(d => d.status === 'pending'));
@@ -552,19 +581,45 @@ export function ContentLab() {
                                 </button>
                             ))}
                         </div>
-                        {/* Artist + generate */}
+                        {/* Artist + research + generate */}
                         <div className="flex items-center gap-2">
-                            <select
-                                value={selectedArtistId}
-                                onChange={e => setSelectedArtistId(e.target.value)}
-                                disabled={generating || selectedType === 'wildcard'}
-                                className="bg-black border border-white/15 text-[10px] font-mono text-white/50 px-3 py-2.5 focus:border-white/30 outline-none appearance-none cursor-pointer hover:border-white/25 hover:text-white/70 transition-colors disabled:opacity-20 max-w-[180px] truncate"
-                            >
-                                <option value="random">Random artist</option>
-                                {artists.map(a => (
-                                    <option key={a._id} value={a._id}>{a.name}</option>
-                                ))}
-                            </select>
+                            <div className="relative flex items-center">
+                                <select
+                                    value={selectedArtistId}
+                                    onChange={e => { setSelectedArtistId(e.target.value); setScrapeStatus(null); }}
+                                    disabled={generating || selectedType === 'wildcard'}
+                                    className="bg-black border border-white/15 text-[10px] font-mono text-white/50 px-3 py-2.5 focus:border-white/30 outline-none appearance-none cursor-pointer hover:border-white/25 hover:text-white/70 transition-colors disabled:opacity-20 max-w-[180px] truncate"
+                                >
+                                    <option value="random">Random artist</option>
+                                    {artists.map(a => (
+                                        <option key={a._id} value={a._id}>{a.name}</option>
+                                    ))}
+                                </select>
+                                {/* Research status dot */}
+                                {selectedArtistId !== 'random' && selectedType !== 'wildcard' && (() => {
+                                    const a = artists.find(x => x._id === selectedArtistId);
+                                    return (
+                                        <span
+                                            className={`absolute -top-1 -right-1 w-2 h-2 ${a?.contentBio ? 'bg-emerald-500' : 'bg-yellow-500/70'}`}
+                                            title={a?.contentBio ? 'Research cached' : 'No research — click Fetch Research'}
+                                        />
+                                    );
+                                })()}
+                            </div>
+                            {/* Research button — only shown for specific artists */}
+                            {selectedArtistId !== 'random' && selectedType !== 'wildcard' && (
+                                <button
+                                    onClick={handleScrape}
+                                    disabled={scraping || generating}
+                                    className="flex items-center gap-1.5 px-2.5 py-2.5 border border-white/10 text-[9px] font-bold uppercase tracking-widest text-white/25 hover:border-white/25 hover:text-white/60 transition-colors disabled:opacity-30"
+                                    title="Scrape artist website and cache research bio"
+                                >
+                                    {scraping ? (
+                                        <span className="w-2.5 h-2.5 border border-white/20 border-t-white/60 rounded-full animate-spin" />
+                                    ) : '↓'}
+                                    Research
+                                </button>
+                            )}
                             <button
                                 onClick={handleGenerate}
                                 disabled={generating}
@@ -578,6 +633,12 @@ export function ContentLab() {
                                 ) : '+ Generate'}
                             </button>
                         </div>
+                        {/* Scrape status feedback */}
+                        {scrapeStatus && (
+                            <p className={`text-[9px] font-mono mt-1 ${scrapeStatus.ok ? 'text-emerald-400/70' : 'text-red-400/70'}`}>
+                                {scrapeStatus.msg}
+                            </p>
+                        )}
                     </div>
                 </div>
 

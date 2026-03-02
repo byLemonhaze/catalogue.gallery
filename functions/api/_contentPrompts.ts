@@ -238,22 +238,26 @@ Curious and ranging. This is the slot where the most interesting things get writ
 
 // ─── User prompt builders ────────────────────────────────────────────────────
 
-export function buildArticlePrompt(artistName: string, artistSubtitle: string, research?: string | null): string {
+export function buildArticlePrompt(artistName: string, artistSubtitle: string, research?: string | null, contentBio?: string | null): string {
+    const bioBlock = contentBio
+        ? `\n\n## PRIMARY SOURCE — Artist's Own Website (most reliable, use this first)\n${contentBio}\n\nThis is factual information from the artist's own site. Build your argument from these facts. Do not contradict them.`
+        : '';
     const researchBlock = research
-        ? `\n\n## Live Research (verified recent facts from X/Twitter and the web — prioritize over assumptions)\n${research}`
+        ? `\n\n## SECONDARY SOURCE — Live Research (X/Twitter + web, use to supplement the above)\n${research}`
         : '';
 
     return `Write a CATALOGUE article about the digital artist ${artistName}.
 
 Artist context: ${artistSubtitle}
+${bioBlock}
 ${researchBlock}
 
-CHAIN RULE: Use the context and research to determine what platform/medium/chain this artist works in. ONLY mention Bitcoin Ordinals if confirmed. Most digital artists work on Ethereum. If unsure, write about the work and practice without specifying a chain.
+CHAIN RULE: Use the sources above to determine what platform/medium/chain this artist actually works in. ONLY mention Bitcoin Ordinals if confirmed by the sources. Do not default to Ordinals. If unsure, write about the practice without specifying a chain.
 
 APPROACH — do this in order:
-1. Find the ONE conceptual argument that makes this article worth reading. What does ${artistName}'s practice really do? What does it claim, resist, propose? This becomes your Abstract.
-2. Find the art historical lineage — who does this connect to? (generative art, conceptual art, post-internet, glitch, AI-collaborative, etc.)
-3. Name 2–3 specific works or series with dates. Build sections around them.
+1. Read the primary source. Find the ONE conceptual argument that makes this article worth reading. What does ${artistName}'s practice really do? What does it claim, resist, propose? This becomes your Abstract.
+2. Find the art historical lineage — what tradition does this connect to? (generative art, conceptual art, post-internet, glitch, AI-collaborative, etc.)
+3. Name 2–3 specific works or series with dates from the sources. Build sections around them.
 4. Close with a real observation — not a summary.
 
 The article must follow the mandatory structure from your instructions:
@@ -273,25 +277,29 @@ Return a JSON object with EXACTLY this shape (no other text, no markdown wrapper
 }`;
 }
 
-export function buildBlogPrompt(artistName: string, artistSubtitle: string, research?: string | null): string {
+export function buildBlogPrompt(artistName: string, artistSubtitle: string, research?: string | null, contentBio?: string | null): string {
+    const bioBlock = contentBio
+        ? `\n\n## PRIMARY SOURCE — Artist's Own Website\n${contentBio}\n\nBuild from these facts.`
+        : '';
     const researchBlock = research
-        ? `\n\n## Live Research (from X/Twitter and the web)\n${research}`
+        ? `\n\n## SECONDARY SOURCE — Live Research\n${research}`
         : '';
 
     return `Write a short CATALOGUE blog post about ${artistName}.
 
 Artist context: ${artistSubtitle}
+${bioBlock}
 ${researchBlock}
 
-CHAIN RULE: Use the context and research to identify this artist's actual platform/medium. ONLY mention Bitcoin Ordinals if confirmed. Most digital artists work on Ethereum.
+CHAIN RULE: Use the sources to identify the artist's actual platform/medium. ONLY mention Bitcoin Ordinals if confirmed. Do not default to Ordinals.
 
-Find the ONE specific thing to say about ${artistName} — one observation, one moment, one work — that reveals something true about their practice. Something concrete. Open with it directly. No setup.
+Find the ONE specific thing to say — one observation, one moment, one work — that reveals something true about ${artistName}'s practice. Something concrete, drawn from the sources. Open with it directly. No setup.
 
 This post is ENTIRELY about ${artistName}.
 
 Return a JSON object with EXACTLY this shape (no other text, no markdown wrapper):
 {
-  "title": "...(direct, slightly unusual — the title should make someone want to read it)",
+  "title": "...(direct, slightly unusual — makes someone want to read it)",
   "excerpt": "...(1 sentence — the sharpest version of the point)",
   "content": "...(full post in markdown, 250–380 words, personal voice, opens with the observation)",
   "tags": ["...", "..."] (2–4 lowercase hyphenated tags)

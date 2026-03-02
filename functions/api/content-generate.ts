@@ -35,6 +35,8 @@ interface SanityArtistResult {
     _id: string;
     name: string;
     subtitle: string;
+    websiteUrl?: string;
+    contentBio?: string;
 }
 
 interface ClaudeContent {
@@ -59,7 +61,7 @@ interface DraftFailure {
 async function fetchRandomArtist(): Promise<SanityArtistResult | null> {
     try {
         const query = encodeURIComponent(
-            `*[_type in ["artist","gallery"] && status == "published"]{_id, name, subtitle}`
+            `*[_type in ["artist","gallery"] && status == "published"]{_id, name, subtitle, websiteUrl, contentBio}`
         );
         const url = `https://${SANITY_PROJECT_ID}.api.sanity.io/v2024-01-01/data/query/${SANITY_DATASET}?query=${query}`;
         const res = await fetch(url);
@@ -269,7 +271,7 @@ export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ reques
     const requestedTypes: DraftType[] = body.type ? [body.type] : ['article', 'blog', 'wildcard'];
     const needsArtistContent = requestedTypes.some(t => t === 'article' || t === 'blog');
 
-    console.log(`[content-generate] Artist: ${artistName} | Types: ${requestedTypes.join(',')}${body.type ? ' (single)' : ' (batch)'}`);
+    console.log(`[content-generate] Artist: ${artistName} | Types: ${requestedTypes.join(',')}${body.type ? ' (single)' : ' (batch)'} | bio: ${artist.contentBio ? 'yes' : 'no'}`);
 
     // ── Optional Grok research (only for artist-based content) ─────────────
     let research: string | null = null;
@@ -282,9 +284,9 @@ export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ reques
         requestedTypes.map(type => {
             switch (type) {
                 case 'article':
-                    return callClaude(env.CLAUDE_API_KEY, ARTICLE_SYSTEM, buildArticlePrompt(artistName, artistSubtitle, research), 'article');
+                    return callClaude(env.CLAUDE_API_KEY, ARTICLE_SYSTEM, buildArticlePrompt(artistName, artistSubtitle, research, artist.contentBio), 'article');
                 case 'blog':
-                    return callClaude(env.CLAUDE_API_KEY, BLOG_SYSTEM, buildBlogPrompt(artistName, artistSubtitle, research), 'blog');
+                    return callClaude(env.CLAUDE_API_KEY, BLOG_SYSTEM, buildBlogPrompt(artistName, artistSubtitle, research, artist.contentBio), 'blog');
                 case 'wildcard':
                     return callClaude(env.CLAUDE_API_KEY, WILDCARD_SYSTEM, buildWildcardPrompt(topic), 'wildcard');
             }
