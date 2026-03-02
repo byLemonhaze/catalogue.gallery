@@ -38,8 +38,14 @@ interface SanityArtistResult {
     contentBio?: string;
 }
 
-interface GrokResponse {
-    choices: Array<{ message: { content: string } }>;
+interface GrokResponseOutput {
+    type: string;
+    content?: Array<{ type: string; text?: string }>;
+}
+
+interface GrokResponseBody {
+    output?: GrokResponseOutput[];
+    output_text?: string; // legacy fallback field
 }
 
 interface DraftFailure {
@@ -108,7 +114,8 @@ async function callGrok(
     }, timeout);
 
     try {
-        const res = await fetch('https://api.x.ai/v1/chat/completions', {
+        // xAI Responses API — supports live web + X search via tools
+        const res = await fetch('https://api.x.ai/v1/responses', {
             method: 'POST',
             signal: controller.signal,
             headers: {
@@ -117,30 +124,43 @@ async function callGrok(
             },
             body: JSON.stringify({
                 model: 'grok-3',
-                max_tokens: type === 'blog' ? 1500 : 4000,
-                messages: [
+                input: [
                     { role: 'system', content: system },
                     { role: 'user', content: userPrompt },
                 ],
-                search_parameters: {
-                    mode: 'on',
-                    sources: [
-                        { type: 'web' },
-                        { type: 'x' },
-                    ],
-                },
+                tools: [
+                    { type: 'web_search' },
+                    { type: 'x_search' },
+                ],
             }),
         });
         clearTimeout(timer);
 
         if (!res.ok) {
             const errBody = await res.text().catch(() => 'unreadable');
-            console.error(`[content-generate] Grok API ${res.status} for ${type}: ${errBody.slice(0, 300)}`);
-            return { ok: false, failure: { type, reason: 'http_error', detail: `Grok API ${res.status}`, snippet: snippet(errBody) } };
+            console.error(`[content-generate] Grok API ${res.status} for ${type}: ${errBody.slice(0, 400)}`);
+            return { ok: false, failure: { type, reason: 'http_error', detail: `Grok ${res.status}: ${errBody.slice(0, 150)}`, snippet: snippet(errBody) } };
         }
 
-        const data = await res.json() as GrokResponse;
-        const text = data.choices?.[0]?.message?.content?.trim() || '';
+        const data = await res.json() as GrokResponseBody;
+
+        // Extract text from output[].content[].text (Responses API format)
+        let text = '';
+        if (Array.isArray(data.output)) {
+            for (const item of data.output) {
+                if (item.type === 'message' && Array.isArray(item.content)) {
+                    for (const c of item.content) {
+                        if (c.type === 'output_text' && c.text) {
+                            text = c.text.trim();
+                            break;
+                        }
+                    }
+                }
+                if (text) break;
+            }
+        }
+        // Legacy top-level fallback
+        if (!text && data.output_text) text = data.output_text.trim();
 
         if (!text) {
             return { ok: false, failure: { type, reason: 'empty_response', detail: 'Grok returned no text.', snippet: '' } };
