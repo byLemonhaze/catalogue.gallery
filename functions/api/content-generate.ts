@@ -91,9 +91,9 @@ const FALLBACK_POOL: SanityArtistResult[] = [
 // ─── Grok generation (search + write in one call) ────────────────────────────
 
 const CALL_TIMEOUT: Record<DraftType, number> = {
-    article: 60000,
-    wildcard: 55000,
-    blog: 50000,
+    article: 120000,
+    wildcard: 100000,
+    blog: 90000,
 };
 
 function snippet(text: string): string {
