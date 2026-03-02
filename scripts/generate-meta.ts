@@ -49,7 +49,7 @@ async function fetchSanityMetaArticles(): Promise<MetaArticle[]> {
     const apiVersion = 'v2024-01-01';
 
     const query = `*[_type == "post" && defined(slug.current)]
-      | order(coalesce(sortOrder, 999999) asc, coalesce(publishedAt, _createdAt) desc) {
+      | order(coalesce(publishedAt, _createdAt) desc) {
         "id": slug.current,
         title,
         excerpt,

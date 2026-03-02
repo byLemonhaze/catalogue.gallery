@@ -84,14 +84,13 @@ function mapSanityArticle(post: SanityPost): ArticleRecord | null {
         excerpt,
         content,
         thumbnailUrl: normalizeImageUrl(post.featuredArtistThumbnailUrl || post.thumbnailUrl || post.thumbnailPath),
-        sortOrder: typeof post.sortOrder === 'number' ? post.sortOrder : undefined,
         source: 'sanity',
     }
 }
 
 async function fetchSanityArticles(): Promise<ArticleRecord[]> {
     const query = `*[_type == "post" && defined(slug.current)]
-        | order(coalesce(sortOrder, 999999) asc, coalesce(publishedAt, _createdAt) desc) {
+        | order(coalesce(publishedAt, _createdAt) desc) {
             "id": slug.current,
             title,
             author,
@@ -100,7 +99,6 @@ async function fetchSanityArticles(): Promise<ArticleRecord[]> {
             type,
             excerpt,
             content,
-            sortOrder,
             "featuredArtistThumbnailUrl": featuredArtist->thumbnail.asset->url,
             thumbnailPath,
             "thumbnailUrl": thumbnail.asset->url
