@@ -221,13 +221,19 @@ export function buildArticlePrompt(artistName: string, artistSubtitle: string, r
         ? `\n\n## Live Research (verified recent information from X/Twitter and the web)\n${research}\n\nUse these verified facts to add precision and currency. Prioritize this research over assumptions.`
         : '';
 
-    return `Write a CATALOGUE article specifically about the digital artist ${artistName} — ${artistSubtitle}.
+    return `Write a CATALOGUE article specifically about the digital artist ${artistName}.
+
+Artist context: ${artistSubtitle}
 ${researchBlock}
-IMPORTANT: This article is ENTIRELY about ${artistName}. Do not pivot to writing about Lemonhaze, XCOPY, or any other artist as the primary subject. ${artistName} is the subject from first word to last.
+CRITICAL RULES:
+- This article is ENTIRELY about ${artistName}. Never pivot to any other artist as the primary subject.
+- Use the artist context above and the research (if any) to determine what chain/platform/medium this artist actually works in. ONLY mention Bitcoin Ordinals if the context or research confirms they work with Ordinals. If they work on Ethereum, write about Ethereum. If generative art, write about generative art. If traditional digital art, write about that. Get the chain right.
+- Do NOT assume every digital artist is on Bitcoin or has Ordinals inscriptions. Most artists in this space work on Ethereum.
+- If you have no confirmed information about their chain/platform, write about their practice and aesthetic without specifying a chain.
 
-Critical engagement with ${artistName}'s work and its context. Not a biography. Specific about what makes their practice distinctive, what tradition it sits in, and what is genuinely interesting or unresolved about their work right now. Write about them on their own terms — their actual medium, their actual platform, their actual aesthetic concerns — not through a generic crypto art lens.
+Critical engagement with ${artistName}'s work and its context. Not a biography. Specific about what makes their practice distinctive, what tradition it sits in, and what is genuinely interesting or unresolved about their work right now.
 
-Use everything you know about ${artistName} specifically, including any research above. If you're uncertain about a detail and have no research to draw from, work around it rather than fabricating.
+Use everything you know about ${artistName} specifically. If you're uncertain about a detail, work around it rather than fabricating.
 
 Return a JSON object with EXACTLY this shape (no other text, no markdown wrapper):
 {
@@ -243,11 +249,16 @@ export function buildBlogPrompt(artistName: string, artistSubtitle: string, rese
         ? `\n\n## Live Research (from X/Twitter and the web)\n${research}\n\nDraw from this for specificity.`
         : '';
 
-    return `Write a short CATALOGUE blog post about ${artistName} — ${artistSubtitle}.
-${researchBlock}
-IMPORTANT: This post is ENTIRELY about ${artistName}. Do not write about Lemonhaze or any other artist as the subject. ${artistName} is the subject.
+    return `Write a short CATALOGUE blog post about ${artistName}.
 
-One specific thing. One angle about ${artistName}'s work specifically — something that couldn't be said about just any artist. Use the research above to make it precise and current if available.
+Artist context: ${artistSubtitle}
+${researchBlock}
+CRITICAL RULES:
+- This post is ENTIRELY about ${artistName}. Never write about another artist as the subject.
+- Use the artist context and research to understand their actual chain/platform/medium. ONLY mention Bitcoin Ordinals if it's confirmed by the context or research. Most digital artists work on Ethereum — get it right.
+- Do NOT assume this artist has Ordinals inscriptions unless confirmed.
+
+One specific thing. One angle about ${artistName}'s work — something that couldn't be said about any artist. Use the research to make it precise and current.
 
 Return a JSON object with EXACTLY this shape (no other text, no markdown wrapper):
 {

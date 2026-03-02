@@ -96,8 +96,8 @@ async function fetchArtistResearch(
     const controller = new AbortController();
     const timer = setTimeout(() => {
         controller.abort();
-        console.error(`[content-generate] Grok research for ${artistName} timed out after 6s`);
-    }, 6000);
+        console.error(`[content-generate] Grok research for ${artistName} timed out after 20s`);
+    }, 20000);
 
     try {
         const res = await fetch('https://api.x.ai/v1/chat/completions', {
@@ -111,17 +111,17 @@ async function fetchArtistResearch(
                 model: 'grok-3',
                 messages: [{
                     role: 'user',
-                    content: `You are researching the digital artist "${artistName}" for a writer at CATALOGUE (catalogue.gallery), an editorial platform covering Bitcoin Ordinals and crypto art.
+                    content: `You are researching the digital artist "${artistName}" for an editorial writer. CATALOGUE (catalogue.gallery) is a chain-agnostic artist directory covering Ethereum, Bitcoin Ordinals, generative art, and digital-native practices.
 
 From everything you know — including X/Twitter posts, sales records, community discussions, and recent events — give the writer the 5-6 most specific, useful facts about ${artistName}:
+- What blockchain or platform their work actually lives on (Ethereum, Bitcoin Ordinals, other, or none — be accurate)
 - Most notable recent works or collections (name them specifically)
 - Recent notable sales, prices, or market activity
 - Their current X/Twitter presence and community reputation
 - Any recent collaborations, exhibitions, or controversies
 - What specifically makes their practice distinctive in 2024-2025
-- Any quotes or statements that reveal their thinking
 
-Be specific with names, dates, prices, and titles. No generic filler. 200 words max.`,
+Be specific with names, dates, prices, and platforms. No generic filler. 200 words max.`,
                 }],
                 max_tokens: 500,
             }),
@@ -152,9 +152,9 @@ Be specific with names, dates, prices, and titles. No generic filler. 200 words 
 // ─── Claude generation ────────────────────────────────────────────────────────
 
 const CALL_TIMEOUT: Record<DraftType, number> = {
-    article: 55000,
+    article: 50000,
     wildcard: 45000,
-    blog: 30000,
+    blog: 40000,
 };
 
 function snippet(text: string): string {
