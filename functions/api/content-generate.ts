@@ -108,20 +108,22 @@ async function fetchArtistResearch(
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model: 'grok-3-latest',
+                model: 'grok-3',
                 messages: [{
                     role: 'user',
-                    content: `Research the digital artist "${artistName}" who works in crypto art, Bitcoin Ordinals, or NFTs. Search X/Twitter and the web for:
-- Their most notable and recent works (2023-2025)
-- Recent sales, exhibitions, or notable events
-- Their current reputation and community standing
-- Any interesting quotes, statements, or controversies
-- What makes their practice distinctive
+                    content: `You are researching the digital artist "${artistName}" for a writer at CATALOGUE (catalogue.gallery), an editorial platform covering Bitcoin Ordinals and crypto art.
 
-Summarize the most specific, useful facts in 200 words or less. Focus on concrete details a writer would want.`,
+From everything you know — including X/Twitter posts, sales records, community discussions, and recent events — give the writer the 5-6 most specific, useful facts about ${artistName}:
+- Most notable recent works or collections (name them specifically)
+- Recent notable sales, prices, or market activity
+- Their current X/Twitter presence and community reputation
+- Any recent collaborations, exhibitions, or controversies
+- What specifically makes their practice distinctive in 2024-2025
+- Any quotes or statements that reveal their thinking
+
+Be specific with names, dates, prices, and titles. No generic filler. 200 words max.`,
                 }],
                 max_tokens: 500,
-                search_parameters: { mode: 'on' },
             }),
         });
         clearTimeout(timer);
@@ -150,9 +152,9 @@ Summarize the most specific, useful facts in 200 words or less. Focus on concret
 // ─── Claude generation ────────────────────────────────────────────────────────
 
 const CALL_TIMEOUT: Record<DraftType, number> = {
-    article: 26000,
-    wildcard: 22000,
-    blog: 16000,
+    article: 55000,
+    wildcard: 45000,
+    blog: 30000,
 };
 
 function snippet(text: string): string {
@@ -182,7 +184,7 @@ async function callClaude(
                 'content-type': 'application/json',
             },
             body: JSON.stringify({
-                model: 'claude-haiku-4-5-20251001',
+                model: 'claude-sonnet-4-6',
                 max_tokens: type === 'blog' ? 1024 : 2800,
                 system,
                 messages: [{ role: 'user', content: userPrompt }],

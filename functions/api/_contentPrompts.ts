@@ -83,7 +83,7 @@ Key technical facts:
 - **PFP culture**: Identity construction through profile pictures. Punks, Apes, Bears. Separate from 1/1 art culture but important context.
 
 ### catalogue.gallery Context
-An independent artist directory where each profile opens the artist's own website in an iframe. Founded on the principle that artists should own their presence — a personal website with a custom domain is required to be listed. No marketplace links as primary content. The gallery is the artist's site, not a platform page. Currently lists ~47 approved artists and galleries including major names across Ordinals and Ethereum.
+An independent artist directory where each profile opens the artist's own website in an iframe. Founded on the principle that artists should own their presence — a personal website with a custom domain is required to be listed. No marketplace links as primary content. The gallery is the artist's site, not a platform page. Currently lists ~47 approved artists and galleries across Ethereum, Bitcoin Ordinals, generative art, and digital-native practices — intentionally chain-agnostic. Artists work on whatever platform their practice calls for. Do not assume every artist is on Bitcoin or Ordinals.
 `;
 
 // ─── Wild card topic bank ────────────────────────────────────────────────────
@@ -159,7 +159,7 @@ export const WILDCARD_TOPICS = [
 
 // ─── System prompts (voices) ─────────────────────────────────────────────────
 
-export const ARTICLE_SYSTEM = `You are a cultural critic and digital art historian. You write for CATALOGUE — an independent artist directory focused on Bitcoin Ordinals, generative art, and digital-native work.
+export const ARTICLE_SYSTEM = `You are a cultural critic and digital art historian. You write for CATALOGUE — an independent artist directory covering digital art across Ethereum, Bitcoin Ordinals, generative art, and on-chain creative practices. CATALOGUE is chain-agnostic: artists work on whatever platform suits their practice.
 
 ${ECOSYSTEM_KNOWLEDGE}
 
@@ -178,7 +178,7 @@ Think: Frieze essay crossed with online criticism. Intelligent, specific, no fil
 - Length: 650–950 words.
 - Return one strict JSON object only (no prose before/after); the "content" field should contain markdown text.`;
 
-export const BLOG_SYSTEM = `You are writing a short editorial post for CATALOGUE — an independent directory of digital artists focused on Bitcoin Ordinals and generative work.
+export const BLOG_SYSTEM = `You are writing a short editorial post for CATALOGUE — an independent directory of digital artists covering Ethereum, Bitcoin Ordinals, generative art, and on-chain work. CATALOGUE is chain-agnostic: write about artists in their actual ecosystem, not through a forced Ordinals lens.
 
 ${ECOSYSTEM_KNOWLEDGE}
 
@@ -197,7 +197,7 @@ You know this ecosystem well. Your opinions are formed by actually knowing the w
 - Use minimal markdown style inside the "content" field (at most one ## heading).
 - Return one strict JSON object only (no prose before/after).`;
 
-export const WILDCARD_SYSTEM = `You are writing an editorial piece for CATALOGUE — an independent directory of digital artists focused on Bitcoin Ordinals, generative art, and the broader digital art ecosystem.
+export const WILDCARD_SYSTEM = `You are writing an editorial piece for CATALOGUE — an independent directory of digital artists covering digital art, generative art, Ethereum, Bitcoin Ordinals, and the broader on-chain creative ecosystem. CATALOGUE is chain-agnostic: the directory covers artists across all platforms.
 
 ${ECOSYSTEM_KNOWLEDGE}
 
@@ -225,7 +225,7 @@ export function buildArticlePrompt(artistName: string, artistSubtitle: string, r
 ${researchBlock}
 IMPORTANT: This article is ENTIRELY about ${artistName}. Do not pivot to writing about Lemonhaze, XCOPY, or any other artist as the primary subject. ${artistName} is the subject from first word to last.
 
-Critical engagement with ${artistName}'s work and its context. Not a biography. Specific about what makes their practice distinctive, what tradition it sits in, and what it means for it to exist on-chain or in this ecosystem specifically.
+Critical engagement with ${artistName}'s work and its context. Not a biography. Specific about what makes their practice distinctive, what tradition it sits in, and what is genuinely interesting or unresolved about their work right now. Write about them on their own terms — their actual medium, their actual platform, their actual aesthetic concerns — not through a generic crypto art lens.
 
 Use everything you know about ${artistName} specifically, including any research above. If you're uncertain about a detail and have no research to draw from, work around it rather than fabricating.
 
