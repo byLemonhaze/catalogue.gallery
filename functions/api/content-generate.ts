@@ -123,7 +123,7 @@ async function callGrok(
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model: 'grok-3',
+                model: 'grok-4-0709',
                 instructions: system,
                 input: userPrompt,
                 tools: [
