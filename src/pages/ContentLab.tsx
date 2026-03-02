@@ -100,7 +100,10 @@ function humanizeFailureReason(reason: string): string {
 
 function formatFailureSummary(failures: GenerationFailure[]): string {
     return failures
-        .map((f) => `${f.type}: ${humanizeFailureReason(f.reason)}`)
+        .map((f) => {
+            const reason = humanizeFailureReason(f.reason);
+            return f.detail ? `${f.type}: ${reason} — ${f.detail}` : `${f.type}: ${reason}`;
+        })
         .join(' | ');
 }
 

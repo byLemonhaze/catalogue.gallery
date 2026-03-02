@@ -124,10 +124,8 @@ async function callGrok(
             },
             body: JSON.stringify({
                 model: 'grok-3',
-                input: [
-                    { role: 'system', content: system },
-                    { role: 'user', content: userPrompt },
-                ],
+                instructions: system,
+                input: userPrompt,
                 tools: [
                     { type: 'web_search' },
                     { type: 'x_search' },
