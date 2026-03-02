@@ -1,10 +1,7 @@
-name: Daily Content Generation
+name: Content Generation
 
 on:
-  schedule:
-    # 2:00 AM CST = 08:00 UTC
-    - cron: '0 8 * * *'
-  workflow_dispatch: # manual trigger from GitHub Actions UI as backup
+  workflow_dispatch: # manual trigger from GitHub Actions UI
 
 jobs:
   generate:
