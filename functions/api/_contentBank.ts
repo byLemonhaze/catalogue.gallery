@@ -25,12 +25,12 @@ export interface ContentDraft {
 
 export interface ContentBankBindings {
     CONTACTS_DB: D1Database; // reuse existing D1 — content_drafts lives alongside contacts
-    CLAUDE_API_KEY: string;
+    GROK_API_KEY: string;    // primary — Grok-3 with live search writes all content
+    CLAUDE_API_KEY?: string; // optional — used by content-scrape for Haiku website summarization
     CONTENT_LAB_PASSWORD: string;
     VITE_SANITY_PROJECT_ID: string;
     VITE_SANITY_DATASET: string;
     SANITY_WRITE_TOKEN: string;
-    GROK_API_KEY?: string; // optional — enables live X/web research via Grok before generation
 }
 
 export function generateId(): string {
