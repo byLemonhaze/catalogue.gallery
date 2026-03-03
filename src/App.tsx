@@ -9,6 +9,7 @@ import { ArtistCarousel } from './components/ArtistCarousel';
 import { LegalModal } from './components/LegalModal';
 import { GlobalSearch } from './components/GlobalSearch';
 import { ScrollToTop } from './components/ScrollToTop';
+import { SquareLoader } from './components/SquareLoader';
 
 // Lazy-loaded routes — only fetched when the user navigates to them
 const ArtistList = lazy(() => import('./components/ArtistList').then(m => ({ default: m.ArtistList })));
@@ -71,9 +72,8 @@ function Home({ artists, loading, artistsError, setIsLegalModalOpen }: HomeProps
         <div className="w-full flex items-start justify-center md:flex-none md:h-auto md:items-center overflow-hidden">
           {loading ? (
             <div className="w-full h-[450px] md:h-[560px] flex items-center justify-center">
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                <div className="text-white/50 text-xs font-mono tracking-[0.3em] uppercase">Loading artists...</div>
+              <div className="flex items-center justify-center">
+                <SquareLoader className="w-8 h-8" label="Loading artists" strokeWidth={1.8} drift />
               </div>
             </div>
           ) : artists.length === 0 ? (
@@ -229,7 +229,7 @@ const AppContent = () => {
 
       <Suspense fallback={
         <div className="flex items-center justify-center min-h-screen">
-          <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+          <SquareLoader className="w-6 h-6" label="Loading page" strokeWidth={1.6} />
         </div>
       }>
       <Routes>

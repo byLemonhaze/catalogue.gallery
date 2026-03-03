@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useArtists } from '../hooks/useArtists';
+import { SquareLoader } from '../components/SquareLoader';
 
 // Helper to resolve positioning classes
 const getPositionClasses = (desktop: string, mobile: string) => {
@@ -152,7 +153,7 @@ export function ArtistFrame() {
             {(isLoading || loading) && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
                     <div className="flex flex-col items-center gap-3">
-                        <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                        <SquareLoader className="w-6 h-6" label="Loading universe" strokeWidth={1.6} />
                         <p className="text-[10px] font-mono text-white/30 uppercase tracking-widest">Loading Universe...</p>
                     </div>
                 </div>

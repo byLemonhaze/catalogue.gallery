@@ -5,13 +5,14 @@ import { Helmet } from 'react-helmet-async';
 import { useArtists } from '../hooks/useArtists';
 import type { Artist } from '../hooks/useArtists';
 import { urlFor } from '../sanity/image';
+import { SquareLoader } from './SquareLoader';
 
 export const ArtistList: React.FC = () => {
     const { artists, loading, error } = useArtists();
 
     if (loading) return (
         <div className="flex items-center justify-center min-h-screen pt-24">
-            <div className="w-6 h-6 border border-white/20 border-t-white rounded-full animate-spin"></div>
+            <SquareLoader className="w-6 h-6" label="Loading directory" strokeWidth={1.6} />
         </div>
     );
 

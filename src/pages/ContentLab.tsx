@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { SquareLoader } from '../components/SquareLoader';
 
 type DraftType = 'article' | 'blog' | 'wildcard';
 type DraftStatus = 'pending' | 'published' | 'dismissed';
@@ -618,7 +619,7 @@ export function ContentLab() {
                                     title="Scrape artist website and cache research bio"
                                 >
                                     {scraping ? (
-                                        <span className="w-2.5 h-2.5 border border-white/20 border-t-white/60 rounded-full animate-spin" />
+                                        <SquareLoader className="w-2.5 h-2.5 opacity-90" label="Fetching research" strokeWidth={1} />
                                     ) : '↓'}
                                     Research
                                 </button>
@@ -630,7 +631,7 @@ export function ContentLab() {
                             >
                                 {generating ? (
                                     <>
-                                        <span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />
+                                        <SquareLoader className="w-3 h-3" label="Generating content" strokeWidth={1.1} />
                                         Writing…
                                     </>
                                 ) : '+ Generate'}
@@ -668,7 +669,7 @@ export function ContentLab() {
 
                 {loading ? (
                     <div className="flex justify-center py-16">
-                        <div className="w-5 h-5 border border-white/20 border-t-white rounded-full animate-spin" />
+                        <SquareLoader className="w-5 h-5" label="Loading drafts" strokeWidth={1.3} />
                     </div>
                 ) : drafts.length === 0 ? (
                     <div className="py-16 text-center">
