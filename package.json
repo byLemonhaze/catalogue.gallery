@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "verify": "node node_modules/eslint/bin/eslint.js . && node node_modules/typescript/bin/tsc -b --noEmit && node node_modules/vitest/vitest.mjs run",
     "postbuild": "npx -y tsx scripts/generate-meta.ts",
     "migrate:articles": "npx -y tsx scripts/migrate-articles.ts",
     "test": "vitest run",
