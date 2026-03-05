@@ -8,10 +8,23 @@ const __dirname = path.dirname(__filename);
 
 const DIST_DIR = path.resolve(__dirname, '../dist');
 const TEMPLATE_PATH = path.join(DIST_DIR, 'index.html');
-const SITE_ORIGIN = 'https://catalogue.gallery';
 const PROFILE_OG_DIR = path.join(DIST_DIR, 'og', 'profiles');
 const PUBLIC_DIR = path.resolve(__dirname, '../public');
 const LOGO_PATH = path.join(PUBLIC_DIR, 'logo.png');
+
+function resolveSiteOrigin() {
+    const raw = (
+        process.env.PUBLIC_BASE_URL ||
+        process.env.CF_PAGES_URL ||
+        process.env.VITE_PUBLIC_BASE_URL ||
+        'https://catalogue.gallery'
+    ).trim();
+
+    const withProtocol = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+    return withProtocol.replace(/\/+$/, '');
+}
+
+const SITE_ORIGIN = resolveSiteOrigin();
 
 type MetaArticle = {
     id: string;
@@ -227,6 +240,17 @@ function applyMetaTemplate(
     return content;
 }
 
+function applyHomeMetaTemplate(template: string) {
+    const homeUrl = `${SITE_ORIGIN}/`;
+    const homeImage = `${SITE_ORIGIN}/logo.png`;
+    let content = template;
+    content = upsertMetaTag(content, 'property', 'og:url', homeUrl);
+    content = upsertMetaTag(content, 'property', 'og:image', homeImage);
+    content = upsertMetaTag(content, 'name', 'twitter:url', homeUrl);
+    content = upsertMetaTag(content, 'name', 'twitter:image', homeImage);
+    return content;
+}
+
 function resolveLocalImagePath(imageUrl: string): string | null {
     try {
         const parsed = new URL(imageUrl);
@@ -368,8 +392,14 @@ async function generate() {
     }
 
     const template = fs.readFileSync(TEMPLATE_PATH, 'utf-8');
-    await generateArticles(template);
-    await generateProfiles(template);
+    const homeTemplate = applyHomeMetaTemplate(template);
+    fs.writeFileSync(TEMPLATE_PATH, homeTemplate);
+    console.log(`Updated home social meta for origin: ${SITE_ORIGIN}`);
+
+    // Use the normalized template for generated route pages too.
+    const resolvedTemplate = fs.readFileSync(TEMPLATE_PATH, 'utf-8');
+    await generateArticles(resolvedTemplate);
+    await generateProfiles(resolvedTemplate);
 }
 
 generate().catch(console.error);
