@@ -1,6 +1,6 @@
 # CATALOGUE.gallery
 
-Digital artist directory where each profile opens the artist's own website in an iframe "universe" and gives visitors a fast path back to browse more.
+Catalogue.gallery is a discovery platform designed around the idea that artists should own their digital environments. Instead of hosting artwork, the platform acts as a navigation layer that lets viewers explore each artist's personal website directly through an embedded browsing interface. This creates a fluid discovery experience while preserving the uniqueness of each artist's creative world. The result is a system where curation and independence coexist, turning the platform into a portal for navigating distributed digital art ecosystems.
 
 ## Stack
 
