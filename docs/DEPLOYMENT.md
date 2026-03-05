@@ -1,0 +1,112 @@
+# Deployment Notes (Cloudflare Pages + Functions)
+
+## Scope
+
+This runbook covers:
+
+- Wrangler setup/authentication
+- Cloudflare bindings/secrets for this repo
+- environment model (local, preview, production)
+- migration and deploy sequence
+
+## 1) Prerequisites
+
+- Node 22+
+- npm
+- Cloudflare account access to the target Pages project
+- Sanity project access (read/write token)
+- Resend API access
+
+## 2) Wrangler Setup
+
+1. Install dependencies:
+   - `npm install`
+2. Authenticate Cloudflare CLI:
+   - `npx wrangler whoami`
+   - If unauthenticated: `npx wrangler login`
+
+## 3) Bindings and Config
+
+Current Cloudflare config lives in [`wrangler.toml`](../wrangler.toml):
+
+- `pages_build_output_dir = "dist"`
+- D1 binding:
+  - `binding = "CONTACTS_DB"`
+  - `database_name = "catalogue-private-contacts"`
+
+The runtime expects `CONTACTS_DB` to exist in both preview and production.
+
+## 4) Environment Model
+
+### Local
+
+- Use `.env.local` (copied from `.env.example`) for local development.
+- Never commit `.env` or `.env.local`.
+
+### Cloudflare Preview + Production
+
+Set the following environment variables/secrets in Cloudflare Pages for both environments:
+
+- `VITE_SANITY_PROJECT_ID`
+- `VITE_SANITY_DATASET`
+- `SANITY_WRITE_TOKEN`
+- `RESEND_API_KEY`
+- `RESEND_FROM_EMAIL`
+- `RESEND_REPLY_TO`
+- `PUBLIC_BASE_URL`
+- `WEBHOOK_SHARED_SECRET`
+- `EMAIL_ENCRYPTION_KEY`
+- `CONTENT_LAB_PASSWORD`
+- `GROK_API_KEY`
+- `CLAUDE_API_KEY`
+
+## 5) D1 Provisioning and Migrations
+
+If the D1 database is not already created:
+
+1. `npx wrangler d1 create catalogue-private-contacts`
+2. Update `database_id` in `wrangler.toml`
+
+Apply migrations in order:
+
+1. `npx wrangler d1 execute catalogue-private-contacts --remote --file=./migrations/001_submission_contacts.sql`
+2. `npx wrangler d1 execute catalogue-private-contacts --remote --file=./migrations/002_contact_notifications.sql`
+3. `npx wrangler d1 execute catalogue-private-contacts --remote --file=./migrations/003_content_drafts.sql`
+
+## 6) Build and Deploy Sequence
+
+### Pre-deploy checks (required)
+
+1. `npm run lint`
+2. `npm test -- --run`
+3. `npm run build`
+
+### Deploy
+
+- Recommended: Git-integrated Cloudflare Pages deploys from GitHub branches.
+  - Preview deploys from PR branches.
+  - Production deploys from `main`.
+
+If you use CLI-based deploys in your account, ensure build output is `dist` and Pages Functions are included from `/functions`.
+
+## 7) Webhook Setup
+
+In Sanity webhook settings:
+
+- URL: `https://<your-domain>/api/webhook`
+- Trigger: artist/gallery create/update events relevant to review status
+- Secret/header must match `WEBHOOK_SHARED_SECRET`
+
+## 8) Rollback Strategy
+
+- Pages rollback: promote/redeploy last known-good deployment in Cloudflare dashboard.
+- D1 rollback: ship a forward SQL migration that repairs bad state (avoid ad-hoc production edits).
+- Secrets rollback: revert changed secret values in Cloudflare env settings and redeploy.
+
+## 9) Manual Repo Settings Checklist (Not Code-Delivered)
+
+These are operational repo settings and are intentionally not represented as code changes:
+
+- [ ] Configure branch protection on `main`
+- [ ] Require CI status check before merge
+- [ ] Restrict direct pushes to `main` (recommended)

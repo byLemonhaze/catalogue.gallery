@@ -129,7 +129,7 @@ async function migrate() {
                 }
             }
 
-            await client.createOrReplace(doc as any)
+            await client.createOrReplace(doc as Parameters<typeof client.createOrReplace>[0])
             console.log(`  ✓ Upserted ${docId}`)
         } catch (error) {
             console.error(`  ✗ Failed ${docId}`, error)

@@ -104,37 +104,37 @@ William Mapan remains a pivotal figure in the generative movement, reminding us 
         content: `
 **Abstract:**
 
-In the contemporary landscape of digital art, few practitioners approach the image with the same level of technical and philosophical rigor as Francisco Alarcón (FAR). Situated at the intersection of architecture, critical media practice, and blockchain technology, Alarcón’s work moves beyond simple visual output to interrogate the \"post-photographic\"—a condition where the image is a byproduct of technical operations and network dynamics. This article traces Alarcón’s evolution from his early investigations into latent spaces at Harvard to his current role as a vanguard of the Bitcoin-native movement.
+In the contemporary landscape of digital art, few practitioners approach the image with the same level of technical and philosophical rigor as Francisco Alarcón (FAR). Situated at the intersection of architecture, critical media practice, and blockchain technology, Alarcón’s work moves beyond simple visual output to interrogate the "post-photographic"—a condition where the image is a byproduct of technical operations and network dynamics. This article traces Alarcón’s evolution from his early investigations into latent spaces at Harvard to his current role as a vanguard of the Bitcoin-native movement.
 
 
 
 ## Academic Foundations: Architecture and Critical Media
 
-Alarcón’s practice is built upon a formidable academic foundation, including an MArch from the Southern California Institute of Architecture (SCI-Arc) and a doctoral path in Film and Visual Studies / Critical Media Practice at Harvard University. This background is not merely biographical; it informs the spatial and structural logic of his art. His early projects, such as *Arroyo Seco* (2015) and *Dust* (2018), established a trajectory toward demystifying the technical processes that underpin modern media. By treating the digital interface as a \"cultural technique,\" Alarcón began a lifelong investigation into how we see through the machine.
+Alarcón’s practice is built upon a formidable academic foundation, including an MArch from the Southern California Institute of Architecture (SCI-Arc) and a doctoral path in Film and Visual Studies / Critical Media Practice at Harvard University. This background is not merely biographical; it informs the spatial and structural logic of his art. His early projects, such as *Arroyo Seco* (2015) and *Dust* (2018), established a trajectory toward demystifying the technical processes that underpin modern media. By treating the digital interface as a "cultural technique," Alarcón began a lifelong investigation into how we see through the machine.
 
 
 
 ## The Generative Archive: Early GANs and Rough Surfaces
 
-Long before the current saturation of AI art, Alarcón was experimenting with the material history of computer-generated graphics. His *EarlyGANs* (2018-2019) collection serves as a retrospective of his early deep learning archives, featuring works produced by GANs trained on historical paintings. Projects like *Rough Surface* (2019) and any early investigations into GAN latent spaces were not just about aesthetic novelty but about probing the \"noise\" and \"materiality\" of code. In these works, the machine’s \"error\" or \"hallucination\" is weaponized to reveal the technical specificity of the digital medium.
+Long before the current saturation of AI art, Alarcón was experimenting with the material history of computer-generated graphics. His *EarlyGANs* (2018-2019) collection serves as a retrospective of his early deep learning archives, featuring works produced by GANs trained on historical paintings. Projects like *Rough Surface* (2019) and any early investigations into GAN latent spaces were not just about aesthetic novelty but about probing the "noise" and "materiality" of code. In these works, the machine’s "error" or "hallucination" is weaponized to reveal the technical specificity of the digital medium.
 
 
 
 ## Flares and the Networked Image
 
-With the release of *Flares* (2023) and its predecessor *Ocean Flares* (2021), Alarcón shifted his focus to \"network cinema\"—the distribution and volatility of images across digital networks. *Flares* interrogates how content is modulated by the platforms it inhabits. The image becomes a dynamic, networked entity rather than a static piece of data. This period solidified FAR’s reputation as an artist-engineer, one capable of mapping the philosophical implications of algorithmic distribution.
+With the release of *Flares* (2023) and its predecessor *Ocean Flares* (2021), Alarcón shifted his focus to "network cinema"—the distribution and volatility of images across digital networks. *Flares* interrogates how content is modulated by the platforms it inhabits. The image becomes a dynamic, networked entity rather than a static piece of data. This period solidified FAR’s reputation as an artist-engineer, one capable of mapping the philosophical implications of algorithmic distribution.
 
 
 
 ## Inscribed Permanence: Ordinals and the Genesis Cat
 
-The recent success of Alarcón in the Ordinals ecosystem—most notably with *Quantum Cats* (2024) and *Adorable Flux* (2023)—is the logical extension of his career-long pursuit of technical specificity. By anchoring his work to the Bitcoin blockchain, he moves from the \"ephemeral networked image\" to a permanent, structural artifact. The *Genesis Cat*, which achieved significant acclaim at auction, is more than a digital collectible; it is a high-fidelity proof-of-concept for recursive inscriptions. While much of the public discourse focuses on opcodes like OP_CAT, for Alarcón, these are linguistic tools used to expand the script of art itself.
+The recent success of Alarcón in the Ordinals ecosystem—most notably with *Quantum Cats* (2024) and *Adorable Flux* (2023)—is the logical extension of his career-long pursuit of technical specificity. By anchoring his work to the Bitcoin blockchain, he moves from the "ephemeral networked image" to a permanent, structural artifact. The *Genesis Cat*, which achieved significant acclaim at auction, is more than a digital collectible; it is a high-fidelity proof-of-concept for recursive inscriptions. While much of the public discourse focuses on opcodes like OP_CAT, for Alarcón, these are linguistic tools used to expand the script of art itself.
 
 
 
 ## Conclusion
 
-Francisco Alarcón (FAR) remains one of the most intellectually robust figures in the on-chain era. He bridge the gap between the high-art establishment of Harvard and MIT and the decentralized technical frontier of Bitcoin. By continuously pushing against the boundaries of GANs, network cinema, and now Ordinals, he ensures that the \"post-photographic\" image remains a site of critical, permanent inquiry.
+Francisco Alarcón (FAR) remains one of the most intellectually robust figures in the on-chain era. He bridge the gap between the high-art establishment of Harvard and MIT and the decentralized technical frontier of Bitcoin. By continuously pushing against the boundaries of GANs, network cinema, and now Ordinals, he ensures that the "post-photographic" image remains a site of critical, permanent inquiry.
 `
     },
     {
