@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 
 interface IframeTesterProps {
     isOpen: boolean;
@@ -12,14 +12,16 @@ export function IframeTester({ isOpen, onClose }: IframeTesterProps) {
 
     const iframeRef = useRef<HTMLIFrameElement>(null);
 
-    // Reset when opening
-    useEffect(() => {
-        if (!isOpen) {
-            setIframeSrc('about:blank');
-            setStatus('ready');
-            setUrl('');
-        }
-    }, [isOpen]);
+    const resetState = () => {
+        setIframeSrc('about:blank');
+        setStatus('ready');
+        setUrl('');
+    };
+
+    const closeAndReset = () => {
+        resetState();
+        onClose();
+    };
 
     const runTest = () => {
         if (!url.trim()) return;
@@ -41,7 +43,7 @@ export function IframeTester({ isOpen, onClose }: IframeTesterProps) {
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') runTest();
-        if (e.key === 'Escape') onClose();
+        if (e.key === 'Escape') closeAndReset();
     };
 
     if (!isOpen) return null;
@@ -49,7 +51,7 @@ export function IframeTester({ isOpen, onClose }: IframeTesterProps) {
     return (
         <div
             className="fixed inset-0 z-[10002] bg-black/95 flex items-center justify-center p-4 animate-fade-in"
-            onClick={(e) => e.target === e.currentTarget && onClose()}
+            onClick={(e) => e.target === e.currentTarget && closeAndReset()}
         >
             <div className="w-full max-w-5xl h-[85vh] bg-[#0a0a0a] border border-white/10 flex flex-col overflow-hidden relative">
 
@@ -95,7 +97,7 @@ export function IframeTester({ isOpen, onClose }: IframeTesterProps) {
 
                     {/* Close */}
                     <button
-                        onClick={onClose}
+                        onClick={closeAndReset}
                         className="p-2 text-white/30 hover:text-white transition-colors duration-300 cursor-pointer"
                         title="Close"
                     >

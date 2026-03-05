@@ -4,6 +4,9 @@ type ArticleEntity = {
     type?: string
 }
 
+const LINK_SENTINEL_PREFIX = '__CATALOGUE_LINK_';
+const LINK_SENTINEL_REGEX = /__CATALOGUE_LINK_(\d+)__/g;
+
 export function processArticleContent(content: string, entities: ArticleEntity[]): string {
     // Sort entities by name length descending so "Counterfeit Cards" is linked before "Counterfeit"
     const sortedEntities = [...entities].sort((a, b) => b.name.length - a.name.length);
@@ -15,7 +18,7 @@ export function processArticleContent(content: string, entities: ArticleEntity[]
     let processedContent = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match) => {
         const index = existingLinks.length;
         existingLinks.push(match);
-        return `\x00LINK${index}\x00`;
+        return `${LINK_SENTINEL_PREFIX}${index}__`;
     });
 
     sortedEntities.forEach(entity => {
@@ -35,10 +38,10 @@ export function processArticleContent(content: string, entities: ArticleEntity[]
         processedContent = processedContent.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match) => {
             const index = existingLinks.length;
             existingLinks.push(match);
-            return `\x00LINK${index}\x00`;
+            return `${LINK_SENTINEL_PREFIX}${index}__`;
         });
     });
 
     // Restore all placeholders
-    return processedContent.replace(/\x00LINK(\d+)\x00/g, (_, index) => existingLinks[Number(index)]);
+    return processedContent.replace(LINK_SENTINEL_REGEX, (_, index) => existingLinks[Number(index)]);
 }

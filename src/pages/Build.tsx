@@ -145,7 +145,7 @@ export function Build() {
             try {
                 artworks = JSON.parse(jsonInput);
                 if (!Array.isArray(artworks)) throw new Error("Must be an array");
-            } catch (e) {
+            } catch {
                 console.error("Invalid JSON content");
             }
         }
@@ -702,7 +702,9 @@ export function Build() {
                                                                         );
                                                                     });
                                                                 }
-                                                            } catch (e) { }
+                                                            } catch {
+                                                                // Ignore malformed preview JSON and render placeholders.
+                                                            }
                                                             return [1, 2, 3, 4, 5, 6].map(i => (
                                                                 <div key={i} className={`aspect-square rounded-2xl ${templates[selectedTemplate as keyof typeof templates].accent} opacity-50`} />
                                                             ));

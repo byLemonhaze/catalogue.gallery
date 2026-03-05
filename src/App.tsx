@@ -28,6 +28,15 @@ interface HomeProps {
   isLegalModalOpen: boolean;
   setIsLegalModalOpen: (open: boolean) => void;
 }
+
+function stableHash(input: string) {
+  let hash = 0;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = (hash * 31 + input.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
+
 function Home({ artists, loading, artistsError, setIsLegalModalOpen }: HomeProps) {
   // Restore carousel position from location state (exit navigation) or sessionStorage
   const location = useLocation();
@@ -192,12 +201,11 @@ const AppContent = () => {
   // Randomized artists — memoized so the order is stable across re-renders
   const randomizedArtists = useMemo(() => {
     if (loading) return artists;
-    const arr = [...artists];
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
+    return [...artists].sort((a, b) => {
+      const aHash = stableHash(`${a.id}:${a.name}`);
+      const bHash = stableHash(`${b.id}:${b.name}`);
+      return aHash - bHash;
+    });
   }, [artists, loading]);
 
   const filteredArtists = randomizedArtists.filter(artist =>
