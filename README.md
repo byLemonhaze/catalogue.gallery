@@ -16,6 +16,7 @@ Digital artist directory where each profile opens the artist's own website in an
 - Architecture: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)
 - API contract: [`docs/API.md`](./docs/API.md)
 - Deployment runbook: [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)
+- Product roadmap notes: [`docs/ROADMAP.md`](./docs/ROADMAP.md)
 
 ## Local Development
 
@@ -42,6 +43,7 @@ Required app/server env vars:
 - `RESEND_FROM_EMAIL` (example: `CATALOGUE <apply@catalogue.gallery>`)
 - `RESEND_REPLY_TO` (set to your ProtonMail address)
 - `PUBLIC_BASE_URL` (example: `https://catalogue.gallery`)
+- `VITE_CF_WEB_ANALYTICS_TOKEN` (optional; only needed for manual beacon mode)
 - `WEBHOOK_SHARED_SECRET` (required; webhook requests are rejected without it)
 - `EMAIL_ENCRYPTION_KEY` (32-byte base64 key used to encrypt contact emails before storing in Sanity)
 - `SANITY_PROJECT_ID` (optional server override)
@@ -129,6 +131,8 @@ A password-protected editorial tool at `/content-lab` for generating, reviewing,
 
 | Route | Method | Purpose |
 |-------|--------|---------|
+| `/api/artists` | `GET` | Public, read-only directory feed for published profiles |
+| `/api/client-errors` | `POST` | Collects browser runtime errors into Cloudflare logs |
 | `/api/content-generate` | `POST` | Grok-4 with live web + X search → drafts → D1 |
 | `/api/content-scrape` | `POST` | Scrapes artist website → Claude Haiku summarizes → saves to Sanity `contentBio` |
 | `/api/content-publish` | `POST` | Publishes approved draft from D1 → Sanity `post` |
@@ -190,3 +194,8 @@ npm run test:watch # Watch mode
 - CI runs lint, type check, tests, and build on pull requests to `main`.
 - Branch protection is a GitHub repository setting (manual), not a code-delivered feature.
 - Manual checklist is documented in [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md).
+
+## Contributing and License
+
+- Contribution guide: [`CONTRIBUTING.md`](./CONTRIBUTING.md)
+- License: [`LICENSE`](./LICENSE) (MIT)

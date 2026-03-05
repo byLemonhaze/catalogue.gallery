@@ -9,8 +9,6 @@
 
 const SANITY_PROJECT_ID = 'ebj9kqfo';
 const SANITY_DATASET = 'production';
-const SITE_ORIGIN = 'https://catalogue.gallery';
-const DEFAULT_IMAGE = `${SITE_ORIGIN}/logo.png`;
 
 interface Env {
     ASSETS: { fetch(req: Request): Promise<Response> };
@@ -44,13 +42,19 @@ function injectMeta(html: string, title: string, description: string, url: strin
     return h;
 }
 
+function resolveSiteOrigin(request: Request) {
+    return new URL(request.url).origin.replace(/\/+$/, '');
+}
+
 export const onRequestGet: PagesFunction<Env> = async (context) => {
     const slug = (context.params as Record<string, string>).slug;
     if (!slug) return new Response('Not found', { status: 404 });
+    const siteOrigin = resolveSiteOrigin(context.request);
+    const defaultImage = `${siteOrigin}/logo.png`;
 
     let title = 'CATALOGUE';
     let description = 'An independent directory of digital artists.';
-    let imageUrl = DEFAULT_IMAGE;
+    let imageUrl = defaultImage;
 
     try {
         const query = encodeURIComponent(
@@ -70,12 +74,12 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     } catch { /* silent — fall through to defaults */ }
 
     // Serve the SPA shell with injected meta
-    const indexReq = new Request(`${SITE_ORIGIN}/index.html`);
+    const indexReq = new Request(`${siteOrigin}/index.html`);
     const indexRes = await context.env.ASSETS.fetch(indexReq);
     if (!indexRes.ok) return new Response('Not found', { status: 404 });
 
     const html = await indexRes.text();
-    const articleUrl = `${SITE_ORIGIN}/blog/${slug}`;
+    const articleUrl = `${siteOrigin}/blog/${slug}`;
     const injected = injectMeta(html, title, description, articleUrl, imageUrl);
 
     return new Response(injected, {

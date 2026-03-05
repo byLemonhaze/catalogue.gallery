@@ -17,6 +17,7 @@ This document is the high-level engineering map for `catalogue.gallery`:
 | Edge API | Cloudflare Pages Functions (`/functions/api`) | Submission ingestion, review webhook handling, Content Lab APIs |
 | Editorial CMS | Sanity Content Lake + Studio (`/studio`) | Artist/gallery records, review status, blog posts |
 | Private data | Cloudflare D1 (`CONTACTS_DB`) | Encrypted submission contact emails + notification state + content drafts |
+| Observability | Cloudflare Web Analytics + Function logs | Traffic analytics and basic runtime/client error visibility |
 | Email provider | Resend | Approval/decline email delivery |
 | AI providers | xAI + Anthropic | Content generation (`content-generate`) and website summarization (`content-scrape`) |
 
@@ -51,6 +52,12 @@ This document is the high-level engineering map for `catalogue.gallery`:
 3. Optional research step (`/api/content-scrape`) fetches artist website text and stores `contentBio` in Sanity.
 4. Publishing (`/api/content-publish`) writes a Sanity `post` and marks the draft as published in D1.
 
+### 5) Basic Error Observability
+
+1. Browser captures uncaught runtime errors and unhandled promise rejections in production.
+2. Frontend sends events to `POST /api/client-errors`.
+3. Function logs structured payloads into Cloudflare logs for debugging.
+
 ## Review Flow
 
 1. Submission arrives as `status: "pending"` in Sanity.
@@ -80,6 +87,10 @@ This document is the high-level engineering map for `catalogue.gallery`:
 | `CONTENT_LAB_PASSWORD` | Cloudflare Pages env/secrets | Content Lab endpoint auth |
 | `GROK_API_KEY` | Cloudflare Pages env/secrets | `content-generate` |
 | `CLAUDE_API_KEY` | Cloudflare Pages env/secrets | `content-scrape` |
+
+### Non-Secret Runtime Config
+
+- `VITE_CF_WEB_ANALYTICS_TOKEN`: optional public token for manual Cloudflare Web Analytics beacon injection.
 
 ### Security Rules
 
