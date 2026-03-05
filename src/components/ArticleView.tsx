@@ -11,10 +11,18 @@ interface ArticleViewProps {
     loading?: boolean;
 }
 
+function resolveSiteOrigin() {
+    if (typeof window !== 'undefined' && window.location?.origin) {
+        return window.location.origin.replace(/\/+$/, '');
+    }
+    return 'https://catalogue.gallery';
+}
+
 function toAbsoluteImageUrl(url: string | undefined) {
-    if (!url) return 'https://catalogue.gallery/logo.png';
+    const siteOrigin = resolveSiteOrigin();
+    if (!url) return `${siteOrigin}/logo.png`;
     if (/^https?:\/\//i.test(url)) return url;
-    return `https://catalogue.gallery${url.startsWith('/') ? url : `/${url}`}`;
+    return `${siteOrigin}${url.startsWith('/') ? url : `/${url}`}`;
 }
 
 export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = false }) => {

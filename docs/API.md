@@ -12,6 +12,8 @@ All endpoints are served from Cloudflare Pages Functions under `/api/*`.
 
 | Route | Method | Auth | Purpose |
 |---|---|---|---|
+| `/api/artists` | `GET` | Public | Read-only public directory feed for published profiles |
+| `/api/client-errors` | `POST` | Public | Collect browser runtime errors into Cloudflare logs |
 | `/api/submit` | `POST` | Public | Submit artist/gallery application |
 | `/api/webhook` | `POST` | `WEBHOOK_SHARED_SECRET` header/bearer | Process Sanity review events and send emails |
 | `/api/content-artists` | `GET` | Content Lab password | List published artists/galleries for Content Lab picker |
@@ -24,6 +26,46 @@ All endpoints are served from Cloudflare Pages Functions under `/api/*`.
 | `/api/content-upload-image` | `POST` | Content Lab password | Upload raw image bytes to Sanity assets |
 
 ## Endpoint Details
+
+### `GET /api/artists`
+
+- Auth: none (public)
+- Query params:
+  - `type` (optional): `artist` | `gallery` | `collector`
+  - `limit` (optional): integer between `1` and `500` (default `200`)
+- Returns:
+  - `{ "generatedAt": "...", "count": number, "artists": [...] }`
+- Artist object fields:
+  - `id`
+  - `slug`
+  - `type`
+  - `name`
+  - `subtitle`
+  - `websiteUrl`
+  - `thumbnailUrl`
+  - `profileUrl` (empty string for types that do not have a public profile route yet)
+- Cache headers:
+  - `cache-control: public, max-age=300, s-maxage=600, stale-while-revalidate=3600`
+- Common errors:
+  - `400` invalid `type`
+  - `502` Sanity fetch failure
+  - `500` unexpected server error
+
+### `POST /api/client-errors`
+
+- Auth: none (public)
+- Purpose:
+  - Receives browser `error` / `unhandledrejection` events from production builds.
+  - Logs structured events to Cloudflare Functions logs for basic operational visibility.
+- Request content type:
+  - `application/json`
+- Request body (all fields optional, best effort):
+  - `type`, `message`, `stack`, `source`, `line`, `column`, `pageUrl`, `userAgent`, `timestamp`
+- Success:
+  - `202` with `{ "ok": true }`
+- Common errors:
+  - `400` invalid JSON body
+  - `415` unsupported content type
 
 ### `POST /api/submit`
 
