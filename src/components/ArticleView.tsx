@@ -119,18 +119,18 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
                     <ReactMarkdown
                         components={{
                             h1: () => null,
-                            h2: ({ node, ...props }) => <h2 className="text-lg md:text-xl font-black uppercase tracking-[0.1em] mb-6 mt-16 text-white border-b border-white/10 pb-2" {...props} />,
-                            h3: ({ node, ...props }) => <h3 className="text-sm font-bold uppercase tracking-widest mb-4 mt-8 text-white/80" {...props} />,
-                            p: ({ node, ...props }) => <p className="text-base md:text-lg leading-relaxed text-white/80 mb-6 font-light" {...props} />,
-                            strong: ({ node, ...props }) => <strong className="font-bold text-white" {...props} />,
-                            em: ({ node, ...props }) => <em className="italic text-white/80" {...props} />,
-                            blockquote: ({ node, ...props }) => (
+                            h2: (props) => <h2 className="text-lg md:text-xl font-black uppercase tracking-[0.1em] mb-6 mt-16 text-white border-b border-white/10 pb-2" {...props} />,
+                            h3: (props) => <h3 className="text-sm font-bold uppercase tracking-widest mb-4 mt-8 text-white/80" {...props} />,
+                            p: (props) => <p className="text-base md:text-lg leading-relaxed text-white/80 mb-6 font-light" {...props} />,
+                            strong: (props) => <strong className="font-bold text-white" {...props} />,
+                            em: (props) => <em className="italic text-white/80" {...props} />,
+                            blockquote: (props) => (
                                 <blockquote className="my-12 pl-6 border-l-2 border-white text-xl md:text-2xl font-light italic text-white/90 leading-normal" {...props} />
                             ),
-                            ul: ({ node, ...props }) => <ul className="list-disc list-outside ml-6 mb-6 text-white/70 space-y-2" {...props} />,
-                            li: ({ node, ...props }) => <li className="pl-2" {...props} />,
-                            code: ({ node, ...props }) => <code className="bg-white/10 px-2 py-1 text-xs font-mono text-white/90" {...props} />,
-                            a: ({ node, href, children, ...props }) => {
+                            ul: (props) => <ul className="list-disc list-outside ml-6 mb-6 text-white/70 space-y-2" {...props} />,
+                            li: (props) => <li className="pl-2" {...props} />,
+                            code: (props) => <code className="bg-white/10 px-2 py-1 text-xs font-mono text-white/90" {...props} />,
+                            a: ({ href, children, ...props }) => {
                                 const isInternal = href?.startsWith('/') || href?.includes(window.location.host);
                                 if (isInternal) {
                                     return <Link to={href || '#'} className="text-white underline decoration-white/30 underline-offset-4 hover:decoration-white transition-all font-bold" {...props}>{children}</Link>;

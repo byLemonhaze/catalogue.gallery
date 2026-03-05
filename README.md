@@ -11,6 +11,12 @@ Digital artist directory where each profile opens the artist's own website in an
 - Inbox/reply workflow: ProtonMail (via `reply_to`)
 - Editorial/blog content: Sanity `post` documents (served at `/blog/:slug`)
 
+## Engineering Docs
+
+- Architecture: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)
+- API contract: [`docs/API.md`](./docs/API.md)
+- Deployment runbook: [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)
+
 ## Local Development
 
 1. Install dependencies:
@@ -121,13 +127,18 @@ A password-protected editorial tool at `/content-lab` for generating, reviewing,
 
 **API endpoints** (`functions/api/`):
 
-| Endpoint | Purpose |
-|----------|---------|
-| `content-generate` | Grok-4 with live web + X search → drafts → D1 |
-| `content-scrape` | Scrapes artist website → Claude Haiku summarizes → saves to Sanity `contentBio` |
-| `content-publish` | Publishes approved draft from D1 → Sanity `post` |
-| `content-drafts` | Lists drafts stored in D1 |
-| `content-update` | Updates draft status (approve / dismiss / edit) |
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/api/content-generate` | `POST` | Grok-4 with live web + X search → drafts → D1 |
+| `/api/content-scrape` | `POST` | Scrapes artist website → Claude Haiku summarizes → saves to Sanity `contentBio` |
+| `/api/content-publish` | `POST` | Publishes approved draft from D1 → Sanity `post` |
+| `/api/content-drafts` | `GET` | Lists drafts stored in D1 |
+| `/api/content-drafts` | `POST` | Updates draft status (approve / dismiss / edit) |
+| `/api/content-drafts` | `DELETE` | Deletes a draft |
+| `/api/content-artists` | `GET` | Lists published artists/galleries for Content Lab picker |
+| `/api/content-upload-image` | `POST` | Uploads image assets to Sanity for draft publishing |
+
+Full endpoint details: [`docs/API.md`](./docs/API.md)
 
 **Additional env vars required:**
 
@@ -156,8 +167,9 @@ This keeps deliverability high (Resend) while all replies route back to ProtonMa
 ## Testing
 
 ```bash
-npm test          # Watch mode
+npm test          # Run once
 npm test -- --run # Run once (CI)
+npm run test:watch # Watch mode
 ```
 
 19 unit tests across 3 suites:
@@ -172,3 +184,9 @@ npm test -- --run # Run once (CI)
 - Migrate old artists: `npx -y tsx scripts/migrate-artists.ts`
 - Purge artists: `npx -y tsx scripts/purge-artists.ts`
 - Move legacy encrypted contacts into D1: `cd studio && npm run migrate:contacts:d1`
+
+## CI + Branch Protection
+
+- CI runs lint, type check, tests, and build on pull requests to `main`.
+- Branch protection is a GitHub repository setting (manual), not a code-delivered feature.
+- Manual checklist is documented in [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md).

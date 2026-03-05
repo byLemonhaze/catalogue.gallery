@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useArtists } from '../hooks/useArtists';
@@ -86,29 +86,29 @@ export function ArtistFrame() {
     };
 
     const [showControls, setShowControls] = useState(true);
-    let hideTimer: ReturnType<typeof setTimeout> | null = null;
+    const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const handleInput = () => {
+    const handleInput = useCallback(() => {
         setShowControls(true);
-        if (hideTimer) clearTimeout(hideTimer);
-        hideTimer = setTimeout(() => setShowControls(false), 2500);
-    };
+        if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = setTimeout(() => setShowControls(false), 2500);
+    }, []);
 
     useEffect(() => {
         // Initial timer
-        hideTimer = setTimeout(() => setShowControls(false), 2500);
+        hideTimerRef.current = setTimeout(() => setShowControls(false), 2500);
 
         window.addEventListener('mousemove', handleInput);
         window.addEventListener('touchstart', handleInput);
         window.addEventListener('keydown', handleInput);
 
         return () => {
-            if (hideTimer) clearTimeout(hideTimer);
+            if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
             window.removeEventListener('mousemove', handleInput);
             window.removeEventListener('touchstart', handleInput);
             window.removeEventListener('keydown', handleInput);
         };
-    }, []);
+    }, [handleInput]);
 
     if (!artist) return null;
 
