@@ -1,3 +1,5 @@
+import { buildCataloguePresentationFields } from './catalogueEntrySchema'
+
 export default {
     name: 'collector',
     title: 'Collector',
@@ -87,48 +89,6 @@ export default {
                 hotspot: true,
             },
         },
-        {
-            name: 'template',
-            title: 'Template',
-            type: 'string',
-            options: {
-                list: [
-                    { title: 'External Link (Iframe)', value: 'external' },
-                ],
-                layout: 'radio',
-            },
-            initialValue: 'external',
-        },
-        {
-            name: 'desktopExitPosition',
-            title: 'Exit Button Position (Desktop)',
-            type: 'string',
-            options: {
-                list: [
-                    { title: 'Top Right', value: 'top-right' },
-                    { title: 'Top Left', value: 'top-left' },
-                    { title: 'Top Center', value: 'top-center' },
-                    { title: 'Bottom Right', value: 'bottom-right' },
-                    { title: 'Bottom Left', value: 'bottom-left' },
-                ],
-                layout: 'radio',
-            },
-            initialValue: 'top-right',
-        },
-        {
-            name: 'mobileExitPosition',
-            title: 'Exit Button Position (Mobile)',
-            type: 'string',
-            options: {
-                list: [
-                    { title: 'Bottom Center', value: 'bottom-center' },
-                    { title: 'Top Right', value: 'top-right' },
-                    { title: 'Top Left', value: 'top-left' },
-                    { title: 'Top Center', value: 'top-center' },
-                ],
-                layout: 'radio',
-            },
-            initialValue: 'bottom-center',
-        },
+        ...buildCataloguePresentationFields(),
     ],
 }
