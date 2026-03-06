@@ -55,6 +55,13 @@ interface DraftFailure {
     snippet: string;
 }
 
+interface ContentGenerateBody {
+    artistId?: string;
+    artistName?: string;
+    artistSubtitle?: string;
+    type?: DraftType;
+}
+
 // ─── Artist fetch ─────────────────────────────────────────────────────────────
 
 async function fetchRandomArtist(): Promise<SanityArtistResult | null> {
@@ -100,6 +107,130 @@ function snippet(text: string): string {
     return text.replace(/\s+/g, ' ').trim().slice(0, 220);
 }
 
+function buildDraftFailure(
+    type: DraftType,
+    reason: DraftFailure['reason'],
+    detail: string,
+    rawSnippet = ''
+) {
+    return {
+        ok: false as const,
+        failure: {
+            type,
+            reason,
+            detail,
+            snippet: rawSnippet ? snippet(rawSnippet) : '',
+        },
+    };
+}
+
+function extractGrokText(data: GrokResponseBody) {
+    if (Array.isArray(data.output)) {
+        for (const item of data.output) {
+            if (item.type !== 'message' || !Array.isArray(item.content)) {
+                continue;
+            }
+
+            for (const contentItem of item.content) {
+                if (contentItem.type === 'output_text' && contentItem.text) {
+                    return contentItem.text.trim();
+                }
+            }
+        }
+    }
+
+    return data.output_text?.trim() || '';
+}
+
+function buildGrokPrompt(
+    type: DraftType,
+    artist: SanityArtistResult,
+    topic: string
+) {
+    switch (type) {
+        case 'article':
+            return {
+                system: ARTICLE_SYSTEM,
+                input: buildArticlePrompt(artist.name, artist.subtitle, artist.contentBio),
+            };
+        case 'blog':
+            return {
+                system: BLOG_SYSTEM,
+                input: buildBlogPrompt(artist.name, artist.subtitle, artist.contentBio),
+            };
+        case 'wildcard':
+            return {
+                system: WILDCARD_SYSTEM,
+                input: buildWildcardPrompt(topic),
+            };
+    }
+}
+
+function resolveRequestedTypes(type?: DraftType): DraftType[] {
+    return type ? [type] : ['article', 'blog', 'wildcard'];
+}
+
+async function resolveArtist(body: ContentGenerateBody) {
+    if (body.artistName) {
+        return {
+            _id: body.artistId || '',
+            name: body.artistName,
+            subtitle: body.artistSubtitle || '',
+        };
+    }
+
+    const fetched = await fetchRandomArtist();
+    return fetched ?? FALLBACK_POOL[Math.floor(Math.random() * FALLBACK_POOL.length)];
+}
+
+async function insertGeneratedDrafts(params: {
+    db: ContentBankBindings['CONTACTS_DB']
+    attempts: Array<{ ok: true; draft: GeneratedDraft } | { ok: false; failure: DraftFailure }>
+    requestedTypes: DraftType[]
+    artist: SanityArtistResult
+    now: string
+}) {
+    const { db, attempts, requestedTypes, artist, now } = params;
+    const inserts: Promise<unknown>[] = [];
+    let created = 0;
+
+    for (let index = 0; index < requestedTypes.length; index += 1) {
+        const type = requestedTypes[index];
+        const attempt = attempts[index];
+        const draft = attempt.ok ? attempt.draft : null;
+
+        if (!draft) {
+            console.error(`[content-generate] No draft for ${type} — skipping`);
+            continue;
+        }
+
+        created += 1;
+        const id = generateId();
+        const isArtistType = type === 'article' || type === 'blog';
+
+        inserts.push(
+            db.prepare(`
+                INSERT INTO content_drafts
+                    (id, type, title, excerpt, content, tags, source_artist_id, source_artist_name, status, generated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
+            `).bind(
+                id,
+                type,
+                draft.title,
+                draft.excerpt,
+                draft.content,
+                JSON.stringify(draft.tags || []),
+                isArtistType ? (artist._id || null) : null,
+                isArtistType ? artist.name : null,
+                now
+            ).run()
+        );
+    }
+
+    await Promise.all(inserts);
+    return created;
+}
+
 async function callGrok(
     apiKey: string,
     system: string,
@@ -137,48 +268,31 @@ async function callGrok(
         if (!res.ok) {
             const errBody = await res.text().catch(() => 'unreadable');
             console.error(`[content-generate] Grok API ${res.status} for ${type}: ${errBody.slice(0, 400)}`);
-            return { ok: false, failure: { type, reason: 'http_error', detail: `Grok ${res.status}: ${errBody.slice(0, 150)}`, snippet: snippet(errBody) } };
+            return buildDraftFailure(type, 'http_error', `Grok ${res.status}: ${errBody.slice(0, 150)}`, errBody);
         }
 
         const data = await res.json() as GrokResponseBody;
-
-        // Extract text from output[].content[].text (Responses API format)
-        let text = '';
-        if (Array.isArray(data.output)) {
-            for (const item of data.output) {
-                if (item.type === 'message' && Array.isArray(item.content)) {
-                    for (const c of item.content) {
-                        if (c.type === 'output_text' && c.text) {
-                            text = c.text.trim();
-                            break;
-                        }
-                    }
-                }
-                if (text) break;
-            }
-        }
-        // Legacy top-level fallback
-        if (!text && data.output_text) text = data.output_text.trim();
+        const text = extractGrokText(data);
 
         if (!text) {
-            return { ok: false, failure: { type, reason: 'empty_response', detail: 'Grok returned no text.', snippet: '' } };
+            return buildDraftFailure(type, 'empty_response', 'Grok returned no text.');
         }
 
         const parsed = parseAndNormalizeDraft(text);
         if (isDraftParseFailure(parsed)) {
             const { failure } = parsed;
             console.error(`[content-generate] Parse failed for ${type}: ${failure.reason} — ${failure.detail}`);
-            return { ok: false, failure: { type, reason: failure.reason, detail: failure.detail, snippet: failure.snippet } };
+            return buildDraftFailure(type, failure.reason, failure.detail, failure.snippet);
         }
 
         return { ok: true, draft: parsed.draft };
     } catch (err: unknown) {
         clearTimeout(timer);
         if (err instanceof Error && err.name === 'AbortError') {
-            return { ok: false, failure: { type, reason: 'timeout', detail: `Aborted after ${timeout / 1000}s.`, snippet: '' } };
+            return buildDraftFailure(type, 'timeout', `Aborted after ${timeout / 1000}s.`);
         }
         console.error(`[content-generate] callGrok error for ${type}:`, err);
-        return { ok: false, failure: { type, reason: 'request_error', detail: err instanceof Error ? err.message : 'Unknown', snippet: '' } };
+        return buildDraftFailure(type, 'request_error', err instanceof Error ? err.message : 'Unknown');
     }
 }
 
@@ -198,84 +312,31 @@ export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ reques
     const db = env.CONTACTS_DB;
     const now = new Date().toISOString();
 
-    const body = await request.json().catch(() => ({})) as {
-        artistId?: string;
-        artistName?: string;
-        artistSubtitle?: string;
-        type?: DraftType;
-    };
-
-    // ── Resolve artist ──────────────────────────────────────────────────────
-    let artist: SanityArtistResult;
-    if (body.artistName) {
-        artist = { _id: body.artistId || '', name: body.artistName, subtitle: body.artistSubtitle || '' };
-    } else {
-        const fetched = await fetchRandomArtist();
-        artist = fetched ?? FALLBACK_POOL[Math.floor(Math.random() * FALLBACK_POOL.length)];
-    }
-
-    const { name: artistName, subtitle: artistSubtitle } = artist;
+    const body = await request.json().catch(() => ({})) as ContentGenerateBody;
+    const artist = await resolveArtist(body);
     const topic = WILDCARD_TOPICS[Math.floor(Math.random() * WILDCARD_TOPICS.length)];
+    const requestedTypes = resolveRequestedTypes(body.type);
 
-    const requestedTypes: DraftType[] = body.type ? [body.type] : ['article', 'blog', 'wildcard'];
+    console.log(`[content-generate] Artist: ${artist.name} | Types: ${requestedTypes.join(',')} | bio: ${artist.contentBio ? 'yes' : 'no'}`);
 
-    console.log(`[content-generate] Artist: ${artistName} | Types: ${requestedTypes.join(',')} | bio: ${artist.contentBio ? 'yes' : 'no'}`);
-
-    // ── Generate — Grok searches + writes in one call per type ──────────────
     const attempts = await Promise.all(
-        requestedTypes.map(type => {
-            switch (type) {
-                case 'article':
-                    return callGrok(grokKey, ARTICLE_SYSTEM, buildArticlePrompt(artistName, artistSubtitle, artist.contentBio), 'article');
-                case 'blog':
-                    return callGrok(grokKey, BLOG_SYSTEM, buildBlogPrompt(artistName, artistSubtitle, artist.contentBio), 'blog');
-                case 'wildcard':
-                    return callGrok(grokKey, WILDCARD_SYSTEM, buildWildcardPrompt(topic), 'wildcard');
-            }
+        requestedTypes.map((type) => {
+            const prompt = buildGrokPrompt(type, artist, topic);
+            return callGrok(grokKey, prompt.system, prompt.input, type);
         })
     );
 
     const failures = attempts
-        .filter((a): a is { ok: false; failure: DraftFailure } => !a.ok)
-        .map(a => a.failure);
+        .filter((attempt): attempt is { ok: false; failure: DraftFailure } => !attempt.ok)
+        .map((attempt) => attempt.failure);
 
-    // ── Insert into D1 ──────────────────────────────────────────────────────
-    const inserts: Promise<unknown>[] = [];
-    let created = 0;
-
-    for (let i = 0; i < requestedTypes.length; i++) {
-        const type = requestedTypes[i];
-        const attempt = attempts[i];
-        const draft = attempt.ok ? attempt.draft : null;
-
-        if (!draft) {
-            console.error(`[content-generate] No draft for ${type} — skipping`);
-            continue;
-        }
-
-        created++;
-        const id = generateId();
-        const isArtistType = type === 'article' || type === 'blog';
-
-        inserts.push(
-            db.prepare(`
-                INSERT INTO content_drafts
-                    (id, type, title, excerpt, content, tags, source_artist_id, source_artist_name, status, generated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
-            `).bind(
-                id, type,
-                draft.title,
-                draft.excerpt,
-                draft.content,
-                JSON.stringify(draft.tags || []),
-                isArtistType ? (artist._id || null) : null,
-                isArtistType ? artistName : null,
-                now
-            ).run()
-        );
-    }
-
-    await Promise.all(inserts);
+    const created = await insertGeneratedDrafts({
+        db,
+        attempts,
+        requestedTypes,
+        artist,
+        now,
+    });
     await pruneDrafts(db, 100);
 
     console.log(`[content-generate] Done — ${created}/${requestedTypes.length} drafts created via Grok live search`);

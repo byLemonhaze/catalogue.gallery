@@ -22,6 +22,14 @@
         "sanity": "^3.0.0",
         "styled-components": "^6.3.8"
     },
+    "overrides": {
+        "@architect/hydrate": {
+            "glob": "^10.5.0"
+        },
+        "@architect/utils": {
+            "glob": "^10.5.0"
+        }
+    },
     "devDependencies": {
         "@types/react": "^18.0.25",
         "@types/styled-components": "^5.1.26",
