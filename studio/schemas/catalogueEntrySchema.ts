@@ -146,6 +146,12 @@ function buildSharedFields({ subtitleDescription, contentBioDescription }: Catal
             readOnly: true,
             hidden: true,
         },
+        ...buildCataloguePresentationFields(),
+    ]
+}
+
+export function buildCataloguePresentationFields() {
+    return [
         {
             name: 'template',
             title: 'Template',
