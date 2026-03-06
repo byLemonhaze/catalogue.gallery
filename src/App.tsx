@@ -10,6 +10,7 @@ import { LegalModal } from './components/LegalModal';
 import { GlobalSearch } from './components/GlobalSearch';
 import { ScrollToTop } from './components/ScrollToTop';
 import { SquareLoader } from './components/SquareLoader';
+import { CatalogueFooterLinks } from './components/CatalogueFooterLinks';
 
 // Lazy-loaded routes — only fetched when the user navigates to them
 const ArtistList = lazy(() => import('./components/ArtistList').then(m => ({ default: m.ArtistList })));
@@ -49,8 +50,6 @@ function Home({ artists, loading, artistsError, setIsLegalModalOpen }: HomeProps
     const saved = sessionStorage.getItem('carouselIndex');
     return saved ? parseInt(saved, 10) : 0;
   });
-
-  const [showSocialMenu, setShowSocialMenu] = useState(false);
 
   return (
     <div className="fixed inset-0 w-screen overflow-hidden h-screen h-[100dvh]">
@@ -120,56 +119,11 @@ function Home({ artists, loading, artistsError, setIsLegalModalOpen }: HomeProps
 
       {/* Floating Social Link */}
       {/* Floating Socials */}
-      <div className="fixed bottom-5 right-6 z-50 flex flex-col items-end gap-1.5">
-        {/* Desktop: Stacked Links */}
-        <div className="hidden md:flex flex-col items-end gap-1">
-          <a
-            href="https://x.com/CatalogueART"
-            target="_blank"
-            rel="noreferrer"
-            className="text-[11px] font-mono text-white/45 hover:text-white transition-colors duration-300 uppercase tracking-[0.12em]"
-          >
-            @CATALOGUEART - X
-          </a>
-          <button
-            onClick={() => setIsLegalModalOpen(true)}
-            className="text-[10px] font-display text-white/35 hover:text-white transition-colors duration-300 uppercase tracking-[0.18em] mt-1"
-          >
-            Catalogue Policy
-          </button>
-        </div>
-
-        {/* Mobile: Toggle Menu */}
-        <div className="md:hidden relative">
-          {showSocialMenu && (
-            <>
-              <div className="fixed inset-0 z-40" onClick={() => setShowSocialMenu(false)} />
-              <div className="absolute bottom-full right-0 mb-3 flex flex-col items-end gap-3 z-50 animate-fade-in">
-                <a
-                  href="https://x.com/CatalogueART"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-[10px] font-bold text-white/50 hover:text-white uppercase tracking-widest transition-colors duration-300"
-                >
-                  @CatalogueART
-                </a>
-                <button
-                  onClick={() => { setIsLegalModalOpen(true); setShowSocialMenu(false); }}
-                  className="text-[10px] font-bold text-white/50 hover:text-white uppercase tracking-widest transition-colors duration-300"
-                >
-                  Policy
-                </button>
-              </div>
-            </>
-          )}
-          <button
-            onClick={() => setShowSocialMenu(!showSocialMenu)}
-            className={`text-[10px] font-bold transition-colors duration-300 uppercase tracking-widest p-2 -mr-2 relative z-50 ${showSocialMenu ? 'text-white' : 'text-white/20 hover:text-white'}`}
-          >
-            @
-          </button>
-        </div>
-      </div>
+      <CatalogueFooterLinks
+        onOpenPolicy={() => setIsLegalModalOpen(true)}
+        variant="home"
+        containerClassName="fixed bottom-5 right-6 z-50 flex flex-col items-end gap-1.5"
+      />
     </div>
   );
 }

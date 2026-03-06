@@ -25,6 +25,27 @@ type ReviewPayload = {
 
 type EnvVars = ContactStoreBindings & Record<string, unknown>;
 type WorkerContext = { request: Request; env: EnvVars };
+type NotificationStatus = 'published' | 'declined';
+
+type NormalizedReviewPayload = {
+    _type?: string;
+    status?: string;
+    contactId: string;
+    emailField: string;
+    name: string;
+    slug: string;
+    websiteUrl: string;
+    approvalMessage: string;
+    rejectionReasonCode: string;
+    rejectionReason: string;
+};
+
+type NotificationConfig = {
+    resendApiKey: string;
+    baseUrl: string;
+    fromAddress: string;
+    replyTo: string;
+};
 
 const jsonHeaders = {
     'Content-Type': 'application/json',
@@ -183,192 +204,296 @@ function emailShell(params: {
 `;
 }
 
-export const onRequestPost = async (context: WorkerContext) => {
-    const { request, env } = context;
+function authorizeWebhookRequest(request: Request, env: EnvVars) {
+    const requiredSecret = readEnvString(env, 'WEBHOOK_SHARED_SECRET').trim();
+    if (!requiredSecret) {
+        return jsonResponse({ error: 'Server configuration error: WEBHOOK_SHARED_SECRET is missing.' }, 500);
+    }
 
+    const providedSecret = getProvidedSecret(request);
+    if (!providedSecret || providedSecret !== requiredSecret) {
+        return jsonResponse({ error: 'Unauthorized webhook request' }, 401);
+    }
+
+    return null;
+}
+
+function normalizeReviewPayload(rawPayload: ReviewPayload): NormalizedReviewPayload {
+    const payload = (rawPayload?.result && typeof rawPayload.result === 'object')
+        ? rawPayload.result
+        : rawPayload;
+
+    return {
+        _type: payload._type,
+        status: payload.status,
+        contactId: payload.contactId?.trim() || '',
+        emailField: payload.email?.trim() || '',
+        name: payload.name?.trim() || '',
+        slug: resolveSlug(payload.slug),
+        websiteUrl: payload.websiteUrl?.trim() || '',
+        approvalMessage: payload.approvalMessage?.trim() || '',
+        rejectionReasonCode: payload.rejectionReasonCode?.trim() || '',
+        rejectionReason: payload.rejectionReason?.trim() || '',
+    };
+}
+
+async function resolveNotificationEmail(
+    payload: NormalizedReviewPayload,
+    env: EnvVars,
+    emailEncryptionKey: string
+) {
+    let email = '';
+
+    if (payload.contactId) {
+        const storedCiphertext = await readContactCiphertext(env, payload.contactId);
+        if (storedCiphertext) {
+            if (!emailEncryptionKey) {
+                return {
+                    response: jsonResponse({ error: 'EMAIL_ENCRYPTION_KEY is missing for private contact lookup.' }, 500),
+                };
+            }
+            email = await decryptEmail(storedCiphertext, emailEncryptionKey);
+        }
+    }
+
+    if (!email && payload.emailField) {
+        if (isEncryptedEmail(payload.emailField)) {
+            if (!emailEncryptionKey) {
+                return {
+                    response: jsonResponse({ error: 'EMAIL_ENCRYPTION_KEY is missing for encrypted email payloads.' }, 500),
+                };
+            }
+            email = await decryptEmail(payload.emailField, emailEncryptionKey);
+        } else {
+            email = payload.emailField.toLowerCase();
+        }
+    }
+
+    if (email) {
+        return { email };
+    }
+
+    if (payload.contactId && hasContactStore(env)) {
+        return {
+            response: jsonResponse({ error: `No contact record found for contactId "${payload.contactId}".` }, 400),
+        };
+    }
+    if (payload.contactId && !hasContactStore(env)) {
+        return {
+            response: jsonResponse({ error: 'CONTACTS_DB binding is missing but payload requires private contact lookup.' }, 500),
+        };
+    }
+
+    return {
+        response: jsonResponse({ error: 'Missing email in payload. Email is required to send notifications.' }, 400),
+    };
+}
+
+function isNotificationStatus(status: string | undefined): status is NotificationStatus {
+    return status === 'published' || status === 'declined';
+}
+
+async function ensureNotificationIsNew(
+    env: EnvVars,
+    contactId: string,
+    notificationStatus: NotificationStatus
+) {
     try {
-        const requiredSecret = readEnvString(env, 'WEBHOOK_SHARED_SECRET').trim();
-        if (!requiredSecret) {
-            return jsonResponse({ error: 'Server configuration error: WEBHOOK_SHARED_SECRET is missing.' }, 500);
+        const alreadySent = await hasContactStatusNotification(env, contactId, notificationStatus);
+        if (alreadySent) {
+            return jsonResponse({
+                success: true,
+                skipped: true,
+                reason: `Notification already sent for status "${notificationStatus}"`,
+            });
         }
+    } catch (dedupeErr) {
+        return jsonResponse({ error: `Notification dedupe check failed: ${getErrorMessage(dedupeErr)}` }, 500);
+    }
 
-        const providedSecret = getProvidedSecret(request);
-        if (!providedSecret || providedSecret !== requiredSecret) {
-            return jsonResponse({ error: 'Unauthorized webhook request' }, 401);
-        }
+    return null;
+}
 
-        const rawPayload: ReviewPayload = await request.json();
-        const payload = (rawPayload?.result && typeof rawPayload.result === 'object')
-            ? rawPayload.result
-            : rawPayload;
+function readNotificationConfig(env: EnvVars): NotificationConfig {
+    const resendApiKey = readEnvString(env, 'RESEND_API_KEY').trim();
+    if (!resendApiKey) {
+        throw new Error('RESEND_API_KEY is not configured');
+    }
 
-        const status = payload.status;
-        const contactId = payload.contactId?.trim();
-        const emailField = payload.email?.trim();
-        const name = payload.name?.trim();
-        const slug = resolveSlug(payload.slug);
-        const websiteUrl = payload.websiteUrl?.trim();
-        const approvalMessage = payload.approvalMessage?.trim();
-        const rejectionReasonCode = payload.rejectionReasonCode?.trim();
-        const rejectionReason = payload.rejectionReason?.trim();
-        const emailEncryptionKey = readEnvString(env, 'EMAIL_ENCRYPTION_KEY').trim();
+    return {
+        resendApiKey,
+        baseUrl: (readEnvString(env, 'PUBLIC_BASE_URL') || 'https://catalogue.gallery').replace(/\/+$/, ''),
+        fromAddress: readEnvString(env, 'RESEND_FROM_EMAIL') || 'CATALOGUE <apply@catalogue.gallery>',
+        replyTo: readEnvString(env, 'RESEND_REPLY_TO').trim(),
+    };
+}
 
-        let email = '';
-        if (contactId) {
-            const storedCiphertext = await readContactCiphertext(env, contactId);
-            if (storedCiphertext) {
-                if (!emailEncryptionKey) {
-                    return jsonResponse({ error: 'EMAIL_ENCRYPTION_KEY is missing for private contact lookup.' }, 500);
-                }
-                email = await decryptEmail(storedCiphertext, emailEncryptionKey);
-            }
-        }
+function buildProfileUrl(payload: NormalizedReviewPayload, baseUrl: string) {
+    const profilePath = payload.slug
+        ? (payload._type === 'gallery'
+            ? `/gallery/${encodeURIComponent(payload.slug)}`
+            : `/artist/${encodeURIComponent(payload.slug)}`)
+        : '';
 
-        // Legacy fallback while old records/webhooks still include encrypted email directly.
-        if (!email && emailField) {
-            if (isEncryptedEmail(emailField)) {
-                if (!emailEncryptionKey) {
-                    return jsonResponse({ error: 'EMAIL_ENCRYPTION_KEY is missing for encrypted email payloads.' }, 500);
-                }
-                email = await decryptEmail(emailField, emailEncryptionKey);
-            } else {
-                email = emailField.toLowerCase();
-            }
-        }
+    return profilePath ? `${baseUrl}${profilePath}` : baseUrl;
+}
 
-        if (!email) {
-            if (contactId && hasContactStore(env)) {
-                return jsonResponse({ error: `No contact record found for contactId "${contactId}".` }, 400);
-            }
-            if (contactId && !hasContactStore(env)) {
-                return jsonResponse({ error: 'CONTACTS_DB binding is missing but payload requires private contact lookup.' }, 500);
-            }
-            return jsonResponse({ error: 'Missing email in payload. Email is required to send notifications.' }, 400);
-        }
+function buildDeclineGuidanceHtml(reasonCode: string) {
+    const guidance = reasonCode ? REJECTION_GUIDANCE[reasonCode] : undefined;
+    if (!guidance) {
+        return '';
+    }
 
-        if (status !== 'published' && status !== 'declined') {
-            return jsonResponse({ message: `No action for status: ${status || 'unknown'}` });
-        }
-        const notificationStatus = status as 'published' | 'declined';
+    return `
+        <p style="margin:0 0 8px 0;"><strong>Primary review reason:</strong></p>
+        <p style="margin:0 0 8px 0;">${escapeHtml(guidance.label)}</p>
+        <ul style="margin:0 0 12px 20px;padding:0;">
+            ${guidance.fixes.map((fix) => `<li style="margin:0 0 4px 0;">${escapeHtml(fix)}</li>`).join('')}
+        </ul>
+    `;
+}
 
-        if (contactId) {
-            try {
-                const alreadySent = await hasContactStatusNotification(env, contactId, notificationStatus);
-                if (alreadySent) {
-                    return jsonResponse({
-                        success: true,
-                        skipped: true,
-                        reason: `Notification already sent for status "${notificationStatus}"`,
-                    });
-                }
-            } catch (dedupeErr) {
-                return jsonResponse({ error: `Notification dedupe check failed: ${getErrorMessage(dedupeErr)}` }, 500);
-            }
-        }
+function buildNotificationMessage(payload: NormalizedReviewPayload, config: NotificationConfig) {
+    const safeWebsiteUrl = sanitizeHttpUrl(payload.websiteUrl);
+    const profileUrl = buildProfileUrl(payload, config.baseUrl);
 
-        const resendApiKey = readEnvString(env, 'RESEND_API_KEY').trim();
-        if (!resendApiKey) {
-            return jsonResponse({ error: 'RESEND_API_KEY is not configured' }, 500);
-        }
-
-        const baseUrl = (readEnvString(env, 'PUBLIC_BASE_URL') || 'https://catalogue.gallery').replace(/\/+$/, '');
-        const fromAddress = readEnvString(env, 'RESEND_FROM_EMAIL') || 'CATALOGUE <apply@catalogue.gallery>';
-        const replyTo = readEnvString(env, 'RESEND_REPLY_TO').trim();
-
-        const profilePath = slug
-            ? (payload._type === 'gallery' ? `/gallery/${encodeURIComponent(slug)}` : `/artist/${encodeURIComponent(slug)}`)
-            : '';
-        const profileUrl = profilePath ? `${baseUrl}${profilePath}` : baseUrl;
-        const safeWebsiteUrl = sanitizeHttpUrl(websiteUrl);
-
-        const subject = status === 'published'
-            ? 'You are live on CATALOGUE'
-            : 'Update on your CATALOGUE submission';
-
-        const html = status === 'published'
-            ? emailShell({
-                baseUrl,
+    if (payload.status === 'published') {
+        return {
+            subject: 'You are live on CATALOGUE',
+            html: emailShell({
+                baseUrl: config.baseUrl,
                 title: 'Application approved',
-                intro: `Hi ${name || 'there'}, your profile is now live on CATALOGUE.`,
+                intro: `Hi ${payload.name || 'there'}, your profile is now live on CATALOGUE.`,
                 bodyHtml: `
                     <p style="margin:0 0 12px 0;">Great news. Your application has been approved and published.</p>
-                    ${approvalMessage ? `<p style="margin:0 0 12px 0;"><strong>Note from the team:</strong><br/>${escapeHtml(approvalMessage)}</p>` : ''}
+                    ${payload.approvalMessage ? `<p style="margin:0 0 12px 0;"><strong>Note from the team:</strong><br/>${escapeHtml(payload.approvalMessage)}</p>` : ''}
                     ${safeWebsiteUrl ? `<p style="margin:0;">Original site submitted: <a href="${safeWebsiteUrl}" style="color:#aeb4ff;">${escapeHtml(safeWebsiteUrl)}</a></p>` : ''}
                 `,
                 buttonLabel: 'View your CATALOGUE profile',
                 buttonUrl: profileUrl,
-            })
-            : (() => {
-                const guidance = rejectionReasonCode ? REJECTION_GUIDANCE[rejectionReasonCode] : undefined;
-                const guidanceHtml = guidance
-                    ? `
-                        <p style="margin:0 0 8px 0;"><strong>Primary review reason:</strong></p>
-                        <p style="margin:0 0 8px 0;">${escapeHtml(guidance.label)}</p>
-                        <ul style="margin:0 0 12px 20px;padding:0;">
-                            ${guidance.fixes.map((fix) => `<li style="margin:0 0 4px 0;">${escapeHtml(fix)}</li>`).join('')}
-                        </ul>
-                    `
-                    : '';
-
-                const reviewerNoteHtml = rejectionReason
-                    ? `<p style="margin:0 0 12px 0;"><strong>Additional reviewer note:</strong><br/>${escapeHtml(rejectionReason)}</p>`
-                    : '';
-
-                return emailShell({
-                    baseUrl,
-                    title: 'Application needs updates',
-                    intro: `Hi ${name || 'there'}, thank you for applying to CATALOGUE.`,
-                    bodyHtml: `
-                        <p style="margin:0 0 12px 0;">We reviewed your submission and need a few changes before approval.</p>
-                        ${guidanceHtml}
-                        ${reviewerNoteHtml}
-                    `,
-                    buttonLabel: 'Update and re-apply',
-                    buttonUrl: `${baseUrl}/submit`,
-                });
-            })();
-
-        const resendPayload: Record<string, unknown> = {
-            from: fromAddress,
-            to: [email],
-            subject,
-            html,
+            }),
         };
+    }
 
-        if (replyTo) {
-            resendPayload.reply_to = replyTo;
+    const reviewerNoteHtml = payload.rejectionReason
+        ? `<p style="margin:0 0 12px 0;"><strong>Additional reviewer note:</strong><br/>${escapeHtml(payload.rejectionReason)}</p>`
+        : '';
+
+    return {
+        subject: 'Update on your CATALOGUE submission',
+        html: emailShell({
+            baseUrl: config.baseUrl,
+            title: 'Application needs updates',
+            intro: `Hi ${payload.name || 'there'}, thank you for applying to CATALOGUE.`,
+            bodyHtml: `
+                <p style="margin:0 0 12px 0;">We reviewed your submission and need a few changes before approval.</p>
+                ${buildDeclineGuidanceHtml(payload.rejectionReasonCode)}
+                ${reviewerNoteHtml}
+            `,
+            buttonLabel: 'Update and re-apply',
+            buttonUrl: `${config.baseUrl}/submit`,
+        }),
+    };
+}
+
+async function sendNotificationEmail(params: {
+    email: string;
+    subject: string;
+    html: string;
+    config: NotificationConfig;
+}) {
+    const { email, subject, html, config } = params;
+    const resendPayload: Record<string, unknown> = {
+        from: config.fromAddress,
+        to: [email],
+        subject,
+        html,
+    };
+
+    if (config.replyTo) {
+        resendPayload.reply_to = config.replyTo;
+    }
+
+    const resendResponse = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${config.resendApiKey}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(resendPayload),
+    });
+
+    const rawResendBody = await resendResponse.text();
+    if (!resendResponse.ok) {
+        throw new Error(`Resend API error (${resendResponse.status}): ${rawResendBody}`);
+    }
+
+    if (!rawResendBody) {
+        return {};
+    }
+
+    try {
+        return JSON.parse(rawResendBody) as Record<string, unknown>;
+    } catch {
+        return { raw: rawResendBody };
+    }
+}
+
+async function markNotificationSent(
+    env: EnvVars,
+    contactId: string,
+    notificationStatus: NotificationStatus
+) {
+    try {
+        await recordContactStatusNotification(env, contactId, notificationStatus);
+        await markContactNotified(env, contactId);
+    } catch (markErr) {
+        console.warn('Failed to update contact notification metadata:', markErr);
+    }
+}
+
+export const onRequestPost = async (context: WorkerContext) => {
+    const { request, env } = context;
+
+    try {
+        const authError = authorizeWebhookRequest(request, env);
+        if (authError) {
+            return authError;
         }
 
-        const resendResponse = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${resendApiKey}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(resendPayload),
+        const rawPayload: ReviewPayload = await request.json();
+        const payload = normalizeReviewPayload(rawPayload);
+        const emailEncryptionKey = readEnvString(env, 'EMAIL_ENCRYPTION_KEY').trim();
+
+        const emailResult = await resolveNotificationEmail(payload, env, emailEncryptionKey);
+        if ('response' in emailResult) {
+            return emailResult.response;
+        }
+        const email = emailResult.email;
+
+        if (!isNotificationStatus(payload.status)) {
+            return jsonResponse({ message: `No action for status: ${payload.status || 'unknown'}` });
+        }
+        const notificationStatus = payload.status;
+
+        if (payload.contactId) {
+            const dedupeResponse = await ensureNotificationIsNew(env, payload.contactId, notificationStatus);
+            if (dedupeResponse) {
+                return dedupeResponse;
+            }
+        }
+
+        const config = readNotificationConfig(env);
+        const message = buildNotificationMessage(payload, config);
+        const resendBody = await sendNotificationEmail({
+            email,
+            subject: message.subject,
+            html: message.html,
+            config,
         });
 
-        const rawResendBody = await resendResponse.text();
-        if (!resendResponse.ok) {
-            throw new Error(`Resend API error (${resendResponse.status}): ${rawResendBody}`);
-        }
-
-        let resendBody: Record<string, unknown> = {};
-        if (rawResendBody) {
-            try {
-                resendBody = JSON.parse(rawResendBody);
-            } catch {
-                resendBody = { raw: rawResendBody };
-            }
-        }
-
-        if (contactId) {
-            try {
-                await recordContactStatusNotification(env, contactId, notificationStatus);
-                await markContactNotified(env, contactId);
-            } catch (markErr) {
-                console.warn('Failed to update contact notification metadata:', markErr);
-            }
+        if (payload.contactId) {
+            await markNotificationSent(env, payload.contactId, notificationStatus);
         }
 
         return jsonResponse({ success: true, provider: resendBody });
