@@ -136,6 +136,280 @@ function AuthGate({ onAuth }: { onAuth: (pw: string) => void }) {
 }
 
 // ─── Draft card ──────────────────────────────────────────────────────────────
+function contentLabApiFetch(password: string, path: string, body: object) {
+    return fetch(path, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-content-lab-password': password },
+        body: JSON.stringify(body),
+    });
+}
+
+async function uploadDraftImage(password: string, file: File) {
+    const res = await fetch('/api/content-upload-image', {
+        method: 'POST',
+        headers: {
+            'x-content-lab-password': password,
+            'content-type': file.type || 'image/jpeg',
+        },
+        body: await file.arrayBuffer(),
+    });
+
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({})) as { error?: string };
+        return { ok: false as const, error: err.error || 'Upload failed' };
+    }
+
+    const data = await res.json() as { assetId: string };
+    return { ok: true as const, assetId: data.assetId };
+}
+
+async function publishDraft(
+    password: string,
+    draft: Draft,
+    deployTarget: DeployTarget,
+    thumbnailAssetId?: string
+) {
+    return contentLabApiFetch(password, '/api/content-publish', {
+        id: draft.id,
+        title: draft.title,
+        excerpt: draft.excerpt,
+        content: draft.content,
+        tags: draft.tags,
+        deploy_target: deployTarget,
+        source_artist_id: draft.source_artist_id ?? undefined,
+        thumbnailAssetId: thumbnailAssetId ?? undefined,
+    });
+}
+
+async function deleteDraft(password: string, draftId: string) {
+    return fetch(`/api/content-drafts?id=${encodeURIComponent(draftId)}`, {
+        method: 'DELETE',
+        headers: { 'x-content-lab-password': password },
+    });
+}
+
+async function saveDraftRevision(password: string, draftId: string, revisionNote: string) {
+    return contentLabApiFetch(password, '/api/content-drafts', {
+        id: draftId,
+        revision_note: revisionNote,
+    });
+}
+
+function DraftThumbnail({
+    type,
+    effectiveThumbnailRef,
+}: {
+    type: DraftType
+    effectiveThumbnailRef?: string | null
+}) {
+    if (effectiveThumbnailRef) {
+        return (
+            <img
+                src={sanityImageUrl(effectiveThumbnailRef, 48)}
+                alt=""
+                className="w-10 h-10 object-cover shrink-0 mt-0.5 opacity-70"
+            />
+        )
+    }
+
+    return (
+        <span className="text-[9px] font-mono text-white/20 uppercase tracking-widest shrink-0 mt-0.5 w-10 pt-0.5">
+            {TYPE_LABEL[type]}
+        </span>
+    )
+}
+
+function DraftTags({ tags }: { tags?: string[] }) {
+    if (!tags?.length) return null
+
+    return (
+        <div className="flex flex-wrap gap-1.5 mt-2">
+            {tags.map((tag) => (
+                <span key={tag} className="text-[9px] font-mono text-white/20 border border-white/10 px-1.5 py-0.5 uppercase tracking-wider">
+                    {tag}
+                </span>
+            ))}
+        </div>
+    )
+}
+
+function DraftPublishPanel({
+    deployTarget,
+    setDeployTarget,
+    effectiveThumbnailRef,
+    artistThumbnailRef,
+    uploadedAssetId,
+    setUploadedAssetId,
+    uploading,
+    uploadError,
+    onFileSelect,
+    loading,
+    onPublish,
+}: {
+    deployTarget: DeployTarget
+    setDeployTarget: (value: DeployTarget) => void
+    effectiveThumbnailRef?: string | null
+    artistThumbnailRef?: string
+    uploadedAssetId: string | null
+    setUploadedAssetId: (value: string | null) => void
+    uploading: boolean
+    uploadError: string
+    onFileSelect: (file: File) => void
+    loading: boolean
+    onPublish: () => void
+}) {
+    return (
+        <div className="mt-3 p-3 border border-white/10 space-y-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">Publish to</p>
+            <div className="grid grid-cols-2 gap-1.5">
+                {DEPLOY_OPTIONS.map((opt) => (
+                    <button
+                        key={opt.value}
+                        onClick={() => setDeployTarget(opt.value)}
+                        className={`py-2 px-3 text-[10px] font-bold uppercase tracking-[0.15em] border transition-colors text-left ${
+                            deployTarget === opt.value
+                                ? 'border-white/40 text-white'
+                                : 'border-white/10 text-white/30 hover:border-white/25 hover:text-white/60'
+                        }`}
+                    >
+                        {opt.label}
+                    </button>
+                ))}
+            </div>
+
+            <div className="space-y-2">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">Thumbnail</p>
+                <div className="flex items-center gap-3">
+                    {effectiveThumbnailRef ? (
+                        <img
+                            src={sanityImageUrl(effectiveThumbnailRef, 80)}
+                            alt="thumbnail preview"
+                            className="w-16 h-16 object-cover border border-white/15 shrink-0"
+                        />
+                    ) : (
+                        <div className="w-16 h-16 border border-white/10 flex items-center justify-center shrink-0">
+                            <span className="text-[9px] font-mono text-white/20">none</span>
+                        </div>
+                    )}
+                    <div className="flex-1 space-y-1">
+                        <label className="cursor-pointer block">
+                            <span className={`text-[10px] font-bold uppercase tracking-[0.15em] border px-3 py-1.5 block text-center transition-colors ${
+                                uploading ? 'border-white/10 text-white/20' : 'border-white/15 text-white/40 hover:border-white/30 hover:text-white/70'
+                            }`}>
+                                {uploading ? 'Uploading…' : effectiveThumbnailRef ? 'Replace image' : 'Upload image'}
+                            </span>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                disabled={uploading}
+                                onChange={(event) => {
+                                    const file = event.target.files?.[0]
+                                    if (file) onFileSelect(file)
+                                }}
+                            />
+                        </label>
+                        {artistThumbnailRef && uploadedAssetId && (
+                            <button
+                                onClick={() => setUploadedAssetId(null)}
+                                className="text-[9px] font-mono text-white/20 hover:text-white/50 transition-colors"
+                            >
+                                ← use artist thumbnail
+                            </button>
+                        )}
+                        {!artistThumbnailRef && !uploadedAssetId && (
+                            <p className="text-[9px] font-mono text-white/20">
+                                No thumbnail — you can add one in Studio after publishing.
+                            </p>
+                        )}
+                        {uploadError && (
+                            <p className="text-[9px] text-red-400/70">{uploadError}</p>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <button
+                onClick={onPublish}
+                disabled={loading}
+                className="w-full py-2 text-[11px] font-bold uppercase tracking-[0.2em] border border-white/25 text-white/80 hover:border-white/50 hover:text-white transition-colors disabled:opacity-30"
+            >
+                {loading ? 'Publishing...' : 'Confirm Publish'}
+            </button>
+        </div>
+    )
+}
+
+function DraftRevisePanel({
+    revisionNote,
+    setRevisionNote,
+    loading,
+    onRevise,
+}: {
+    revisionNote: string
+    setRevisionNote: (value: string) => void
+    loading: boolean
+    onRevise: () => void
+}) {
+    return (
+        <div className="mt-3 p-3 border border-white/10 space-y-2">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">Note for revision</p>
+            <textarea
+                autoFocus
+                value={revisionNote}
+                onChange={(event) => setRevisionNote(event.target.value)}
+                rows={3}
+                className="w-full bg-transparent border border-white/10 p-2 text-[11px] text-white/70 focus:border-white/30 outline-none resize-none placeholder-white/20"
+                placeholder="e.g. Make it shorter, sharpen the opening, less biography..."
+            />
+            <button
+                onClick={onRevise}
+                disabled={loading || !revisionNote.trim()}
+                className="w-full py-2 text-[10px] font-bold uppercase tracking-[0.2em] border border-white/15 text-white/50 hover:border-white/30 hover:text-white/80 transition-colors disabled:opacity-30"
+            >
+                {loading ? 'Saving...' : 'Save Note'}
+            </button>
+        </div>
+    )
+}
+
+function DraftActionButtons({
+    onTogglePublish,
+    onToggleRevise,
+    onDelete,
+    loading,
+}: {
+    onTogglePublish: () => void
+    onToggleRevise: () => void
+    onDelete: () => void
+    loading: boolean
+}) {
+    return (
+        <div className="flex items-center gap-3 shrink-0">
+            <button
+                onClick={onTogglePublish}
+                className="text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors"
+            >
+                Publish
+            </button>
+            <button
+                onClick={onToggleRevise}
+                className="text-[10px] font-bold uppercase tracking-widest text-white/25 hover:text-white/70 transition-colors"
+            >
+                Revise
+            </button>
+            <button
+                onClick={onDelete}
+                disabled={loading}
+                className="text-white/20 hover:text-red-400/70 transition-colors text-sm font-mono"
+                title="Delete draft permanently"
+            >
+                ×
+            </button>
+        </div>
+    )
+}
+
 function DraftCard({
     draft,
     password,
@@ -159,32 +433,16 @@ function DraftCard({
 
     const effectiveThumbnailRef = uploadedAssetId || artistThumbnailRef;
 
-    const apiFetch = useCallback((path: string, body: object) =>
-        fetch(path, {
-            method: 'POST',
-            headers: { 'content-type': 'application/json', 'x-content-lab-password': password },
-            body: JSON.stringify(body),
-        }), [password]);
-
     const handleImageUpload = async (file: File) => {
         setUploading(true);
         setUploadError('');
         try {
-            const res = await fetch('/api/content-upload-image', {
-                method: 'POST',
-                headers: {
-                    'x-content-lab-password': password,
-                    'content-type': file.type || 'image/jpeg',
-                },
-                body: await file.arrayBuffer(),
-            });
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({})) as { error?: string };
-                setUploadError(err.error || 'Upload failed');
+            const result = await uploadDraftImage(password, file);
+            if (!result.ok) {
+                setUploadError(result.error);
                 return;
             }
-            const data = await res.json() as { assetId: string };
-            setUploadedAssetId(data.assetId);
+            setUploadedAssetId(result.assetId);
         } catch {
             setUploadError('Upload failed — check connection.');
         } finally {
@@ -194,16 +452,7 @@ function DraftCard({
 
     const handlePublish = async () => {
         setLoading(true);
-        const res = await apiFetch('/api/content-publish', {
-            id: draft.id,
-            title: draft.title,
-            excerpt: draft.excerpt,
-            content: draft.content,
-            tags: draft.tags,
-            deploy_target: deployTarget,
-            source_artist_id: draft.source_artist_id ?? undefined,
-            thumbnailAssetId: effectiveThumbnailRef ?? undefined,
-        });
+        const res = await publishDraft(password, draft, deployTarget, effectiveThumbnailRef ?? undefined);
         if (!res.ok) {
             const body = await res.json().catch(() => ({})) as { error?: string };
             alert(body.error || 'Publish failed — check Cloudflare logs.');
@@ -215,10 +464,7 @@ function DraftCard({
 
     const handleDelete = async () => {
         setLoading(true);
-        await fetch(`/api/content-drafts?id=${encodeURIComponent(draft.id)}`, {
-            method: 'DELETE',
-            headers: { 'x-content-lab-password': password },
-        });
+        await deleteDraft(password, draft.id);
         setLoading(false);
         onUpdate();
     };
@@ -226,31 +472,27 @@ function DraftCard({
     const handleRevise = async () => {
         if (!revisionNote.trim()) return;
         setLoading(true);
-        await apiFetch('/api/content-drafts', { id: draft.id, revision_note: revisionNote });
+        await saveDraftRevision(password, draft.id, revisionNote);
         setLoading(false);
         setShowRevise(false);
         setRevisionNote('');
         onUpdate();
     };
 
+    const togglePublishPanel = () => {
+        setShowPublish((current) => !current);
+        setShowRevise(false);
+    };
+
+    const toggleRevisePanel = () => {
+        setShowRevise((current) => !current);
+        setShowPublish(false);
+    };
+
     return (
         <div className="border-b border-white/8 py-5">
             <div className="flex items-start gap-4">
-
-                {/* Left col: thumbnail or type badge */}
-                {effectiveThumbnailRef ? (
-                    <img
-                        src={sanityImageUrl(effectiveThumbnailRef, 48)}
-                        alt=""
-                        className="w-10 h-10 object-cover shrink-0 mt-0.5 opacity-70"
-                    />
-                ) : (
-                    <span className="text-[9px] font-mono text-white/20 uppercase tracking-widest shrink-0 mt-0.5 w-10 pt-0.5">
-                        {TYPE_LABEL[draft.type]}
-                    </span>
-                )}
-
-                {/* Main */}
+                <DraftThumbnail type={draft.type} effectiveThumbnailRef={effectiveThumbnailRef} />
                 <div className="flex-1 min-w-0">
                     {effectiveThumbnailRef && (
                         <span className="text-[9px] font-mono text-white/20 uppercase tracking-widest">
@@ -272,151 +514,47 @@ function DraftCard({
                         <p className="text-[11px] text-white/40 mt-1.5 leading-relaxed">
                             {draft.excerpt}
                         </p>
-                        {draft.tags?.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 mt-2">
-                                {draft.tags.map(t => (
-                                    <span key={t} className="text-[9px] font-mono text-white/20 border border-white/10 px-1.5 py-0.5 uppercase tracking-wider">
-                                        {t}
-                                    </span>
-                                ))}
-                            </div>
-                        )}
+                        <DraftTags tags={draft.tags} />
                     </button>
 
-                    {/* Expanded content preview */}
                     {expanded && (
                         <div className="mt-4 p-4 bg-white/3 text-[11px] text-white/50 leading-relaxed whitespace-pre-wrap font-mono max-h-64 overflow-y-auto border border-white/8">
                             {draft.content}
                         </div>
                     )}
 
-                    {/* Publish panel */}
                     {showPublish && (
-                        <div className="mt-3 p-3 border border-white/10 space-y-3">
-                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">Publish to</p>
-                            <div className="grid grid-cols-2 gap-1.5">
-                                {DEPLOY_OPTIONS.map(opt => (
-                                    <button
-                                        key={opt.value}
-                                        onClick={() => setDeployTarget(opt.value)}
-                                        className={`py-2 px-3 text-[10px] font-bold uppercase tracking-[0.15em] border transition-colors text-left ${
-                                            deployTarget === opt.value
-                                                ? 'border-white/40 text-white'
-                                                : 'border-white/10 text-white/30 hover:border-white/25 hover:text-white/60'
-                                        }`}
-                                    >
-                                        {opt.label}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Thumbnail */}
-                            <div className="space-y-2">
-                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">Thumbnail</p>
-                                <div className="flex items-center gap-3">
-                                    {effectiveThumbnailRef ? (
-                                        <img
-                                            src={sanityImageUrl(effectiveThumbnailRef, 80)}
-                                            alt="thumbnail preview"
-                                            className="w-16 h-16 object-cover border border-white/15 shrink-0"
-                                        />
-                                    ) : (
-                                        <div className="w-16 h-16 border border-white/10 flex items-center justify-center shrink-0">
-                                            <span className="text-[9px] font-mono text-white/20">none</span>
-                                        </div>
-                                    )}
-                                    <div className="flex-1 space-y-1">
-                                        <label className="cursor-pointer block">
-                                            <span className={`text-[10px] font-bold uppercase tracking-[0.15em] border px-3 py-1.5 block text-center transition-colors ${uploading ? 'border-white/10 text-white/20' : 'border-white/15 text-white/40 hover:border-white/30 hover:text-white/70'}`}>
-                                                {uploading ? 'Uploading…' : effectiveThumbnailRef ? 'Replace image' : 'Upload image'}
-                                            </span>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                disabled={uploading}
-                                                onChange={e => {
-                                                    const file = e.target.files?.[0];
-                                                    if (file) handleImageUpload(file);
-                                                }}
-                                            />
-                                        </label>
-                                        {artistThumbnailRef && uploadedAssetId && (
-                                            <button
-                                                onClick={() => setUploadedAssetId(null)}
-                                                className="text-[9px] font-mono text-white/20 hover:text-white/50 transition-colors"
-                                            >
-                                                ← use artist thumbnail
-                                            </button>
-                                        )}
-                                        {!artistThumbnailRef && !uploadedAssetId && (
-                                            <p className="text-[9px] font-mono text-white/20">
-                                                No thumbnail — you can add one in Studio after publishing.
-                                            </p>
-                                        )}
-                                        {uploadError && (
-                                            <p className="text-[9px] text-red-400/70">{uploadError}</p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={handlePublish}
-                                disabled={loading}
-                                className="w-full py-2 text-[11px] font-bold uppercase tracking-[0.2em] border border-white/25 text-white/80 hover:border-white/50 hover:text-white transition-colors disabled:opacity-30"
-                            >
-                                {loading ? 'Publishing...' : 'Confirm Publish'}
-                            </button>
-                        </div>
+                        <DraftPublishPanel
+                            deployTarget={deployTarget}
+                            setDeployTarget={setDeployTarget}
+                            effectiveThumbnailRef={effectiveThumbnailRef}
+                            artistThumbnailRef={artistThumbnailRef}
+                            uploadedAssetId={uploadedAssetId}
+                            setUploadedAssetId={setUploadedAssetId}
+                            uploading={uploading}
+                            uploadError={uploadError}
+                            onFileSelect={handleImageUpload}
+                            loading={loading}
+                            onPublish={handlePublish}
+                        />
                     )}
 
-                    {/* Revise panel */}
                     {showRevise && (
-                        <div className="mt-3 p-3 border border-white/10 space-y-2">
-                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">Note for revision</p>
-                            <textarea
-                                autoFocus
-                                value={revisionNote}
-                                onChange={e => setRevisionNote(e.target.value)}
-                                rows={3}
-                                className="w-full bg-transparent border border-white/10 p-2 text-[11px] text-white/70 focus:border-white/30 outline-none resize-none placeholder-white/20"
-                                placeholder="e.g. Make it shorter, sharpen the opening, less biography..."
-                            />
-                            <button
-                                onClick={handleRevise}
-                                disabled={loading || !revisionNote.trim()}
-                                className="w-full py-2 text-[10px] font-bold uppercase tracking-[0.2em] border border-white/15 text-white/50 hover:border-white/30 hover:text-white/80 transition-colors disabled:opacity-30"
-                            >
-                                {loading ? 'Saving...' : 'Save Note'}
-                            </button>
-                        </div>
+                        <DraftRevisePanel
+                            revisionNote={revisionNote}
+                            setRevisionNote={setRevisionNote}
+                            loading={loading}
+                            onRevise={handleRevise}
+                        />
                     )}
                 </div>
 
-                {/* Actions */}
-                <div className="flex items-center gap-3 shrink-0">
-                    <button
-                        onClick={() => { setShowPublish(p => !p); setShowRevise(false); }}
-                        className="text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors"
-                    >
-                        Publish
-                    </button>
-                    <button
-                        onClick={() => { setShowRevise(r => !r); setShowPublish(false); }}
-                        className="text-[10px] font-bold uppercase tracking-widest text-white/25 hover:text-white/70 transition-colors"
-                    >
-                        Revise
-                    </button>
-                    <button
-                        onClick={handleDelete}
-                        disabled={loading}
-                        className="text-white/20 hover:text-red-400/70 transition-colors text-sm font-mono"
-                        title="Delete draft permanently"
-                    >
-                        ×
-                    </button>
-                </div>
+                <DraftActionButtons
+                    onTogglePublish={togglePublishPanel}
+                    onToggleRevise={toggleRevisePanel}
+                    onDelete={handleDelete}
+                    loading={loading}
+                />
             </div>
         </div>
     );

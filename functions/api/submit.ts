@@ -24,6 +24,23 @@ type SanityDuplicateQueryResponse = {
     };
 };
 
+type SubmissionPayload = {
+    name: string;
+    subtitle: string;
+    websiteUrlInput: string;
+    email: string;
+    type: SubmissionType;
+    thumbnail: FormDataEntryValue | null;
+};
+
+type SanityConfig = {
+    sanityWriteToken: string;
+    emailEncryptionKey: string;
+    projectId: string;
+    dataset: string;
+    baseUrl: string;
+};
+
 const jsonHeaders = {
     'Content-Type': 'application/json',
     'Cache-Control': 'no-store',
@@ -73,138 +90,183 @@ function isFileEntry(value: FormDataEntryValue | null): value is File {
     return typeof File !== 'undefined' && value instanceof File;
 }
 
+function parseSubmissionPayload(formData: FormData): SubmissionPayload {
+    const typeRaw = String(formData.get('type') || 'artist').trim() as SubmissionType
+
+    return {
+        name: String(formData.get('name') || '').trim(),
+        subtitle: String(formData.get('subtitle') || '').trim(),
+        websiteUrlInput: String(formData.get('websiteUrl') || '').trim(),
+        email: String(formData.get('email') || '').trim().toLowerCase(),
+        type: typeRaw,
+        thumbnail: formData.get('thumbnail'),
+    }
+}
+
+function validateSubmissionPayload(payload: SubmissionPayload) {
+    if (!payload.name || !payload.subtitle || !payload.websiteUrlInput || !payload.email) {
+        return jsonResponse({ error: 'Missing required fields: name, subtitle, websiteUrl, and email are required.' }, 400)
+    }
+    if (!isValidEmail(payload.email)) {
+        return jsonResponse({ error: 'Please provide a valid email address.' }, 400)
+    }
+    if (!allowedTypes.has(payload.type)) {
+        return jsonResponse({ error: 'Invalid type. Only "artist" and "gallery" submissions are accepted.' }, 400)
+    }
+    return null
+}
+
+function readSanityConfig(env: EnvVars): SanityConfig {
+    const sanityWriteToken = readEnvString(env, 'SANITY_WRITE_TOKEN').trim()
+    const emailEncryptionKey = readEnvString(env, 'EMAIL_ENCRYPTION_KEY').trim()
+    const projectId = (readEnvString(env, 'SANITY_PROJECT_ID') || readEnvString(env, 'VITE_SANITY_PROJECT_ID') || 'ebj9kqfo').trim()
+    const dataset = (readEnvString(env, 'SANITY_DATASET') || readEnvString(env, 'VITE_SANITY_DATASET') || 'production').trim()
+
+    if (!sanityWriteToken) {
+        throw new Error('Server configuration error: SANITY_WRITE_TOKEN is missing.')
+    }
+    if (!emailEncryptionKey) {
+        throw new Error('Server configuration error: EMAIL_ENCRYPTION_KEY is missing.')
+    }
+
+    return {
+        sanityWriteToken,
+        emailEncryptionKey,
+        projectId,
+        dataset,
+        baseUrl: `https://${projectId}.api.sanity.io/v2024-01-01`,
+    }
+}
+
+async function createSubmissionContactId(env: EnvVars, email: string, emailEncryptionKey: string) {
+    const encryptedEmail = await encryptEmail(email, emailEncryptionKey)
+
+    try {
+        return await createContact(env, encryptedEmail)
+    } catch (storeErr) {
+        throw new Error(`Private contact storage failed: ${getErrorMessage(storeErr)}`)
+    }
+}
+
+async function uploadThumbnailAsset(
+    thumbnail: FormDataEntryValue | null,
+    config: SanityConfig
+) {
+    if (!isFileEntry(thumbnail) || thumbnail.size <= 0) {
+        return null
+    }
+
+    const uploadResponse = await fetch(`${config.baseUrl}/assets/images/${config.dataset}`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${config.sanityWriteToken}`,
+            'Content-Type': thumbnail.type || 'application/octet-stream',
+        },
+        body: thumbnail,
+    })
+
+    if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json() as SanityErrorResponse
+        throw new Error(`Image upload failed: ${errorData.error?.message || uploadResponse.statusText}`)
+    }
+
+    const asset = await uploadResponse.json() as SanityAssetResponse
+    return asset.document?._id || asset._id || null
+}
+
+async function hasDuplicateWebsiteUrl(normalizedUrl: string, config: SanityConfig) {
+    const duplicateQuery = '*[_type in ["artist", "gallery"] && (websiteUrl == $url || websiteUrl == $url + "/")][0]{_id}'
+    const checkUrl = new URL(`${config.baseUrl}/data/query/${config.dataset}`)
+    checkUrl.searchParams.set('query', duplicateQuery)
+    checkUrl.searchParams.set('$url', normalizedUrl)
+
+    const checkResponse = await fetch(checkUrl.toString(), {
+        headers: {
+            Authorization: `Bearer ${config.sanityWriteToken}`,
+        },
+    })
+
+    if (!checkResponse.ok) {
+        return false
+    }
+
+    const checkData = await checkResponse.json() as SanityDuplicateQueryResponse
+    return Boolean(checkData.result?._id)
+}
+
+function buildPendingSubmissionDocument(
+    payload: SubmissionPayload,
+    normalizedUrl: string,
+    contactId: string,
+    imageAssetId: string | null
+) {
+    return {
+        _type: payload.type,
+        name: payload.name,
+        slug: {
+            _type: 'slug',
+            current: createSlug(payload.name),
+        },
+        subtitle: payload.subtitle,
+        websiteUrl: normalizedUrl,
+        contactId,
+        template: 'external',
+        status: 'pending',
+        thumbnail: imageAssetId
+            ? {
+                _type: 'image',
+                asset: {
+                    _type: 'reference',
+                    _ref: imageAssetId,
+                },
+            }
+            : undefined,
+    }
+}
+
+async function createPendingSubmissionDocument(doc: Record<string, unknown>, config: SanityConfig) {
+    const mutateResponse = await fetch(`${config.baseUrl}/data/mutate/${config.dataset}?returnIds=true`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${config.sanityWriteToken}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            mutations: [{ create: doc }],
+        }),
+    })
+
+    if (!mutateResponse.ok) {
+        const errorData = await mutateResponse.json() as SanityErrorResponse
+        throw new Error(`Document creation failed: ${errorData.error?.message || mutateResponse.statusText}`)
+    }
+}
+
 export const onRequestPost = async (context: WorkerContext) => {
     const { request, env } = context;
 
     try {
         const formData = await request.formData();
-        const name = String(formData.get('name') || '').trim();
-        const subtitle = String(formData.get('subtitle') || '').trim();
-        const websiteUrlInput = String(formData.get('websiteUrl') || '').trim();
-        const email = String(formData.get('email') || '').trim().toLowerCase();
-        const typeRaw = String(formData.get('type') || 'artist').trim();
-        const thumbnail = formData.get('thumbnail');
-
-        if (!name || !subtitle || !websiteUrlInput || !email) {
-            return jsonResponse({ error: 'Missing required fields: name, subtitle, websiteUrl, and email are required.' }, 400);
-        }
-        if (!isValidEmail(email)) {
-            return jsonResponse({ error: 'Please provide a valid email address.' }, 400);
-        }
-        if (!allowedTypes.has(typeRaw as SubmissionType)) {
-            return jsonResponse({ error: 'Invalid type. Only "artist" and "gallery" submissions are accepted.' }, 400);
-        }
-        const type = typeRaw as SubmissionType;
-
-        const sanityWriteToken = readEnvString(env, 'SANITY_WRITE_TOKEN').trim();
-        const emailEncryptionKey = readEnvString(env, 'EMAIL_ENCRYPTION_KEY').trim();
-        const projectId = (readEnvString(env, 'SANITY_PROJECT_ID') || readEnvString(env, 'VITE_SANITY_PROJECT_ID') || 'ebj9kqfo').trim();
-        const dataset = (readEnvString(env, 'SANITY_DATASET') || readEnvString(env, 'VITE_SANITY_DATASET') || 'production').trim();
-
-        if (!sanityWriteToken) {
-            return jsonResponse({ error: 'Server configuration error: SANITY_WRITE_TOKEN is missing.' }, 500);
-        }
-        if (!emailEncryptionKey) {
-            return jsonResponse({ error: 'Server configuration error: EMAIL_ENCRYPTION_KEY is missing.' }, 500);
+        const payload = parseSubmissionPayload(formData)
+        const validationError = validateSubmissionPayload(payload)
+        if (validationError) {
+            return validationError
         }
 
-        const apiVersion = 'v2024-01-01';
-        const baseUrl = `https://${projectId}.api.sanity.io/${apiVersion}`;
-
-        const normalizedUrl = normalizeWebsiteUrl(websiteUrlInput);
-        const slug = createSlug(name);
-        const encryptedEmail = await encryptEmail(email, emailEncryptionKey);
-
-        let contactId: string | null = null;
-        try {
-            contactId = await createContact(env, encryptedEmail);
-        } catch (storeErr) {
-            throw new Error(`Private contact storage failed: ${getErrorMessage(storeErr)}`);
-        }
+        const config = readSanityConfig(env)
+        const normalizedUrl = normalizeWebsiteUrl(payload.websiteUrlInput);
+        const contactId = await createSubmissionContactId(env, payload.email, config.emailEncryptionKey)
         if (!contactId) {
             return jsonResponse({ error: 'Server configuration error: CONTACTS_DB binding is missing.' }, 500);
         }
 
-        let imageAssetId: string | null = null;
-
-        // 1. Upload image to Sanity when provided
-        if (isFileEntry(thumbnail) && thumbnail.size > 0) {
-            const uploadResponse = await fetch(`${baseUrl}/assets/images/${dataset}`, {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${sanityWriteToken}`,
-                    'Content-Type': thumbnail.type || 'application/octet-stream',
-                },
-                body: thumbnail,
-            });
-
-            if (!uploadResponse.ok) {
-                const errorData = await uploadResponse.json() as SanityErrorResponse;
-                throw new Error(`Image upload failed: ${errorData.error?.message || uploadResponse.statusText}`);
-            }
-
-            const asset = await uploadResponse.json() as SanityAssetResponse;
-            imageAssetId = asset.document?._id || asset._id;
+        const imageAssetId = await uploadThumbnailAsset(payload.thumbnail, config)
+        if (await hasDuplicateWebsiteUrl(normalizedUrl, config)) {
+            return jsonResponse({ error: 'This URL is already registered.' }, 400);
         }
 
-        // 2. Check for duplicate URL across artists + galleries
-        const duplicateQuery = '*[_type in ["artist", "gallery"] && (websiteUrl == $url || websiteUrl == $url + "/")][0]{_id}';
-        const checkUrl = new URL(`${baseUrl}/data/query/${dataset}`);
-        checkUrl.searchParams.set('query', duplicateQuery);
-        checkUrl.searchParams.set('$url', normalizedUrl);
-
-        const checkResponse = await fetch(checkUrl.toString(), {
-            headers: {
-                Authorization: `Bearer ${sanityWriteToken}`,
-            },
-        });
-
-        if (checkResponse.ok) {
-            const checkData = await checkResponse.json() as SanityDuplicateQueryResponse;
-            if (checkData.result?._id) {
-                return jsonResponse({ error: 'This URL is already registered.' }, 400);
-            }
-        }
-
-        // 3. Create a pending review document in Sanity
-        const doc = {
-            _type: type,
-            name,
-            slug: {
-                _type: 'slug',
-                current: slug,
-            },
-            subtitle,
-            websiteUrl: normalizedUrl,
-            contactId,
-            template: 'external',
-            status: 'pending',
-            thumbnail: imageAssetId
-                ? {
-                    _type: 'image',
-                    asset: {
-                        _type: 'reference',
-                        _ref: imageAssetId,
-                    },
-                }
-                : undefined,
-        };
-
-        const mutateResponse = await fetch(`${baseUrl}/data/mutate/${dataset}?returnIds=true`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${sanityWriteToken}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                mutations: [{ create: doc }],
-            }),
-        });
-
-        if (!mutateResponse.ok) {
-            const errorData = await mutateResponse.json() as SanityErrorResponse;
-            throw new Error(`Document creation failed: ${errorData.error?.message || mutateResponse.statusText}`);
-        }
+        const doc = buildPendingSubmissionDocument(payload, normalizedUrl, contactId, imageAssetId)
+        await createPendingSubmissionDocument(doc, config)
 
         return jsonResponse({ success: true });
     } catch (err: unknown) {
