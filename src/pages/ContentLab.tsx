@@ -563,7 +563,6 @@ export function ContentLab() {
                 {/* Header */}
                 <div className="flex items-end justify-between mb-12 pb-6 border-b border-white/8">
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/25 mb-2">Catalogue</p>
                         <h1 className="text-2xl font-black uppercase tracking-tight text-white">Content Lab</h1>
                         <p className="text-[11px] text-white/30 mt-1">{drafts.length} draft{drafts.length !== 1 ? 's' : ''}</p>
                     </div>
