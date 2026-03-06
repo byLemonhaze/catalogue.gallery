@@ -57,7 +57,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
         } else {
             setSearch('');
         }
-    }, [isOpen]);
+    }, [isOpen, setSearch]);
 
     // Esc to close
     useEffect(() => {
