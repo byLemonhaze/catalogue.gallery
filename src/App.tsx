@@ -19,7 +19,6 @@ const ArticleList = lazy(() => import('./components/ArticleList').then(m => ({ d
 const InfoHub = lazy(() => import('./components/InfoHub').then(m => ({ default: m.InfoHub })));
 const ArtistFrame = lazy(() => import('./pages/ArtistFrame').then(m => ({ default: m.ArtistFrame })));
 const SubmitArtist = lazy(() => import('./pages/SubmitArtist').then(m => ({ default: m.SubmitArtist })));
-const Build = lazy(() => import('./pages/Build').then(m => ({ default: m.Build })));
 const ContentLab = lazy(() => import('./pages/ContentLab').then(m => ({ default: m.ContentLab })));
 
 interface HomeProps {
@@ -215,7 +214,6 @@ const AppContent = () => {
         <Route path="/blog/:id" element={<ArticleView articles={articles} loading={articlesLoading} />} />
 
         <Route path="/artists" element={<ArtistList />} />
-        <Route path="/build" element={<Build />} />
         <Route path="/content-lab" element={<ContentLab />} />
         <Route path="/info" element={<InfoHub setIsLegalModalOpen={setIsLegalModalOpen} />} />
       </Routes>
