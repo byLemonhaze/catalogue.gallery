@@ -13,6 +13,12 @@ If you discover a security issue in `catalogue.gallery`, please report it privat
 
 Please do not disclose vulnerabilities publicly until a fix is released.
 
+## Supported Versions
+
+Security fixes are applied to the current production deployment and the latest commit on `main`.
+
+Older preview deployments, stale branches, and historical builds are not supported with backported fixes.
+
 ## Scope
 
 This policy covers:
@@ -27,3 +33,9 @@ This policy covers:
 2. Reproduce and assess severity.
 3. Prepare and validate a fix.
 4. Release patch and publish disclosure details when safe.
+
+## Response Targets
+
+- Initial acknowledgement target: within 5 business days
+- Status update target: within 10 business days when reproduction succeeds
+- Remediation target: depends on severity, deployment risk, and third-party provider constraints
