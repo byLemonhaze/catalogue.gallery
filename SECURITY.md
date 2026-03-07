@@ -4,7 +4,8 @@
 
 If you discover a security issue in `catalogue.gallery`, please report it privately.
 
-- Preferred: open a private security advisory on GitHub for this repository.
+- Preferred: open a private security advisory on GitHub for this repository:
+  - https://github.com/byLemonhaze/catalogue.gallery/security/advisories/new
 - Alternative: contact the maintainer directly and include:
   - affected URL or feature
   - reproduction steps
@@ -12,6 +13,10 @@ If you discover a security issue in `catalogue.gallery`, please report it privat
   - suggested mitigation (if available)
 
 Please do not disclose vulnerabilities publicly until a fix is released.
+
+For non-security defects, use the public issue tracker instead:
+
+- https://github.com/byLemonhaze/catalogue.gallery/issues/new/choose
 
 ## Supported Versions
 
