@@ -20,6 +20,11 @@ Catalogue.gallery is a discovery platform designed around the idea that artists 
 - Deployment runbook: [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)
 - Product roadmap notes: [`docs/ROADMAP.md`](./docs/ROADMAP.md)
 
+## Security
+
+- Security policy and reporting process: [`SECURITY.md`](./SECURITY.md)
+- Please report vulnerabilities privately through GitHub private vulnerability reporting when possible.
+
 ## Local Development
 
 1. Install dependencies:
