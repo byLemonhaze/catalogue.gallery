@@ -39,6 +39,12 @@ PRs to `main` are protected by required CI checks.
 - Update docs when behavior or operational setup changes.
 - Treat lint failures, type errors, and other verification warnings as merge blockers unless a PR explains a deliberate exception.
 
+## Releases
+
+- Public repository releases use Semantic Versioning (`v0.x.y` until the project is ready for `1.0.0`).
+- User-visible changes should be reflected in [`CHANGELOG.md`](./CHANGELOG.md).
+- GitHub release notes should summarize major behavior, operational, or security changes in plain language.
+
 ## Test Policy
 
 - New user-facing behavior, API behavior, and data-processing logic should include automated tests whenever practical.

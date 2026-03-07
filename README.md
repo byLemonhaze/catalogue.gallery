@@ -35,6 +35,12 @@ Catalogue.gallery is a discovery platform designed around the idea that artists 
 
 Repository documentation, issues, and pull request discussions are maintained in English so bug reports, review notes, and operational guidance stay searchable and reusable.
 
+## Releases and Versioning
+
+- Public releases are published on [GitHub Releases](https://github.com/byLemonhaze/catalogue.gallery/releases).
+- Starting with `v0.1.0`, the project uses [Semantic Versioning](https://semver.org/) for repository releases.
+- Human-readable release notes are tracked in [`CHANGELOG.md`](./CHANGELOG.md).
+
 ## Local Development
 
 1. Install dependencies:
