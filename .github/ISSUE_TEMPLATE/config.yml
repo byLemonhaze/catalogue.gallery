@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability report
+    url: https://github.com/byLemonhaze/catalogue.gallery/security/advisories/new
+    about: Report vulnerabilities privately instead of opening a public issue.
+  - name: Security policy
+    url: https://github.com/byLemonhaze/catalogue.gallery/blob/main/SECURITY.md
+    about: Review supported versions, response targets, and private reporting guidance.

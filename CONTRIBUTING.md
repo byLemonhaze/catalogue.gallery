@@ -17,14 +17,18 @@ Thanks for contributing to `catalogue.gallery`.
 - Create a feature branch from `main`.
 - Open a PR back to `main`.
 - Keep PRs focused; avoid unrelated refactors.
+- Use GitHub Issues for public bugs and feature requests:
+  - bug reports: `Issues` / the bug-report issue form
+  - enhancements: `Issues` / the feature-request issue form
+- Report vulnerabilities privately via [`SECURITY.md`](./SECURITY.md) instead of opening a public issue.
+- Keep issue descriptions, commit messages, pull requests, and repository docs in English.
 
 ## Required Checks
 
 Before requesting review, run:
 
-1. `npm run lint`
-2. `npm test -- --run`
-3. `npm run build`
+1. `npm run verify`
+2. `npm run build`
 
 PRs to `main` are protected by required CI checks.
 
@@ -33,6 +37,14 @@ PRs to `main` are protected by required CI checks.
 - Prefer TypeScript-safe changes over `any`.
 - Keep API contracts explicit and documented in `docs/API.md`.
 - Update docs when behavior or operational setup changes.
+- Treat lint failures, type errors, and other verification warnings as merge blockers unless a PR explains a deliberate exception.
+
+## Test Policy
+
+- New user-facing behavior, API behavior, and data-processing logic should include automated tests whenever practical.
+- If automated coverage is not practical, explain why in the pull request.
+- Run `npm run verify` before opening or updating a PR.
+- When a change affects a documented interface or workflow, update the relevant docs in `README.md`, `docs/API.md`, `docs/QUALITY.md`, or `docs/DEPLOYMENT.md`.
 
 ## Security and Secrets
 

@@ -17,6 +17,7 @@ Catalogue.gallery is a discovery platform designed around the idea that artists 
 
 - Architecture: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)
 - API contract: [`docs/API.md`](./docs/API.md)
+- Quality and verification policy: [`docs/QUALITY.md`](./docs/QUALITY.md)
 - Deployment runbook: [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)
 - Product roadmap notes: [`docs/ROADMAP.md`](./docs/ROADMAP.md)
 
@@ -24,6 +25,15 @@ Catalogue.gallery is a discovery platform designed around the idea that artists 
 
 - Security policy and reporting process: [`SECURITY.md`](./SECURITY.md)
 - Please report vulnerabilities privately through GitHub private vulnerability reporting when possible.
+
+## Reporting and Collaboration
+
+- Public bug reports: [GitHub Issues](https://github.com/byLemonhaze/catalogue.gallery/issues)
+- New issue form: [Report a bug or request a feature](https://github.com/byLemonhaze/catalogue.gallery/issues/new/choose)
+- Private vulnerability reporting: [GitHub Security Advisories](https://github.com/byLemonhaze/catalogue.gallery/security/advisories/new)
+- Contribution guide: [`CONTRIBUTING.md`](./CONTRIBUTING.md)
+
+Repository documentation, issues, and pull request discussions are maintained in English so bug reports, review notes, and operational guidance stay searchable and reusable.
 
 ## Local Development
 
@@ -181,12 +191,15 @@ This keeps deliverability high (Resend) while all replies route back to ProtonMa
 npm test          # Run once
 npm test -- --run # Run once (CI)
 npm run test:watch # Watch mode
+npm run verify    # Lint + typecheck + tests
 ```
 
 19 unit tests across 3 suites:
 - `linkUtils.ts` — entity linking, double-link prevention, sort-by-length correctness
 - `useArtists` hook — loading state, Sanity mapping, fetch error paths
 - `useArticles` hook — post mapping, legacy fallback, thumbnail normalization
+
+Verification policy, static analysis, and the new-functionality test policy are documented in [`docs/QUALITY.md`](./docs/QUALITY.md).
 
 ## Useful Scripts
 

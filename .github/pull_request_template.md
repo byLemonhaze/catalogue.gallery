@@ -8,7 +8,10 @@
 
 ## Checklist
 
-- [ ] `npm test -- --run` passes (19/19)
+- [ ] Linked issue or documented why no issue was needed
+- [ ] `npm run verify` passes
 - [ ] `npm run build` clean
+- [ ] Added tests for new behavior or explained why tests were not practical
+- [ ] Updated docs when public behavior, API contracts, or operations changed
 - [ ] No new `any` types introduced
 - [ ] Tested in browser locally
