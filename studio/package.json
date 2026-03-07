@@ -14,7 +14,7 @@
         "migrate:contacts:d1": "sanity exec scripts/migrate-contacts-to-d1.js --with-user-token"
     },
     "dependencies": {
-        "@sanity/image-url": "^1.0.2",
+        "@sanity/image-url": "^2.0.3",
         "@sanity/vision": "^5.13.0",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
