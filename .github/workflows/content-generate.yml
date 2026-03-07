@@ -3,6 +3,8 @@ name: Content Generation
 on:
   workflow_dispatch: # manual trigger from GitHub Actions UI
 
+permissions: {}
+
 jobs:
   generate:
     name: Generate 3 drafts
