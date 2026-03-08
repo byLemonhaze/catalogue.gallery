@@ -610,23 +610,23 @@ export function HomeExperience({
             <div className="border border-white/10 bg-white/[0.03] p-6 md:p-7">
               <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/25">Next Step</p>
               <p className="mt-4 max-w-sm text-2xl font-black uppercase tracking-[0.04em] text-white">
-                Submit a profile or learn more about Catalogue.
+                Submit a profile & learn more about Catalogue.
               </p>
               <p className="mt-4 max-w-md text-sm leading-relaxed text-white/50">
                 Applications are reviewed before publication. Artists should have their own website, and galleries should present a clear curatorial context.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <Link
-                  to="/submit"
-                  className="inline-flex items-center justify-center border border-white/20 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.24em] text-white transition-colors duration-300 hover:border-white/45 hover:bg-white/5"
-                >
-                  Apply now
-                </Link>
-                <Link
                   to="/info"
                   className="inline-flex items-center justify-center border border-white/10 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.24em] text-white/55 transition-colors duration-300 hover:border-white/35 hover:text-white"
                 >
                   About Catalogue
+                </Link>
+                <Link
+                  to="/submit"
+                  className="inline-flex items-center justify-center border border-white/20 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.24em] text-white transition-colors duration-300 hover:border-white/45 hover:bg-white/5"
+                >
+                  Apply now
                 </Link>
               </div>
               <p className="mt-10 text-[10px] uppercase tracking-[0.2em] text-white/15">
