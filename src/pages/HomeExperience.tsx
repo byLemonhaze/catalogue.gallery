@@ -371,7 +371,7 @@ export function HomeExperience({
                   onClick={() => scrollToSection('directory', scrollRef.current)}
                   className="mt-4 inline-flex items-center gap-3 text-[10px] font-mono uppercase tracking-[0.22em] text-white/30 transition-colors duration-300 hover:text-white/70"
                 >
-                  <span>Explore the catalogue below</span>
+                  <span>Explore</span>
                   <span aria-hidden="true">↓</span>
                 </button>
               </div>
