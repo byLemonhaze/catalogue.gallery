@@ -391,7 +391,7 @@ export function HomeExperience({
                   Artist-owned websites first. Marketplaces second.
                 </h2>
                 <p className="mt-5 max-w-2xl text-sm leading-relaxed text-white/50 md:text-base">
-                  CATALOGUE exists to send collectors straight into the artists' own worlds: personal sites, self-curated universes, and independent presentation. The directory stays chain-agnostic and marketplace-agnostic, with a parallel layer for galleries and platforms shaping the field around them.
+                  CATALOGUE is designed around the idea that artists should own their digital environments, and collectors should not have to search in a hundred different places to discover new work. Instead of hosting artwork, it acts as a navigation layer that lets collectors explore each artist's personal website directly through an embedded browsing interface.
                 </p>
               </div>
               <div className="grid min-w-[240px] grid-cols-2 gap-px border border-white/10 bg-white/10 text-center">
