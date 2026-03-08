@@ -6,12 +6,12 @@ The project now uses [Semantic Versioning](https://semver.org/) for public relea
 
 ## [0.1.1] - 2026-03-08
 
-Homepage and navigation refinement release for the new spatial CATALOGUE experience.
+Homepage, navigation, and Content Lab refinement release for the new spatial CATALOGUE experience.
 
 ### Added
 
 - Private Content Lab workspace restored at `/content-lab` with browser-side BYOK generation support
-- Scroll-aware home sections with directory, editorial, and apply/about layers
+- Scroll-aware home sections with directory, Content Lab, and apply/about layers
 
 ### Changed
 
