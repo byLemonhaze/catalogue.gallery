@@ -66,7 +66,13 @@ export function ArtistFrame() {
 
     // Exit Handler
     const handleExit = (e: React.MouseEvent) => {
-        const state = location.state as { from?: string; slideIndex?: number } | null;
+        const state = location.state as {
+            from?: string;
+            slideIndex?: number;
+            homeSection?: 'directory';
+            homeScrollTop?: number;
+            directoryPage?: number;
+        } | null;
 
         // If from Home, go back with slide index state
         if (state?.from === 'home' && typeof state.slideIndex === 'number') {
@@ -75,7 +81,19 @@ export function ArtistFrame() {
             return;
         }
 
-        // If from Directory, go back (preserves scroll)
+        if (state?.from === 'directory-section') {
+            e.preventDefault();
+            navigate('/', {
+                state: {
+                    homeSection: 'directory',
+                    homeScrollTop: state.homeScrollTop,
+                    directoryPage: state.directoryPage,
+                },
+            });
+            return;
+        }
+
+        // If from old directory route, go back (preserves browser history)
         if (state?.from === 'directory') {
             e.preventDefault();
             navigate(-1);

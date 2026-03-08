@@ -69,6 +69,41 @@ export async function deleteDraft(db: D1Database, id: string): Promise<void> {
     await db.prepare(`DELETE FROM content_drafts WHERE id = ?`).bind(id).run();
 }
 
+export async function createDraft(
+    db: D1Database,
+    draft: Omit<ContentDraft, 'id' | 'deploy_target' | 'revision_note' | 'sanity_doc_id' | 'published_at'> & {
+        id?: string;
+    }
+): Promise<ContentDraft> {
+    const created: ContentDraft = {
+        ...draft,
+        id: draft.id || generateId(),
+        deploy_target: null,
+        revision_note: null,
+        sanity_doc_id: null,
+        published_at: null,
+    };
+
+    await db.prepare(`
+        INSERT INTO content_drafts
+            (id, type, title, excerpt, content, tags, source_artist_id, source_artist_name, status, generated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+        created.id,
+        created.type,
+        created.title,
+        created.excerpt,
+        created.content,
+        JSON.stringify(created.tags || []),
+        created.source_artist_id,
+        created.source_artist_name,
+        created.status,
+        created.generated_at,
+    ).run();
+
+    return created;
+}
+
 export async function pruneDrafts(db: D1Database, maxTotal = 100): Promise<void> {
     // Keep newest 100 pending/published, delete oldest beyond that
     await db.prepare(`

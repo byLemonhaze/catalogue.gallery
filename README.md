@@ -133,13 +133,15 @@ This imports current local articles using the same slug ids, preserving existing
 
 ## Content Lab
 
-A password-protected editorial tool at `/content-lab` for generating, reviewing, and publishing articles — without touching Sanity directly.
+`/content-lab` is the password-protected editorial workspace for draft generation, review, and publishing.
 
 **Flow:**
 
 1. Select an artist from the directory (or generate for a random one)
 2. Optionally hit **Research** to scrape the artist's website and cache a factual bio in Sanity (`contentBio` field)
-3. Hit **Generate** — Grok-4 searches X/Twitter and the web in real time and writes from what it actually finds
+3. Hit **Generate**:
+   - `Server key` uses the deployment's `GROK_API_KEY`
+   - `Bring your own key` keeps an xAI key in browser session storage only and calls xAI directly from the browser
 4. Review the draft, edit inline, then publish directly to Sanity
 
 **Content types:**
@@ -160,7 +162,7 @@ A password-protected editorial tool at `/content-lab` for generating, reviewing,
 | `/api/content-scrape` | `POST` | Scrapes artist website → Claude Haiku summarizes → saves to Sanity `contentBio` |
 | `/api/content-publish` | `POST` | Publishes approved draft from D1 → Sanity `post` |
 | `/api/content-drafts` | `GET` | Lists drafts stored in D1 |
-| `/api/content-drafts` | `POST` | Updates draft status (approve / dismiss / edit) |
+| `/api/content-drafts` | `POST` | Creates or updates draft records in D1 |
 | `/api/content-drafts` | `DELETE` | Deletes a draft |
 | `/api/content-artists` | `GET` | Lists published artists/galleries for Content Lab picker |
 | `/api/content-upload-image` | `POST` | Uploads image assets to Sanity for draft publishing |
@@ -171,7 +173,7 @@ Full endpoint details: [`docs/API.md`](./docs/API.md)
 
 - `GROK_API_KEY` — xAI API key (Grok-4, primary generation model)
 - `CLAUDE_API_KEY` — Anthropic API key (Claude Haiku, used for website summarization only)
-- `CONTENT_LAB_PASSWORD` — auth password for the `/content-lab` route
+- `CONTENT_LAB_PASSWORD` — auth password for the private `/content-lab` route
 
 ## ProtonMail + Resend Setup (Recommended)
 
