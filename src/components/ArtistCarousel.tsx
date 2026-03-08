@@ -26,8 +26,9 @@ function CarouselArrow({
         <button
             type="button"
             onClick={onClick}
+            onMouseUp={(event) => event.currentTarget.blur()}
             aria-label={isPrev ? 'Previous artist' : 'Next artist'}
-            className={`group absolute top-1/2 z-30 -translate-y-1/2 cursor-pointer appearance-none rounded-none border-0 bg-transparent p-0 text-white/28 transition-colors duration-300 hover:text-white ${className}`}
+            className={`group absolute top-1/2 z-30 -translate-y-1/2 cursor-pointer appearance-none rounded-none border-0 bg-transparent p-0 text-white/28 outline-none transition-colors duration-300 hover:text-white focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:text-white ${className}`}
         >
             <span className={`flex items-center ${isPrev ? '' : 'justify-end'}`}>
                 {isPrev && (
@@ -35,7 +36,6 @@ function CarouselArrow({
                         <polyline points="15 18 9 12 15 6"></polyline>
                     </svg>
                 )}
-                <span className="mx-2 h-px w-8 bg-current opacity-25 transition-opacity duration-300 group-hover:opacity-70 md:w-12" />
                 {!isPrev && (
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                         <polyline points="9 18 15 12 9 6"></polyline>
