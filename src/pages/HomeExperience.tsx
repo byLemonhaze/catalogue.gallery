@@ -549,7 +549,7 @@ export function HomeExperience({
                   The writing layer around Catalogue
                 </h2>
                 <p className="mt-5 max-w-2xl text-sm leading-relaxed text-white/50 md:text-base">
-                  The directory is only one half of the presence. The other half is editorial: profiles, interviews, criticism, and scene-writing that gives shape and memory to the field around digital art.
+                  The directory is one part of Catalogue. The editorial side adds profiles, interviews, criticism, and essays that give context to the artists, the work, and the wider digital art scene.
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
