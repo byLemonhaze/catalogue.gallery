@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useArtists } from '../hooks/useArtists';
 import { SquareLoader } from '../components/SquareLoader';
+import { buildHomeNavigationState } from '../lib/homeMemory';
 
 // Helper to resolve positioning classes
 const getPositionClasses = (desktop: string, mobile: string) => {
@@ -98,6 +99,12 @@ export function ArtistFrame() {
             e.preventDefault();
             navigate(-1);
             return;
+        }
+
+        const homeReturnState = buildHomeNavigationState();
+        if (homeReturnState) {
+            e.preventDefault();
+            navigate('/', { state: homeReturnState });
         }
 
         // Default: Just let Link to="/" happen (or force it if needed)

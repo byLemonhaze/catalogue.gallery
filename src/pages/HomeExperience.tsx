@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { ArtistCarousel } from '../components/ArtistCarousel';
 import { CatalogueFooterLinks } from '../components/CatalogueFooterLinks';
 import { SquareLoader } from '../components/SquareLoader';
 import { HOME_SECTION_IDS, type HomeSectionKey } from '../constants/homeSections';
 import type { Artist } from '../hooks/useArtists';
+import { readHomeMemory, writeHomeMemory } from '../lib/homeMemory';
 import { urlFor } from '../sanity/image';
 import type { ArticleRecord } from '../types/article';
 
@@ -44,10 +45,10 @@ function getArticleThumbnailUrl(article: ArticleRecord) {
   return article.thumbnailUrl || '/logo.png';
 }
 
-function scrollToSection(section: HomeSectionKey, container: HTMLDivElement | null) {
+function scrollToSection(section: HomeSectionKey, container: HTMLDivElement | null, behavior: ScrollBehavior = 'smooth') {
   const target = document.getElementById(HOME_SECTION_IDS[section]);
   if (!target || !container) return;
-  container.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
+  container.scrollTo({ top: target.offsetTop, behavior });
 }
 
 function isPlainLeftClick(event: React.MouseEvent<HTMLAnchorElement>) {
@@ -180,6 +181,7 @@ export function HomeExperience({
 }: HomeExperienceProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const navigationType = useNavigationType();
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const routeState = (location.state as HomeRouteState | null) ?? null;
   const [glowColor, setGlowColor] = useState('20, 20, 20');
@@ -204,8 +206,11 @@ export function HomeExperience({
   const directoryPageCount = Math.max(1, Math.ceil(artistEntries.length / 6));
   const normalizedDirectoryPage = directoryGridPage % directoryPageCount;
   const visibleDirectoryArtists = artistEntries.slice(normalizedDirectoryPage * 6, normalizedDirectoryPage * 6 + 6);
-  const requestedSection = routeState?.homeSection;
-  const requestedScrollTop = routeState?.homeScrollTop;
+  const shouldRestoreStoredHomeMemory = !routeState && navigationType === 'POP' && location.key !== 'default';
+  const storedHomeMemory = shouldRestoreStoredHomeMemory ? readHomeMemory() : null;
+  const requestedSection = routeState?.homeSection ?? storedHomeMemory?.homeSection;
+  const requestedScrollTop = routeState?.homeScrollTop ?? storedHomeMemory?.homeScrollTop;
+  const activeSectionRef = useRef<HomeSectionKey>(requestedSection ?? 'hero');
 
   const createDirectoryReturnState = () => ({
     from: 'directory-section' as const,
@@ -214,24 +219,23 @@ export function HomeExperience({
     directoryPage: normalizedDirectoryPage,
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!requestedSection && typeof requestedScrollTop !== 'number') return;
 
-    const timer = window.setTimeout(() => {
-      if (typeof requestedScrollTop === 'number' && scrollRef.current) {
-        scrollRef.current.scrollTo({ top: requestedScrollTop, behavior: 'auto' });
-        onSectionChange(requestedSection || 'directory');
-      } else if (requestedSection) {
-        scrollToSection(requestedSection, scrollRef.current);
-        onSectionChange(requestedSection);
-      }
+    if (typeof requestedScrollTop === 'number' && scrollRef.current) {
+      scrollRef.current.scrollTop = requestedScrollTop;
+      const restoredSection = requestedSection || 'directory';
+      activeSectionRef.current = restoredSection;
+      onSectionChange(restoredSection);
+    } else if (requestedSection) {
+      scrollToSection(requestedSection, scrollRef.current, 'auto');
+      activeSectionRef.current = requestedSection;
+      onSectionChange(requestedSection);
+    }
 
-      if (location.state) {
-        navigate(location.pathname, { replace: true });
-      }
-    }, 80);
-
-    return () => window.clearTimeout(timer);
+    if (location.state) {
+      navigate(location.pathname, { replace: true });
+    }
   }, [location.pathname, location.state, navigate, onSectionChange, requestedScrollTop, requestedSection]);
 
   useEffect(() => {
@@ -268,7 +272,13 @@ export function HomeExperience({
         }
       });
 
+      activeSectionRef.current = activeSection;
       onSectionChange(activeSection);
+      writeHomeMemory({
+        homeSection: activeSection,
+        homeScrollTop: container.scrollTop,
+        directoryPage: normalizedDirectoryPage,
+      });
     };
 
     const requestUpdate = () => {
@@ -288,7 +298,18 @@ export function HomeExperience({
       window.removeEventListener('resize', requestUpdate);
       if (frame) window.cancelAnimationFrame(frame);
     };
-  }, [onSectionChange]);
+  }, [normalizedDirectoryPage, onSectionChange]);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    writeHomeMemory({
+      homeSection: activeSectionRef.current,
+      homeScrollTop: container.scrollTop,
+      directoryPage: normalizedDirectoryPage,
+    });
+  }, [normalizedDirectoryPage]);
 
   return (
     <div className="relative h-[100dvh] overflow-hidden">
@@ -316,7 +337,7 @@ export function HomeExperience({
 
       <div
         ref={scrollRef}
-        className="relative h-full overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain"
+        className="relative h-full overflow-y-auto overflow-x-hidden overscroll-y-contain"
       >
         <section
           id={HOME_SECTION_IDS.hero}

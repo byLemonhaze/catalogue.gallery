@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { HOME_SECTION_IDS, type HomeSectionKey } from '../constants/homeSections';
+import { buildHomeNavigationState } from '../lib/homeMemory';
 
 interface NavigationProps {
     onSearchOpen?: () => void;
@@ -21,6 +22,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
     const location = useLocation();
     const path = location.pathname;
     const isHome = path === '/';
+    const homeReturnState = buildHomeNavigationState();
 
     const isLegacySectionActive = (item: typeof NAV_ITEMS[number]) => {
         return item.legacyRoutes.some((route) => path.startsWith(route));
@@ -56,7 +58,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
         }
 
         return (
-            <Link to="/" className={className}>
+            <Link to="/" state={homeReturnState} className={className}>
                 CATALOGUE
             </Link>
         );
@@ -102,6 +104,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
                         {path !== '/' && (
                             <Link
                                 to="/"
+                                state={homeReturnState}
                                 className="flex items-center gap-1 text-[10px] tracking-widest uppercase text-white/30 transition-colors duration-200 hover:text-white font-display"
                                 aria-label="Back to home"
                             >
@@ -131,7 +134,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
                 <div className="grid shrink-0 grid-cols-[1rem_auto] items-center gap-3">
                     <div className="inline-flex w-4 justify-center">
                         {path !== '/' && (
-                            <Link to="/" className={backLinkClass} aria-label="Back to home">
+                            <Link to="/" state={homeReturnState} className={backLinkClass} aria-label="Back to home">
                                 ←
                             </Link>
                         )}
