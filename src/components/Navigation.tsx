@@ -40,6 +40,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
         'inline-flex items-center pb-1 text-[11px] uppercase tracking-[0.12em] text-white/50 transition-colors duration-200 hover:text-white font-display cursor-pointer';
     const activeLinkClass = 'text-white underline decoration-white underline-offset-4';
     const searchButtonClass = 'inline-flex items-center gap-2 pb-1 text-[11px] uppercase tracking-[0.12em] text-white/40 hover:text-white transition-colors duration-200 font-display border-l border-white/10 pl-5 ml-1 cursor-pointer';
+    const backLinkClass = 'text-white/25 hover:text-white transition-colors duration-200 text-sm';
 
     const renderBrand = (className: string) => {
         if (isHome) {
@@ -97,11 +98,17 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
             {/* Mobile */}
             <div className="pointer-events-auto mt-4 border-y border-white/5 bg-black/65 px-4 pb-2 pt-3 backdrop-blur-md md:hidden">
                 <div className="flex items-center justify-center relative">
-                    {path !== '/' && (
-                        <Link to="/" className="absolute left-6 text-white/30 hover:text-white transition-colors duration-200 flex items-center gap-1 text-[10px] tracking-widest uppercase font-display" aria-label="Back to home">
-                            ←
-                        </Link>
-                    )}
+                    <div className="absolute left-4 inline-flex w-6 justify-center">
+                        {path !== '/' && (
+                            <Link
+                                to="/"
+                                className="flex items-center gap-1 text-[10px] tracking-widest uppercase text-white/30 transition-colors duration-200 hover:text-white font-display"
+                                aria-label="Back to home"
+                            >
+                                ←
+                            </Link>
+                        )}
+                    </div>
                     {renderBrand('text-base uppercase tracking-[0.16em] text-white transition-opacity hover:opacity-80 font-display')}
                 </div>
                 <nav className="mt-3 flex items-center justify-center gap-4 overflow-x-auto px-2 scrollbar-hide">
@@ -121,16 +128,14 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
 
             {/* Desktop */}
             <nav className="pointer-events-auto mx-auto mt-5 hidden w-[calc(100%-2rem)] max-w-7xl items-center justify-between gap-5 border border-white/10 bg-black/35 px-6 py-3 backdrop-blur-md md:flex">
-                <div className="relative shrink-0">
-                    {path !== '/' && (
-                        <Link
-                            to="/"
-                            className="absolute -left-7 top-1/2 -translate-y-1/2 text-sm text-white/25 transition-colors duration-200 hover:text-white"
-                            aria-label="Back to home"
-                        >
-                            ←
-                        </Link>
-                    )}
+                <div className="grid shrink-0 grid-cols-[1rem_auto] items-center gap-3">
+                    <div className="inline-flex w-4 justify-center">
+                        {path !== '/' && (
+                            <Link to="/" className={backLinkClass} aria-label="Back to home">
+                                ←
+                            </Link>
+                        )}
+                    </div>
                     {renderBrand('text-base md:text-lg uppercase tracking-[0.16em] text-white transition-opacity hover:opacity-80 font-display')}
                 </div>
 
