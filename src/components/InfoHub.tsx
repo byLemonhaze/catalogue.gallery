@@ -67,7 +67,7 @@ export function InfoHub({ setIsLegalModalOpen }: InfoHubProps) {
                 <CatalogueFooterLinks
                     onOpenPolicy={() => setIsLegalModalOpen(true)}
                     variant="info"
-                    containerClassName="fixed bottom-8 right-8 z-50 flex flex-col items-end gap-1"
+                    containerClassName="fixed bottom-20 md:bottom-8 right-6 z-50 flex flex-col items-end gap-1"
                 />
             </div>
         </div>
