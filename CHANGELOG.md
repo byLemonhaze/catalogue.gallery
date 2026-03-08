@@ -4,6 +4,14 @@ All notable changes to `catalogue.gallery` are documented in this file.
 
 The project now uses [Semantic Versioning](https://semver.org/) for public releases. Repository releases are published through GitHub Releases and summarized here in human-readable form.
 
+## [0.1.4] - 2026-03-08
+
+Patch release for homepage editorial copy refinement.
+
+### Changed
+
+- Rewrote the Content Lab intro copy to explain the editorial side of Catalogue in more direct language
+
 ## [0.1.3] - 2026-03-08
 
 Patch release for homepage presentation refinement.
