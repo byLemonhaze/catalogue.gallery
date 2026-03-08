@@ -18,14 +18,14 @@ export const ArticleList: React.FC<ArticleListProps> = ({ filter = 'all', articl
     return (
         <div className="min-h-screen bg-black text-white selection:bg-white/20">
             <Helmet>
-                <title>Archives | CATALOGUE</title>
+                <title>Content Lab Archives | CATALOGUE</title>
             </Helmet>
 
             <div className="pt-28 md:pt-24 px-6 max-w-4xl mx-auto pb-32">
 
                 {/* Page Header */}
                 <div className="mb-16 md:mb-20">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/30 mb-4">Editorial</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/30 mb-4">Content Lab</p>
                     <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight leading-none text-white">
                         Archives
                     </h1>

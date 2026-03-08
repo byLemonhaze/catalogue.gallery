@@ -104,7 +104,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
                         />
                         <button
                             onClick={onClose}
-                            className="text-white/25 hover:text-white transition-colors text-lg leading-none shrink-0 pl-2"
+                            className="cursor-pointer text-white/25 hover:text-white transition-colors text-lg leading-none shrink-0 pl-2"
                             aria-label="Close search"
                         >
                             ✕

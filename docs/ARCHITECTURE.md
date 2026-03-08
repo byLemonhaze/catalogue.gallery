@@ -13,7 +13,7 @@ This document is the high-level engineering map for `catalogue.gallery`:
 
 | Layer | Component | Responsibility |
 |---|---|---|
-| Frontend | React + Vite app (`/src`) | Public browsing, submission UI, Content Lab UI |
+| Frontend | React + Vite app (`/src`) | Public browsing, spatial home experience, submission UI, Content Lab UI |
 | Edge API | Cloudflare Pages Functions (`/functions/api`) | Submission ingestion, review webhook handling, Content Lab APIs |
 | Editorial CMS | Sanity Content Lake + Studio (`/studio`) | Artist/gallery records, review status, blog posts |
 | Private data | Cloudflare D1 (`CONTACTS_DB`) | Encrypted submission contact emails + notification state + content drafts |
@@ -47,10 +47,13 @@ This document is the high-level engineering map for `catalogue.gallery`:
 
 ### 4) Content Lab Flow
 
-1. Authenticated user calls Content Lab endpoints with `x-content-lab-password`.
-2. Draft generation (`/api/content-generate`) writes drafts to D1 `content_drafts`.
-3. Optional research step (`/api/content-scrape`) fetches artist website text and stores `contentBio` in Sanity.
-4. Publishing (`/api/content-publish`) writes a Sanity `post` and marks the draft as published in D1.
+1. Authenticated user opens the private Content Lab at `/content-lab` and calls Content Lab endpoints with `x-content-lab-password`.
+2. Draft generation can happen in two ways:
+   - server mode via `/api/content-generate` using the deployment's `GROK_API_KEY`
+   - BYOK mode via direct browser-to-xAI requests with a user-supplied key stored in session only
+3. Generated drafts are written to D1 `content_drafts`.
+4. Optional research step (`/api/content-scrape`) fetches artist website text and stores `contentBio` in Sanity.
+5. Publishing (`/api/content-publish`) writes a Sanity `post` and marks the draft as published in D1.
 
 ### 5) Basic Error Observability
 
@@ -68,10 +71,11 @@ This document is the high-level engineering map for `catalogue.gallery`:
 
 ## Services and Boundaries
 
-- Cloudflare Pages Functions are the server-side trust boundary for secrets and side effects.
+- Cloudflare Pages Functions are the server-side trust boundary for site-managed secrets and side effects.
 - Sanity is the source of truth for public artist/gallery/post content.
 - D1 is the source of truth for private submission contact data and Content Lab draft state.
-- External APIs (Resend, xAI, Anthropic) are only called from Functions, never from browser code.
+- External APIs for site-managed keys (Resend, Anthropic, server-mode xAI) are only called from Functions.
+- In Content Lab BYOK mode, the browser calls xAI directly with a user-supplied key that is not stored by the site backend.
 
 ## Secrets and Sensitive Data
 
@@ -84,7 +88,7 @@ This document is the high-level engineering map for `catalogue.gallery`:
 | `EMAIL_ENCRYPTION_KEY` | Cloudflare Pages env/secrets (and local `.env.local`) | `submit`, `webhook` |
 | `WEBHOOK_SHARED_SECRET` | Cloudflare Pages env/secrets | `webhook` auth |
 | `RESEND_API_KEY` | Cloudflare Pages env/secrets | `webhook` |
-| `CONTENT_LAB_PASSWORD` | Cloudflare Pages env/secrets | Content Lab endpoint auth |
+| `CONTENT_LAB_PASSWORD` | Cloudflare Pages env/secrets | Private Content Lab + endpoint auth |
 | `GROK_API_KEY` | Cloudflare Pages env/secrets | `content-generate` |
 | `CLAUDE_API_KEY` | Cloudflare Pages env/secrets | `content-scrape` |
 
@@ -98,3 +102,4 @@ This document is the high-level engineering map for `catalogue.gallery`:
 - Applicant emails must stay encrypted at rest and stored in D1, not in public CMS documents.
 - All webhook requests must pass shared-secret validation.
 - Content Lab endpoints are private and must require password header auth.
+- `/content-lab` should stay password-gated because it exposes draft-management and publishing controls.
