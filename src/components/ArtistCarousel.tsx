@@ -11,6 +11,41 @@ interface ArtistCarouselProps {
     onGlowColor?: (rgb: string) => void;
 }
 
+function CarouselArrow({
+    direction,
+    onClick,
+    className,
+}: {
+    direction: 'prev' | 'next';
+    onClick: () => void;
+    className: string;
+}) {
+    const isPrev = direction === 'prev';
+
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            aria-label={isPrev ? 'Previous artist' : 'Next artist'}
+            className={`group absolute top-1/2 z-30 -translate-y-1/2 cursor-pointer appearance-none rounded-none border-0 bg-transparent p-0 text-white/28 transition-colors duration-300 hover:text-white ${className}`}
+        >
+            <span className={`flex items-center ${isPrev ? '' : 'justify-end'}`}>
+                {isPrev && (
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                )}
+                <span className="mx-2 h-px w-8 bg-current opacity-25 transition-opacity duration-300 group-hover:opacity-70 md:w-12" />
+                {!isPrev && (
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                )}
+            </span>
+        </button>
+    );
+}
+
 export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initialIndex = 0, onIndexChange, onGlowColor }) => {
     const navigate = useNavigate();
     const [activeIndex, setActiveIndex] = useState(initialIndex);
@@ -18,22 +53,23 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
     const [dragOffset, setDragOffset] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
-
-    // Add "Coming Soon" as a virtual item
     const totalItems = artists.length;
+    const currentIndex = totalItems > 0 ? Math.min(activeIndex, totalItems - 1) : 0;
 
     const next = useCallback(() => {
+        if (totalItems < 2) return;
         setActiveIndex((current: number) => (current + 1) % totalItems);
     }, [totalItems]);
 
     const prev = useCallback(() => {
+        if (totalItems < 2) return;
         setActiveIndex((current: number) => (current - 1 + totalItems) % totalItems);
     }, [totalItems]);
 
     // Notify parent when index changes — kept out of the state updater
     useEffect(() => {
-        onIndexChange?.(activeIndex);
-    }, [activeIndex, onIndexChange]);
+        onIndexChange?.(currentIndex);
+    }, [currentIndex, onIndexChange]);
 
     // Keyboard navigation — stable deps via useCallback
     useEffect(() => {
@@ -45,16 +81,10 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [prev, next]);
 
-    // Auto-play
-    useEffect(() => {
-        const timer = setTimeout(next, 5000);
-        return () => clearTimeout(timer);
-    }, [activeIndex, next]);
-
     // Sample dominant color from active artist thumbnail
     useEffect(() => {
         if (!onGlowColor) return;
-        const artist = artists[activeIndex];
+        const artist = artists[currentIndex];
         if (!artist?.thumbnail) { onGlowColor('20, 20, 20'); return; }
 
         const imageUrl = artist.isSanity
@@ -84,7 +114,7 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
         img.onerror = () => { if (!cancelled) onGlowColor('20, 20, 20'); };
         img.src = imageUrl;
         return () => { cancelled = true; };
-    }, [activeIndex, artists, onGlowColor]);
+    }, [currentIndex, artists, onGlowColor]);
 
     // Swipe handlers
     const onTouchStart = (e: React.TouchEvent) => {
@@ -124,27 +154,38 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
         setTouchEnd(null);
     };
 
-    // Calculate position for each item relative to active index
-    const getStyles = (index: number) => {
-        // Handle circular distance logic
-        let diff = index - activeIndex;
-        // Adjust for wrapping
+    const getRelativeDiff = (index: number) => {
+        let diff = index - currentIndex;
         if (diff > totalItems / 2) diff -= totalItems;
         if (diff < -totalItems / 2) diff += totalItems;
+        return diff;
+    };
 
+    const visibleIndices = artists
+        .map((_, index) => index)
+        .filter((index) => Math.abs(getRelativeDiff(index)) <= 1);
+
+    // Calculate position for each item relative to active index
+    const getStyles = (index: number) => {
+        const diff = getRelativeDiff(index);
         const isActive = diff === 0;
         const isPrev = diff === -1;
         const isNext = diff === 1;
+        const transition = isDragging
+            ? 'none'
+            : 'transform 420ms cubic-bezier(0.22, 1, 0.36, 1), opacity 260ms ease, filter 320ms ease';
 
         const base: React.CSSProperties = {
-            transition: isDragging ? 'none' : 'all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1)',
+            transition,
             position: 'absolute',
             left: '50%',
             transform: 'translateX(-50%) scale(0.75)',
             opacity: 0,
             zIndex: 0,
             pointerEvents: 'none',
-            filter: 'blur(5px) grayscale(100%)',
+            filter: 'blur(2px) grayscale(92%)',
+            willChange: 'transform, opacity, filter',
+            backfaceVisibility: 'hidden',
         };
 
         let style: React.CSSProperties = base;
@@ -155,24 +196,22 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
                 opacity: 1,
                 zIndex: 20,
                 pointerEvents: 'auto',
-                filter: 'blur(0px) grayscale(0%)',
+                filter: 'none',
                 transform: `translateX(calc(-50% + ${dragOffset}px)) scale(1)`,
             };
         } else if (isPrev) {
             style = {
                 ...base,
-                opacity: 0.15,
+                opacity: 0.18,
                 zIndex: 10,
-                filter: 'blur(2px) grayscale(100%)',
-                transform: `translateX(calc(-100% + ${dragOffset}px)) scale(0.72)`,
+                transform: `translateX(calc(-98% + ${dragOffset}px)) scale(0.78)`,
             };
         } else if (isNext) {
             style = {
                 ...base,
-                opacity: 0.15,
+                opacity: 0.18,
                 zIndex: 10,
-                filter: 'blur(2px) grayscale(100%)',
-                transform: `translateX(calc(0% + ${dragOffset}px)) scale(0.72)`,
+                transform: `translateX(calc(-2% + ${dragOffset}px)) scale(0.78)`,
             };
         }
 
@@ -180,67 +219,42 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
     };
 
     return (
-        <div className="flex flex-col items-center w-full">
-        <div
-            className="relative w-full h-[420px] md:h-[540px] flex items-center justify-center overflow-hidden cursor-default"
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-        >
-            {/* Items */}
-            <div className="relative w-full max-w-7xl h-[380px] md:h-[500px]">
-                {artists.map((artist, index) => {
-                    const { style } = getStyles(index);
-                    return (
-                        <div
-                            key={artist.id}
-                            style={style}
-                            className="w-[95vw] md:w-[600px] h-full"
-                            onClick={() => {
-                                if (index === activeIndex) {
-                                    // Internal navigation to Artist Frame
-                                    const path = artist.type === 'gallery' ? `/gallery/${artist.id}` : `/artist/${artist.id}`;
-                                    navigate(path, { state: { from: 'home', slideIndex: index } });
-                                } else {
-                                    // Just rotate to it
-                                    setActiveIndex(index);
-                                }
-                            }}
-                        >
-                            <ArtistCard {...artist} />
-                        </div>
-                    );
-                })}
+        <div className="w-full flex flex-col items-center">
+            <div
+                className="relative w-full h-[400px] md:h-[520px] flex items-center justify-center overflow-hidden cursor-default"
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+            >
+                {/* Items */}
+                <div className="relative w-full max-w-7xl h-[360px] md:h-[460px]">
+                    {visibleIndices.map((index) => {
+                        const artist = artists[index];
+                        const { style } = getStyles(index);
+                        return (
+                            <div
+                                key={artist.id}
+                                style={style}
+                                className="w-[92vw] max-w-[640px] h-full"
+                                onClick={() => {
+                                    if (index === currentIndex) {
+                                        const path = artist.type === 'gallery' ? `/gallery/${artist.id}` : `/artist/${artist.id}`;
+                                        navigate(path, { state: { from: 'home', slideIndex: index } });
+                                    } else {
+                                        setActiveIndex(index);
+                                    }
+                                }}
+                            >
+                                <ArtistCard {...artist} />
+                            </div>
+                        );
+                    })}
+                </div>
 
-
+                {/* Controls */}
+                <CarouselArrow direction="prev" onClick={prev} className="left-4 md:left-10" />
+                <CarouselArrow direction="next" onClick={next} className="right-4 md:right-10" />
             </div>
-
-            {/* Controls - Side Navigation */}
-            <button
-                onClick={prev}
-                className="absolute left-4 md:left-12 top-1/2 -translate-y-1/2 z-30 text-white/30 hover:text-white transition-colors duration-300 cursor-pointer"
-            >
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-            </button>
-            <button
-                onClick={next}
-                className="absolute right-4 md:right-12 top-1/2 -translate-y-1/2 z-30 text-white/30 hover:text-white transition-colors duration-300 cursor-pointer"
-            >
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-            </button>
-
-        </div>
-
-        {/* Counter — outside overflow container so it has clean breathing room */}
-        <div className="mt-5">
-            <span className="font-mono text-[11px] tracking-[0.15em] text-white/35 select-none">
-                {String(activeIndex + 1).padStart(2, '0')} / {String(totalItems).padStart(2, '0')}
-            </span>
-        </div>
         </div>
     );
 };

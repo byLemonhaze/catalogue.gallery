@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { Link } from 'react-router-dom';
 import { SquareLoader } from '../components/SquareLoader';
+import { generateDraftWithByok, type ContentLabArtistSeed, type ContentLabDraftType } from '../lib/contentLab/byok';
 
-type DraftType = 'article' | 'blog' | 'wildcard';
+type DraftType = ContentLabDraftType;
 type DraftStatus = 'pending' | 'published' | 'dismissed';
 type DeployTarget = 'catalogue_article' | 'catalogue_blog' | 'catalogue_interview' | 'personal_blog';
+type GenerationMode = 'server' | 'byok';
 
 interface Draft {
     id: string;
@@ -46,8 +49,15 @@ interface GenerationResult {
     failures?: GenerationFailure[];
 }
 
+interface DraftCreateResponse {
+    ok: boolean;
+    draft?: Draft;
+    error?: string;
+}
+
 const SANITY_PROJECT_ID = 'ebj9kqfo';
 const SANITY_DATASET = 'production';
+const BYOK_SESSION_KEY = 'content-lab:xai-api-key';
 
 const TYPE_LABEL: Record<DraftType, string> = {
     article: 'Article',
@@ -108,25 +118,52 @@ function formatFailureSummary(failures: GenerationFailure[]): string {
         .join(' | ');
 }
 
+function toArtistSeed(artist: Artist): ContentLabArtistSeed {
+    return {
+        _id: artist._id,
+        name: artist.name,
+        subtitle: artist.subtitle,
+        contentBio: artist.contentBio,
+    };
+}
+
+function pickRandomArtistSeed(artists: Artist[]): ContentLabArtistSeed | null {
+    if (artists.length === 0) return null;
+    const artist = artists[Math.floor(Math.random() * artists.length)];
+    return toArtistSeed(artist);
+}
+
 // ─── Auth gate ───────────────────────────────────────────────────────────────
 function AuthGate({ onAuth }: { onAuth: (pw: string) => void }) {
     const [pw, setPw] = useState('');
     return (
-        <div className="min-h-screen bg-black text-white flex items-center justify-center px-6">
-            <div className="w-full max-w-xs">
-                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/30 mb-6">Content Lab</p>
+        <div className="relative flex min-h-screen items-center justify-center bg-black px-6 text-white">
+            <Link
+                to="/"
+                state={{ homeSection: 'lab' }}
+                className="absolute right-6 top-24 inline-flex h-9 w-9 items-center justify-center border border-white/10 text-lg text-white/40 transition-colors hover:border-white/25 hover:text-white md:top-8"
+                aria-label="Close Content Lab"
+            >
+                ×
+            </Link>
+
+            <div className="w-full max-w-sm border border-white/10 bg-white/[0.02] p-6 md:p-7">
+                <p className="mb-6 text-[10px] font-bold uppercase tracking-[0.3em] text-white/30">Content Lab</p>
+                <p className="text-sm leading-relaxed text-white/50">
+                    The Content Lab is currently in private beta. Public access is coming later, but the editorial tool is still password-gated for now.
+                </p>
                 <input
                     type="password"
                     autoFocus
                     value={pw}
                     onChange={e => setPw(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && pw && onAuth(pw)}
-                    className="w-full bg-transparent border-b border-white/15 py-2.5 text-sm text-white focus:border-white/50 outline-none placeholder-white/20 mb-4"
+                    className="mt-8 mb-4 w-full border-b border-white/15 bg-transparent py-2.5 text-sm text-white outline-none placeholder-white/20 focus:border-white/50"
                     placeholder="Password"
                 />
                 <button
                     onClick={() => pw && onAuth(pw)}
-                    className="w-full py-3 text-[11px] font-bold uppercase tracking-[0.25em] border border-white/20 text-white/80 hover:border-white/40 hover:text-white transition-colors"
+                    className="w-full border border-white/20 py-3 text-[11px] font-bold uppercase tracking-[0.25em] text-white/80 transition-colors hover:border-white/40 hover:text-white"
                 >
                     Enter
                 </button>
@@ -192,6 +229,21 @@ async function saveDraftRevision(password: string, draftId: string, revisionNote
     return contentLabApiFetch(password, '/api/content-drafts', {
         id: draftId,
         revision_note: revisionNote,
+    });
+}
+
+async function createContentDraft(password: string, body: {
+    type: DraftType;
+    title: string;
+    excerpt: string;
+    content: string;
+    tags: string[];
+    source_artist_id?: string | null;
+    source_artist_name?: string | null;
+}) {
+    return contentLabApiFetch(password, '/api/content-drafts', {
+        operation: 'create',
+        ...body,
     });
 }
 
@@ -572,6 +624,14 @@ export function ContentLab() {
     const [artists, setArtists] = useState<Artist[]>([]);
     const [selectedArtistId, setSelectedArtistId] = useState('random');
     const [selectedType, setSelectedType] = useState<DraftType>('article');
+    const [byokApiKey, setByokApiKey] = useState(() => {
+        if (typeof window === 'undefined') return '';
+        return window.sessionStorage.getItem(BYOK_SESSION_KEY) || '';
+    });
+    const [generationMode, setGenerationMode] = useState<GenerationMode>(() => {
+        if (typeof window === 'undefined') return 'server';
+        return window.sessionStorage.getItem(BYOK_SESSION_KEY) ? 'byok' : 'server';
+    });
     const [scraping, setScraping] = useState(false);
     const [scrapeStatus, setScrapeStatus] = useState<{ ok: boolean; msg: string } | null>(null);
 
@@ -593,6 +653,18 @@ export function ContentLab() {
 
     // Artists are public — load them immediately on mount, no auth required
     useEffect(() => { fetchArtists(); }, [fetchArtists]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const trimmed = byokApiKey.trim();
+        if (trimmed) {
+            window.sessionStorage.setItem(BYOK_SESSION_KEY, trimmed);
+            return;
+        }
+
+        window.sessionStorage.removeItem(BYOK_SESSION_KEY);
+    }, [byokApiKey]);
 
     const fetchDrafts = useCallback(async (pw: string) => {
         setLoading(true);
@@ -626,36 +698,87 @@ export function ContentLab() {
         setGenerating(true);
         setError('');
         try {
-            const selectedArtist = artists.find(a => a._id === selectedArtistId);
-            const body = {
+            if (generationMode === 'server') {
+                const selectedArtist = artists.find(a => a._id === selectedArtistId);
+                const body = {
+                    type: selectedType,
+                    ...(selectedArtist && selectedType !== 'wildcard'
+                        ? { artistId: selectedArtist._id, artistName: selectedArtist.name, artistSubtitle: selectedArtist.subtitle }
+                        : {}),
+                };
+                const res = await fetch('/api/content-generate', {
+                    method: 'POST',
+                    headers: { 'content-type': 'application/json', 'x-content-lab-password': password },
+                    body: JSON.stringify(body),
+                });
+                if (!res.ok) {
+                    const data = await res.json().catch(() => ({})) as { error?: string };
+                    setError(data.error === 'Grok API key not configured'
+                        ? 'GROK_API_KEY is not configured on this deployment.'
+                        : 'Generation failed. Check Cloudflare logs for details.');
+                    return;
+                }
+                const result = await res.json() as GenerationResult;
+                const failures = result.failures || [];
+                if (result.created === 0) {
+                    const summary = failures.length ? ` Failures: ${formatFailureSummary(failures)}.` : '';
+                    setError(`Generation created 0/${result.attempted || 3} drafts.${summary}`);
+                    return;
+                }
+                await fetchDrafts(password);
+                if (failures.length > 0) {
+                    setError(`Generated ${result.created}/${result.attempted || 3}. Remaining: ${formatFailureSummary(failures)}.`);
+                }
+                return;
+            }
+
+            const trimmedKey = byokApiKey.trim();
+            if (!trimmedKey) {
+                setError('Add your xAI API key to use BYOK generation.');
+                return;
+            }
+
+            const selectedArtist = artists.find((artist) => artist._id === selectedArtistId);
+            const artistSeed = selectedType === 'wildcard'
+                ? null
+                : selectedArtistId === 'random'
+                    ? pickRandomArtistSeed(artists)
+                    : (selectedArtist ? toArtistSeed(selectedArtist) : null);
+
+            if (selectedType !== 'wildcard' && !artistSeed) {
+                setError('Select an artist or wait for the directory to load.');
+                return;
+            }
+
+            const generated = await generateDraftWithByok({
+                apiKey: trimmedKey,
                 type: selectedType,
-                ...(selectedArtist && selectedType !== 'wildcard'
-                    ? { artistId: selectedArtist._id, artistName: selectedArtist.name, artistSubtitle: selectedArtist.subtitle }
-                    : {}),
-            };
-            const res = await fetch('/api/content-generate', {
-                method: 'POST',
-                headers: { 'content-type': 'application/json', 'x-content-lab-password': password },
-                body: JSON.stringify(body),
+                artist: artistSeed,
             });
-            if (!res.ok) {
-                const data = await res.json().catch(() => ({})) as { error?: string };
-                setError(data.error === 'API key not configured'
-                    ? 'CLAUDE_API_KEY not set — add it via Cloudflare Pages → Settings → Secrets.'
-                    : 'Generation failed. Check Cloudflare logs for details.');
+
+            if (!generated.ok) {
+                const reason = humanizeFailureReason(generated.failure.reason);
+                const detail = generated.failure.detail ? ` ${generated.failure.detail}` : '';
+                setError(`BYOK generation failed: ${reason}.${detail}`.trim());
                 return;
             }
-            const result = await res.json() as GenerationResult;
-            const failures = result.failures || [];
-            if (result.created === 0) {
-                const summary = failures.length ? ` Failures: ${formatFailureSummary(failures)}.` : '';
-                setError(`Generation created 0/${result.attempted || 3} drafts.${summary}`);
+
+            const draftRes = await createContentDraft(password, {
+                type: selectedType,
+                title: generated.draft.title,
+                excerpt: generated.draft.excerpt,
+                content: generated.draft.content,
+                tags: generated.draft.tags,
+                source_artist_id: selectedType === 'wildcard' ? null : (artistSeed?._id || null),
+                source_artist_name: selectedType === 'wildcard' ? null : (artistSeed?.name || null),
+            });
+            const saved = await draftRes.json().catch(() => ({ ok: false, error: 'Draft save failed.' })) as DraftCreateResponse;
+            if (!draftRes.ok || !saved.ok) {
+                setError(saved.error || 'Draft save failed.');
                 return;
             }
+
             await fetchDrafts(password);
-            if (failures.length > 0) {
-                setError(`Generated ${result.created}/${result.attempted || 3}. Remaining: ${formatFailureSummary(failures)}.`);
-            }
         } catch {
             setError('Request failed. Check your connection.');
         } finally {
@@ -699,87 +822,154 @@ export function ContentLab() {
             <div className="max-w-3xl mx-auto px-6 pt-20 pb-32">
 
                 {/* Header */}
-                <div className="flex items-end justify-between mb-12 pb-6 border-b border-white/8">
-                    <div>
+                <div className="mb-12 border-b border-white/8 pb-6">
+                    <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+                        <div>
                         <h1 className="text-2xl font-black uppercase tracking-tight text-white">Content Lab</h1>
-                        <p className="text-[11px] text-white/30 mt-1">{drafts.length} draft{drafts.length !== 1 ? 's' : ''}</p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                        {/* Type selector */}
-                        <div className="flex items-center gap-1">
-                            {(['article', 'blog', 'wildcard'] as const).map(t => (
-                                <button
-                                    key={t}
-                                    onClick={() => setSelectedType(t)}
-                                    disabled={generating}
-                                    className={`px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest border transition-colors disabled:opacity-30 ${
-                                        selectedType === t
-                                            ? 'border-white/50 text-white'
-                                            : 'border-white/10 text-white/25 hover:border-white/25 hover:text-white/50'
-                                    }`}
-                                >
-                                    {t === 'wildcard' ? 'Wild' : t}
-                                </button>
-                            ))}
-                        </div>
-                        {/* Artist + research + generate */}
-                        <div className="flex items-center gap-2">
-                            <div className="relative flex items-center">
-                                <select
-                                    value={selectedArtistId}
-                                    onChange={e => { setSelectedArtistId(e.target.value); setScrapeStatus(null); }}
-                                    disabled={generating || selectedType === 'wildcard'}
-                                    className="bg-black border border-white/15 text-[10px] font-mono text-white/50 px-3 py-2.5 focus:border-white/30 outline-none appearance-none cursor-pointer hover:border-white/25 hover:text-white/70 transition-colors disabled:opacity-20 max-w-[180px] truncate"
-                                >
-                                    <option value="random">Random artist</option>
-                                    {artists.map(a => (
-                                        <option key={a._id} value={a._id}>{a.name}</option>
-                                    ))}
-                                </select>
-                                {/* Research status dot */}
-                                {selectedArtistId !== 'random' && selectedType !== 'wildcard' && (() => {
-                                    const a = artists.find(x => x._id === selectedArtistId);
-                                    return (
-                                        <span
-                                            className={`absolute -top-1 -right-1 w-2 h-2 ${a?.contentBio ? 'bg-emerald-500' : 'bg-yellow-500/70'}`}
-                                            title={a?.contentBio ? 'Research cached' : 'No research — click Fetch Research'}
-                                        />
-                                    );
-                                })()}
-                            </div>
-                            {/* Research button — only shown for specific artists */}
-                            {selectedArtistId !== 'random' && selectedType !== 'wildcard' && (
-                                <button
-                                    onClick={handleScrape}
-                                    disabled={scraping || generating}
-                                    className="flex items-center gap-1.5 px-2.5 py-2.5 border border-white/10 text-[9px] font-bold uppercase tracking-widest text-white/25 hover:border-white/25 hover:text-white/60 transition-colors disabled:opacity-30"
-                                    title="Scrape artist website and cache research bio"
-                                >
-                                    {scraping ? (
-                                        <SquareLoader className="w-2.5 h-2.5 opacity-90" label="Fetching research" strokeWidth={1} />
-                                    ) : '↓'}
-                                    Research
-                                </button>
-                            )}
-                            <button
-                                onClick={handleGenerate}
-                                disabled={generating}
-                                className="flex items-center gap-2 px-5 py-2.5 border border-white/20 text-[11px] font-bold uppercase tracking-[0.2em] text-white/70 hover:border-white/40 hover:text-white transition-colors disabled:opacity-40 disabled:cursor-wait"
-                            >
-                                {generating ? (
-                                    <>
-                                        <SquareLoader className="w-3 h-3" label="Generating content" strokeWidth={1.1} />
-                                        Writing…
-                                    </>
-                                ) : '+ Generate'}
-                            </button>
-                        </div>
-                        {/* Scrape status feedback */}
-                        {scrapeStatus && (
-                            <p className={`text-[9px] font-mono mt-1 ${scrapeStatus.ok ? 'text-emerald-400/70' : 'text-red-400/70'}`}>
-                                {scrapeStatus.msg}
+                            <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/45">
+                                Draft generation, review, and publishing for the writing layer around the catalogue.
                             </p>
-                        )}
+                            <div className="mt-5 flex flex-wrap gap-3">
+                                <Link
+                                    to="/blog"
+                                    className="inline-flex items-center justify-center border border-white/18 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.24em] text-white transition-colors duration-300 hover:border-white/45 hover:bg-white/5"
+                                >
+                                    Open archive
+                                </Link>
+                                <Link
+                                    to="/info"
+                                    className="inline-flex items-center justify-center border border-white/10 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.24em] text-white/55 transition-colors duration-300 hover:border-white/35 hover:text-white"
+                                >
+                                    About Catalogue
+                                </Link>
+                            </div>
+                        </div>
+
+                        <div className="w-full max-w-xl space-y-4">
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <p className="text-[11px] text-white/30">{drafts.length} draft{drafts.length !== 1 ? 's' : ''}</p>
+                                <div className="flex items-center gap-1">
+                                    {([
+                                        { value: 'server', label: 'Server key' },
+                                        { value: 'byok', label: 'Bring your own key' },
+                                    ] as const).map((mode) => (
+                                        <button
+                                            key={mode.value}
+                                            type="button"
+                                            onClick={() => setGenerationMode(mode.value)}
+                                            className={`px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest border transition-colors ${
+                                                generationMode === mode.value
+                                                    ? 'border-white/50 text-white'
+                                                    : 'border-white/10 text-white/25 hover:border-white/25 hover:text-white/50'
+                                            }`}
+                                        >
+                                            {mode.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {generationMode === 'byok' && (
+                                <div className="border border-white/10 bg-white/[0.03] p-4">
+                                    <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                                        <input
+                                            type="password"
+                                            autoComplete="off"
+                                            spellCheck={false}
+                                            value={byokApiKey}
+                                            onChange={(event) => setByokApiKey(event.target.value)}
+                                            placeholder="Paste xAI API key"
+                                            className="min-w-0 flex-1 border border-white/10 bg-black px-3 py-2.5 text-[11px] text-white/75 outline-none transition-colors focus:border-white/30"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setByokApiKey('')}
+                                            className="border border-white/10 px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.22em] text-white/45 transition-colors hover:border-white/30 hover:text-white/75"
+                                        >
+                                            Clear
+                                        </button>
+                                    </div>
+                                    <p className="mt-3 text-[10px] leading-relaxed text-white/35">
+                                        Your xAI key stays in this browser session and is sent directly to xAI from your device. CATALOGUE does not store it or send it through <code className="font-mono text-white/55">/api/*</code>.
+                                    </p>
+                                </div>
+                            )}
+
+                            <div className="flex flex-wrap items-center gap-1">
+                                {(['article', 'blog', 'wildcard'] as const).map((t) => (
+                                    <button
+                                        key={t}
+                                        onClick={() => setSelectedType(t)}
+                                        disabled={generating}
+                                        className={`px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest border transition-colors disabled:opacity-30 ${
+                                            selectedType === t
+                                                ? 'border-white/50 text-white'
+                                                : 'border-white/10 text-white/25 hover:border-white/25 hover:text-white/50'
+                                        }`}
+                                    >
+                                        {t === 'wildcard' ? 'Wild' : t}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2">
+                                <div className="relative flex items-center">
+                                    <select
+                                        value={selectedArtistId}
+                                        onChange={(event) => { setSelectedArtistId(event.target.value); setScrapeStatus(null); }}
+                                        disabled={generating || selectedType === 'wildcard'}
+                                        className="max-w-[220px] cursor-pointer appearance-none border border-white/15 bg-black px-3 py-2.5 text-[10px] font-mono text-white/50 outline-none transition-colors hover:border-white/25 hover:text-white/70 focus:border-white/30 disabled:opacity-20"
+                                    >
+                                        <option value="random">Random artist</option>
+                                        {artists.map((artist) => (
+                                            <option key={artist._id} value={artist._id}>{artist.name}</option>
+                                        ))}
+                                    </select>
+                                    {selectedArtistId !== 'random' && selectedType !== 'wildcard' && (() => {
+                                        const artist = artists.find((entry) => entry._id === selectedArtistId);
+                                        return (
+                                            <span
+                                                className={`absolute -top-1 -right-1 h-2 w-2 ${artist?.contentBio ? 'bg-emerald-500' : 'bg-yellow-500/70'}`}
+                                                title={artist?.contentBio ? 'Research cached' : 'No research cached yet'}
+                                            />
+                                        );
+                                    })()}
+                                </div>
+
+                                {selectedArtistId !== 'random' && selectedType !== 'wildcard' && (
+                                    <button
+                                        onClick={handleScrape}
+                                        disabled={scraping || generating}
+                                        className="flex items-center gap-1.5 border border-white/10 px-2.5 py-2.5 text-[9px] font-bold uppercase tracking-widest text-white/25 transition-colors hover:border-white/25 hover:text-white/60 disabled:opacity-30"
+                                        title="Scrape artist website and cache research bio"
+                                    >
+                                        {scraping ? (
+                                            <SquareLoader className="w-2.5 h-2.5 opacity-90" label="Fetching research" strokeWidth={1} />
+                                        ) : '↓'}
+                                        Research
+                                    </button>
+                                )}
+
+                                <button
+                                    onClick={handleGenerate}
+                                    disabled={generating}
+                                    className="flex items-center gap-2 border border-white/20 px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.2em] text-white/70 transition-colors hover:border-white/40 hover:text-white disabled:cursor-wait disabled:opacity-40"
+                                >
+                                    {generating ? (
+                                        <>
+                                            <SquareLoader className="w-3 h-3" label="Generating content" strokeWidth={1.1} />
+                                            Writing…
+                                        </>
+                                    ) : 'Generate draft'}
+                                </button>
+                            </div>
+
+                            {scrapeStatus && (
+                                <p className={`text-[9px] font-mono ${scrapeStatus.ok ? 'text-emerald-400/70' : 'text-red-400/70'}`}>
+                                    {scrapeStatus.msg}
+                                </p>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -812,7 +1002,7 @@ export function ContentLab() {
                     <div className="py-16 text-center">
                         <p className="text-[11px] font-mono text-white/20 uppercase tracking-[0.3em]">
                             {statusFilter === 'pending'
-                                ? "No pending drafts — hit Generate Now to create today's batch."
+                                ? 'No pending drafts yet.'
                                 : `No ${statusFilter} drafts.`}
                         </p>
                     </div>

@@ -1,9 +1,16 @@
 /**
  * GET  /api/content-drafts          — list drafts (pending by default)
- * POST /api/content-drafts          — update a draft (status, deploy_target, revision_note)
+ * POST /api/content-drafts          — create or update a draft
  */
 
-import { type ContentBankBindings, getDrafts, updateDraftStatus, deleteDraft } from './_contentBank';
+import {
+    type ContentBankBindings,
+    createDraft,
+    deleteDraft,
+    getDrafts,
+    pruneDrafts,
+    updateDraftStatus,
+} from './_contentBank';
 
 export const onRequestGet: PagesFunction<ContentBankBindings> = async ({ request, env }) => {
     const auth = request.headers.get('x-content-lab-password') || '';
@@ -24,13 +31,44 @@ export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ reques
     }
 
     const body = await request.json() as {
+        operation?: 'create';
         id: string;
+        type?: 'article' | 'blog' | 'wildcard';
+        title?: string;
+        excerpt?: string;
+        content?: string;
+        tags?: string[];
+        source_artist_id?: string | null;
+        source_artist_name?: string | null;
         status?: 'pending' | 'published' | 'dismissed';
         deploy_target?: string;
         revision_note?: string;
         sanity_doc_id?: string;
         published_at?: string;
+        generated_at?: string;
     };
+
+    if (body.operation === 'create') {
+        if (!body.type || !body.title || !body.excerpt || !body.content) {
+            return new Response(JSON.stringify({ error: 'Missing draft fields' }), { status: 400 });
+        }
+
+        const draft = await createDraft(env.CONTACTS_DB, {
+            id: body.id || undefined,
+            type: body.type,
+            title: body.title,
+            excerpt: body.excerpt,
+            content: body.content,
+            tags: Array.isArray(body.tags) ? body.tags : [],
+            source_artist_id: body.source_artist_id ?? null,
+            source_artist_name: body.source_artist_name ?? null,
+            status: body.status ?? 'pending',
+            generated_at: body.generated_at || new Date().toISOString(),
+        });
+        await pruneDrafts(env.CONTACTS_DB, 100);
+
+        return new Response(JSON.stringify({ ok: true, draft }), { headers: { 'content-type': 'application/json' } });
+    }
 
     if (!body.id) {
         return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400 });

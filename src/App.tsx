@@ -1,16 +1,14 @@
 import { useState, useMemo, lazy, Suspense, useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { useArtists } from './hooks/useArtists';
 import { useArticles } from './hooks/useArticles';
-import type { Artist } from './hooks/useArtists';
 import { Navigation } from './components/Navigation';
-import { ArtistCarousel } from './components/ArtistCarousel';
 import { LegalModal } from './components/LegalModal';
 import { GlobalSearch } from './components/GlobalSearch';
 import { ScrollToTop } from './components/ScrollToTop';
 import { SquareLoader } from './components/SquareLoader';
-import { CatalogueFooterLinks } from './components/CatalogueFooterLinks';
+import { type HomeSectionKey } from './constants/homeSections';
+import { HomeExperience } from './pages/HomeExperience';
 
 // Lazy-loaded routes — only fetched when the user navigates to them
 const ArtistList = lazy(() => import('./components/ArtistList').then(m => ({ default: m.ArtistList })));
@@ -21,113 +19,14 @@ const ArtistFrame = lazy(() => import('./pages/ArtistFrame').then(m => ({ defaul
 const SubmitArtist = lazy(() => import('./pages/SubmitArtist').then(m => ({ default: m.SubmitArtist })));
 const ContentLab = lazy(() => import('./pages/ContentLab').then(m => ({ default: m.ContentLab })));
 
-interface HomeProps {
-  artists: Artist[];
-  loading: boolean;
-  artistsError?: string | null;
-  isLegalModalOpen: boolean;
-  setIsLegalModalOpen: (open: boolean) => void;
-}
-
-function stableHash(input: string) {
-  let hash = 0;
-  for (let i = 0; i < input.length; i += 1) {
-    hash = (hash * 31 + input.charCodeAt(i)) >>> 0;
+function shuffleArray<T>(items: T[]) {
+  const clone = [...items];
+  for (let i = clone.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [clone[i], clone[j]] = [clone[j], clone[i]];
   }
-  return hash;
+  return clone;
 }
-
-function Home({ artists, loading, artistsError, setIsLegalModalOpen }: HomeProps) {
-  // Restore carousel position from location state (exit navigation) or sessionStorage
-  const location = useLocation();
-  const [glowColor, setGlowColor] = useState('20, 20, 20');
-  const [carouselIndex, setCarouselIndex] = useState(() => {
-    const state = location.state as { returnFromUniverse?: boolean; slideIndex?: number } | null;
-    if (state?.returnFromUniverse && typeof state.slideIndex === 'number') {
-      return state.slideIndex;
-    }
-    const saved = sessionStorage.getItem('carouselIndex');
-    return saved ? parseInt(saved, 10) : 0;
-  });
-
-  return (
-    <div className="fixed inset-0 w-screen overflow-hidden h-screen h-[100dvh]">
-      <Helmet>
-        <title>CATALOGUE</title>
-      </Helmet>
-      {/* Background Ambience — reactive color bleed from active artist */}
-      <div className="fixed inset-0 bg-gradient-to-b from-[#050505] to-black pointer-events-none" />
-      <div
-        className="fixed pointer-events-none"
-        style={{
-          top: 0, left: '50%',
-          width: '900px', height: '700px',
-          transform: 'translateX(-50%) translateY(-42%)',
-          backgroundColor: `rgb(${glowColor})`,
-          filter: 'blur(160px)',
-          opacity: 0.14,
-          transition: 'background-color 2s ease',
-          borderRadius: '50%',
-        }}
-      />
-
-      {/* Main Content */}
-      <main className="relative h-full flex flex-col items-center justify-center px-0 md:px-6 max-w-7xl mx-auto pt-0 pb-0 md:pt-36">
-
-        {/* Carousel Container */}
-        {/* Mobile: Flex-1 to push it to center vertically. Desktop: Normal flow. */}
-        <div className="w-full flex items-start justify-center md:flex-none md:h-auto md:items-center overflow-hidden">
-          {loading ? (
-            <div className="w-full h-[450px] md:h-[560px] flex items-center justify-center">
-              <div className="flex items-center justify-center">
-                <SquareLoader className="w-8 h-8" label="Loading artists" strokeWidth={1.8} drift />
-              </div>
-            </div>
-          ) : artists.length === 0 ? (
-            <div className="w-full h-[450px] md:h-[560px] flex items-center justify-center px-6">
-              <div className="max-w-sm text-center">
-                <p className="text-white/60 text-xs font-semibold uppercase tracking-[0.2em]">Unable to load artists</p>
-                <p className="mt-3 text-white/40 text-xs leading-relaxed">
-                  {artistsError || 'Could not reach Sanity right now.'}
-                </p>
-                <p className="mt-2 text-white/30 text-[11px] leading-relaxed">
-                  If testing from phone on local dev, add your local origin to Sanity CORS (example: {window.location.origin}).
-                </p>
-              </div>
-            </div>
-          ) : (
-            <ArtistCarousel
-              artists={artists}
-              initialIndex={carouselIndex}
-              onIndexChange={(index) => {
-                setCarouselIndex(index);
-                sessionStorage.setItem('carouselIndex', index.toString());
-              }}
-              onGlowColor={setGlowColor}
-            />
-          )}
-        </div>
-
-
-      </main>
-
-      {/* Footer - Fixed at bottom */}
-      <footer className="fixed bottom-4 left-1/2 -translate-x-1/2 text-center text-[11px] text-white/25 font-display tracking-[0.2em] uppercase pointer-events-none">
-        CATALOGUE © 2026
-      </footer>
-
-      {/* Floating Social Link */}
-      {/* Floating Socials */}
-      <CatalogueFooterLinks
-        onOpenPolicy={() => setIsLegalModalOpen(true)}
-        variant="home"
-        containerClassName="fixed bottom-5 right-6 z-50 flex flex-col items-end gap-1.5"
-      />
-    </div>
-  );
-}
-
-// Internal Artist Page routes removed
 
 const AppContent = () => {
   const location = useLocation();
@@ -138,6 +37,7 @@ const AppContent = () => {
   const [search, setSearch] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
+  const [homeSection, setHomeSection] = useState<HomeSectionKey>('hero');
 
   // Cmd+K / Ctrl+K to open search
   useEffect(() => {
@@ -151,14 +51,10 @@ const AppContent = () => {
     return () => window.removeEventListener('keydown', handleKey);
   }, [isArtistPage]);
 
-  // Randomized artists — memoized so the order is stable across re-renders
+  // Randomized once per artist payload so refreshes feel alive without reshuffling on each render.
   const randomizedArtists = useMemo(() => {
     if (loading) return artists;
-    return [...artists].sort((a, b) => {
-      const aHash = stableHash(`${a.id}:${a.name}`);
-      const bHash = stableHash(`${b.id}:${b.name}`);
-      return aHash - bHash;
-    });
+    return shuffleArray(artists);
   }, [artists, loading]);
 
   const filteredArtists = randomizedArtists.filter(artist =>
@@ -172,7 +68,10 @@ const AppContent = () => {
 
   return (
     <div className="min-h-screen bg-black text-white font-display selection:bg-white/20">
-      <Navigation onSearchOpen={() => setIsSearchOpen(true)} />
+      <Navigation
+        onSearchOpen={() => setIsSearchOpen(true)}
+        activeHomeSection={location.pathname === '/' ? homeSection : undefined}
+      />
 
       <LegalModal
         isOpen={isLegalModalOpen}
@@ -193,30 +92,33 @@ const AppContent = () => {
           <SquareLoader className="w-6 h-6" label="Loading page" strokeWidth={1.6} />
         </div>
       }>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <Home
-              artists={filteredArtists}
-              loading={loading}
-              artistsError={artistsError}
-              isLegalModalOpen={isLegalModalOpen}
-              setIsLegalModalOpen={setIsLegalModalOpen}
-            />
-          }
-        />
-        <Route path="/artist/:id" element={<ArtistFrame />} />
-        <Route path="/gallery/:id" element={<ArtistFrame />} />
-        <Route path="/submit" element={<SubmitArtist />} />
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <HomeExperience
+                artists={randomizedArtists}
+                loading={loading}
+                artistsError={artistsError}
+                articles={articles}
+                articlesLoading={articlesLoading}
+                setIsLegalModalOpen={setIsLegalModalOpen}
+                onSectionChange={setHomeSection}
+              />
+            }
+          />
+          <Route path="/artist/:id" element={<ArtistFrame />} />
+          <Route path="/gallery/:id" element={<ArtistFrame />} />
+          <Route path="/submit" element={<SubmitArtist />} />
 
-        <Route path="/blog" element={<ArticleList filter="all" articles={articles} loading={articlesLoading} />} />
-        <Route path="/blog/:id" element={<ArticleView articles={articles} loading={articlesLoading} />} />
+          <Route path="/blog" element={<ArticleList filter="all" articles={articles} loading={articlesLoading} />} />
+          <Route path="/blog/:id" element={<ArticleView articles={articles} loading={articlesLoading} />} />
 
-        <Route path="/artists" element={<ArtistList />} />
-        <Route path="/content-lab" element={<ContentLab />} />
-        <Route path="/info" element={<InfoHub setIsLegalModalOpen={setIsLegalModalOpen} />} />
-      </Routes>
+          <Route path="/artists" element={<ArtistList />} />
+          <Route path="/content-lab" element={<ContentLab />} />
+          <Route path="/content-lab/admin" element={<Navigate to="/content-lab" replace />} />
+          <Route path="/info" element={<InfoHub setIsLegalModalOpen={setIsLegalModalOpen} />} />
+        </Routes>
       </Suspense>
     </div>
   );

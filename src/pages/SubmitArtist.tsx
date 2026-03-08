@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Link } from 'react-router-dom';
 import { IframeTester } from '../components/IframeTester';
 import { SquareLoader } from '../components/SquareLoader';
 
@@ -82,18 +81,6 @@ export function SubmitArtist() {
             </Helmet>
 
             <IframeTester isOpen={isTesterOpen} onClose={() => setIsTesterOpen(false)} />
-
-            {/* Close Button */}
-            <Link
-                to="/info"
-                className="fixed top-[5.5rem] md:top-8 right-4 md:right-8 z-50 p-2 text-white/30 hover:text-white transition-colors duration-300"
-                title="Back"
-            >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-            </Link>
 
             <div className="max-w-5xl mx-auto w-full px-6 lg:px-12 pt-28 md:pt-32 pb-24 animate-fade-in">
 
@@ -181,7 +168,7 @@ export function SubmitArtist() {
                                 {/* Thumbnail Upload */}
                                 <div>
                                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-2">Thumbnail</p>
-                                    <div className="relative w-full aspect-[25/16] border border-white/10 hover:border-white/25 transition-colors cursor-pointer overflow-hidden group">
+                                    <div className="relative w-full aspect-[25/16] max-h-44 md:max-h-none border border-white/10 hover:border-white/25 transition-colors cursor-pointer overflow-hidden group">
                                         <input
                                             type="file"
                                             accept="image/*"
