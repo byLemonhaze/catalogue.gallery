@@ -83,12 +83,12 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
         <>
             {/* Backdrop */}
             <div
-                className="fixed inset-0 bg-black/75 z-50 backdrop-blur-sm"
+                className="fixed inset-0 bg-black/75 z-[60] backdrop-blur-sm"
                 onClick={onClose}
             />
 
             {/* Palette */}
-            <div className="fixed top-[20vh] left-1/2 -translate-x-1/2 z-50 w-full max-w-lg px-4 animate-fade-in">
+            <div className="fixed top-[20vh] left-1/2 -translate-x-1/2 z-[60] w-full max-w-lg px-4 animate-fade-in">
                 <div className="bg-[#0d0d0d] border border-white/15 shadow-2xl overflow-hidden">
 
                     {/* Input */}

@@ -181,7 +181,7 @@ export function SubmitArtist() {
                                 {/* Thumbnail Upload */}
                                 <div>
                                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-2">Thumbnail</p>
-                                    <div className="relative w-full aspect-[25/16] border border-white/10 hover:border-white/25 transition-colors cursor-pointer overflow-hidden group">
+                                    <div className="relative w-full aspect-[25/16] max-h-44 md:max-h-none border border-white/10 hover:border-white/25 transition-colors cursor-pointer overflow-hidden group">
                                         <input
                                             type="file"
                                             accept="image/*"

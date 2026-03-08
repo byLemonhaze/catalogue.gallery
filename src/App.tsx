@@ -1,6 +1,6 @@
 import { useState, useMemo, lazy, Suspense, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Link } from 'react-router-dom';
 import { useArtists } from './hooks/useArtists';
 import { useArticles } from './hooks/useArticles';
 import type { Artist } from './hooks/useArtists';
@@ -108,6 +108,20 @@ function Home({ artists, loading, artistsError, setIsLegalModalOpen }: HomeProps
           )}
         </div>
 
+        {/* Value prop + CTA — anchors both audiences, fills dead space on mobile */}
+        {!loading && artists.length > 0 && (
+          <div className="mt-6 flex flex-col items-center gap-4 animate-fade-in px-6">
+            <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/20 text-center max-w-xs leading-relaxed">
+              A directory of digital artists — unfiltered, self-curated, independent.
+            </p>
+            <Link
+              to="/info"
+              className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/30 hover:text-white transition-colors duration-300 border-b border-white/15 hover:border-white/50 pb-px"
+            >
+              Apply to Catalogue →
+            </Link>
+          </div>
+        )}
 
       </main>
 

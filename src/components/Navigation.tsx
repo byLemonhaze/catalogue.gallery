@@ -28,7 +28,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen }) => {
     return (
         <header className="fixed inset-x-0 top-0 z-50 pointer-events-none">
             {/* Mobile */}
-            <div className="md:hidden pointer-events-auto mt-4">
+            <div className="md:hidden pointer-events-auto mt-4 bg-black">
                 <div className="flex items-center justify-center">
                     <Link to="/" className="text-base uppercase tracking-[0.16em] text-white transition-opacity hover:opacity-80 font-display">
                         CATALOGUE
