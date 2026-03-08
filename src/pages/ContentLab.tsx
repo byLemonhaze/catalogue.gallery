@@ -150,7 +150,7 @@ function AuthGate({ onAuth }: { onAuth: (pw: string) => void }) {
             <div className="w-full max-w-sm border border-white/10 bg-white/[0.02] p-6 md:p-7">
                 <p className="mb-6 text-[10px] font-bold uppercase tracking-[0.3em] text-white/30">Content Lab</p>
                 <p className="text-sm leading-relaxed text-white/50">
-                    The Content Lab is currently in private beta. Public access is coming later, but the editorial tool is still password-gated for now.
+                    The Content Lab is currently in private beta. Public access is coming soon.
                 </p>
                 <input
                     type="password"
