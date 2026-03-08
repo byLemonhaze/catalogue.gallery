@@ -137,21 +137,33 @@ function pickRandomArtistSeed(artists: Artist[]): ContentLabArtistSeed | null {
 function AuthGate({ onAuth }: { onAuth: (pw: string) => void }) {
     const [pw, setPw] = useState('');
     return (
-        <div className="min-h-screen bg-black text-white flex items-center justify-center px-6">
-            <div className="w-full max-w-xs">
-                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/30 mb-6">Content Lab</p>
+        <div className="relative flex min-h-screen items-center justify-center bg-black px-6 text-white">
+            <Link
+                to="/"
+                state={{ homeSection: 'lab' }}
+                className="absolute right-6 top-24 inline-flex h-9 w-9 items-center justify-center border border-white/10 text-lg text-white/40 transition-colors hover:border-white/25 hover:text-white md:top-8"
+                aria-label="Close Content Lab"
+            >
+                ×
+            </Link>
+
+            <div className="w-full max-w-sm border border-white/10 bg-white/[0.02] p-6 md:p-7">
+                <p className="mb-6 text-[10px] font-bold uppercase tracking-[0.3em] text-white/30">Content Lab</p>
+                <p className="text-sm leading-relaxed text-white/50">
+                    The Content Lab is currently in private beta. Public access is coming later, but the editorial tool is still password-gated for now.
+                </p>
                 <input
                     type="password"
                     autoFocus
                     value={pw}
                     onChange={e => setPw(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && pw && onAuth(pw)}
-                    className="w-full bg-transparent border-b border-white/15 py-2.5 text-sm text-white focus:border-white/50 outline-none placeholder-white/20 mb-4"
+                    className="mt-8 mb-4 w-full border-b border-white/15 bg-transparent py-2.5 text-sm text-white outline-none placeholder-white/20 focus:border-white/50"
                     placeholder="Password"
                 />
                 <button
                     onClick={() => pw && onAuth(pw)}
-                    className="w-full py-3 text-[11px] font-bold uppercase tracking-[0.25em] border border-white/20 text-white/80 hover:border-white/40 hover:text-white transition-colors"
+                    className="w-full border border-white/20 py-3 text-[11px] font-bold uppercase tracking-[0.25em] text-white/80 transition-colors hover:border-white/40 hover:text-white"
                 >
                     Enter
                 </button>
@@ -828,7 +840,7 @@ export function ContentLab() {
                                     to="/info"
                                     className="inline-flex items-center justify-center border border-white/10 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.24em] text-white/55 transition-colors duration-300 hover:border-white/35 hover:text-white"
                                 >
-                                    Review criteria
+                                    About Catalogue
                                 </Link>
                             </div>
                         </div>

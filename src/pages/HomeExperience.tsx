@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArtistCarousel } from '../components/ArtistCarousel';
 import { CatalogueFooterLinks } from '../components/CatalogueFooterLinks';
 import { SquareLoader } from '../components/SquareLoader';
@@ -19,6 +19,21 @@ interface HomeExperienceProps {
   onSectionChange: (section: HomeSectionKey) => void;
 }
 
+interface HomeRouteState {
+  returnFromUniverse?: boolean;
+  slideIndex?: number;
+  homeSection?: HomeSectionKey;
+  homeScrollTop?: number;
+  directoryPage?: number;
+}
+
+interface DirectoryReturnState {
+  from: 'directory-section';
+  homeSection: 'directory';
+  homeScrollTop: number;
+  directoryPage: number;
+}
+
 function getArtistThumbnailUrl(artist: Artist) {
   if (!artist.thumbnail) return null;
   if (artist.isSanity) return urlFor(artist.thumbnail).width(320).height(400).url();
@@ -35,7 +50,18 @@ function scrollToSection(section: HomeSectionKey, container: HTMLDivElement | nu
   container.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
 }
 
-function PreviewArtistCard({ artist }: { artist: Artist }) {
+function isPlainLeftClick(event: React.MouseEvent<HTMLAnchorElement>) {
+  return event.button === 0 && !event.metaKey && !event.altKey && !event.ctrlKey && !event.shiftKey;
+}
+
+function PreviewArtistCard({
+  artist,
+  getReturnState,
+}: {
+  artist: Artist;
+  getReturnState: () => DirectoryReturnState;
+}) {
+  const navigate = useNavigate();
   const href = artist.type === 'gallery' || artist.type === 'collection'
     ? `/gallery/${artist.id}`
     : `/artist/${artist.id}`;
@@ -44,6 +70,11 @@ function PreviewArtistCard({ artist }: { artist: Artist }) {
   return (
     <Link
       to={href}
+      onClick={(event) => {
+        if (!isPlainLeftClick(event)) return;
+        event.preventDefault();
+        navigate(href, { state: getReturnState() });
+      }}
       className="group relative cursor-pointer overflow-hidden border border-white/10 bg-white/[0.03] transition-colors duration-300 hover:border-white/25"
     >
       <div className="aspect-[4/5] overflow-hidden bg-white/5">
@@ -148,13 +179,14 @@ export function HomeExperience({
   onSectionChange,
 }: HomeExperienceProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const routeState = (location.state as HomeRouteState | null) ?? null;
   const [glowColor, setGlowColor] = useState('20, 20, 20');
-  const [directoryGridPage, setDirectoryGridPage] = useState(0);
+  const [directoryGridPage, setDirectoryGridPage] = useState(() => routeState?.directoryPage ?? 0);
   const [carouselIndex, setCarouselIndex] = useState(() => {
-    const state = location.state as { returnFromUniverse?: boolean; slideIndex?: number } | null;
-    if (state?.returnFromUniverse && typeof state.slideIndex === 'number') {
-      return state.slideIndex;
+    if (routeState?.returnFromUniverse && typeof routeState.slideIndex === 'number') {
+      return routeState.slideIndex;
     }
     const saved = sessionStorage.getItem('carouselIndex');
     return saved ? parseInt(saved, 10) : 0;
@@ -172,18 +204,35 @@ export function HomeExperience({
   const directoryPageCount = Math.max(1, Math.ceil(artistEntries.length / 6));
   const normalizedDirectoryPage = directoryGridPage % directoryPageCount;
   const visibleDirectoryArtists = artistEntries.slice(normalizedDirectoryPage * 6, normalizedDirectoryPage * 6 + 6);
-  const requestedSection = (location.state as { homeSection?: HomeSectionKey } | null)?.homeSection;
+  const requestedSection = routeState?.homeSection;
+  const requestedScrollTop = routeState?.homeScrollTop;
+
+  const createDirectoryReturnState = () => ({
+    from: 'directory-section' as const,
+    homeSection: 'directory' as const,
+    homeScrollTop: scrollRef.current?.scrollTop ?? 0,
+    directoryPage: normalizedDirectoryPage,
+  });
 
   useEffect(() => {
-    if (!requestedSection) return;
+    if (!requestedSection && typeof requestedScrollTop !== 'number') return;
 
     const timer = window.setTimeout(() => {
-      scrollToSection(requestedSection, scrollRef.current);
-      onSectionChange(requestedSection);
+      if (typeof requestedScrollTop === 'number' && scrollRef.current) {
+        scrollRef.current.scrollTo({ top: requestedScrollTop, behavior: 'auto' });
+        onSectionChange(requestedSection || 'directory');
+      } else if (requestedSection) {
+        scrollToSection(requestedSection, scrollRef.current);
+        onSectionChange(requestedSection);
+      }
+
+      if (location.state) {
+        navigate(location.pathname, { replace: true });
+      }
     }, 80);
 
     return () => window.clearTimeout(timer);
-  }, [requestedSection, onSectionChange]);
+  }, [location.pathname, location.state, navigate, onSectionChange, requestedScrollTop, requestedSection]);
 
   useEffect(() => {
     const container = scrollRef.current;
@@ -406,7 +455,7 @@ export function HomeExperience({
 
                   <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {visibleDirectoryArtists.map((artist) => (
-                    <PreviewArtistCard key={artist.id} artist={artist} />
+                    <PreviewArtistCard key={artist.id} artist={artist} getReturnState={createDirectoryReturnState} />
                   ))}
                   </div>
                 </div>
@@ -428,6 +477,11 @@ export function HomeExperience({
                       <Link
                         key={gallery.id}
                         to={`/gallery/${gallery.id}`}
+                        onClick={(event) => {
+                          if (!isPlainLeftClick(event)) return;
+                          event.preventDefault();
+                          navigate(`/gallery/${gallery.id}`, { state: createDirectoryReturnState() });
+                        }}
                         className="group flex items-start gap-4 border-b border-white/8 pb-4 last:border-b-0 last:pb-0"
                       >
                         <div className="mt-0.5 h-12 w-12 shrink-0 overflow-hidden bg-white/5">
@@ -478,7 +532,7 @@ export function HomeExperience({
               <div className="max-w-2xl">
                 <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/25">Content Lab</p>
                 <h2 className="mt-4 max-w-3xl text-3xl font-black uppercase tracking-[0.04em] text-white md:text-5xl">
-                  The writing layer around the catalogue
+                  The writing layer around Catalogue
                 </h2>
                 <p className="mt-5 max-w-2xl text-sm leading-relaxed text-white/50 md:text-base">
                   The directory is only one half of the presence. The other half is editorial: profiles, interviews, criticism, and scene-writing that gives shape and memory to the field around digital art.
@@ -525,7 +579,7 @@ export function HomeExperience({
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/25">Apply + About</p>
               <h2 className="mt-4 max-w-3xl text-3xl font-black uppercase tracking-[0.04em] text-white md:text-5xl">
-                If the work has its own universe, it belongs in the index.
+                If the work has its own universe, it belongs here.
               </h2>
               <p className="mt-5 max-w-2xl text-sm leading-relaxed text-white/50 md:text-base">
                 CATALOGUE is built for artists and galleries who want their presence represented on their own terms: direct links to personal sites, better context, and less dependence on flattened marketplace frames.
@@ -556,7 +610,7 @@ export function HomeExperience({
             <div className="border border-white/10 bg-white/[0.03] p-6 md:p-7">
               <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/25">Next Step</p>
               <p className="mt-4 max-w-sm text-2xl font-black uppercase tracking-[0.04em] text-white">
-                Submit a profile or review the criteria first.
+                Submit a profile or learn more about Catalogue.
               </p>
               <p className="mt-4 max-w-md text-sm leading-relaxed text-white/50">
                 Applications are reviewed before publication. Artists should have their own website, and galleries should present a clear curatorial context.
@@ -572,7 +626,7 @@ export function HomeExperience({
                   to="/info"
                   className="inline-flex items-center justify-center border border-white/10 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.24em] text-white/55 transition-colors duration-300 hover:border-white/35 hover:text-white"
                 >
-                  Read criteria
+                  About Catalogue
                 </Link>
               </div>
               <p className="mt-10 text-[10px] uppercase tracking-[0.2em] text-white/15">

@@ -121,9 +121,13 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
 
             {/* Desktop */}
             <nav className="pointer-events-auto mx-auto mt-5 hidden w-[calc(100%-2rem)] max-w-7xl items-center justify-between gap-5 border border-white/10 bg-black/35 px-6 py-3 backdrop-blur-md md:flex">
-                <div className="shrink-0 flex items-center gap-3">
+                <div className="relative shrink-0">
                     {path !== '/' && (
-                        <Link to="/" className="text-white/25 hover:text-white transition-colors duration-200 text-sm" aria-label="Back to home">
+                        <Link
+                            to="/"
+                            className="absolute -left-7 top-1/2 -translate-y-1/2 text-sm text-white/25 transition-colors duration-200 hover:text-white"
+                            aria-label="Back to home"
+                        >
                             ←
                         </Link>
                     )}
