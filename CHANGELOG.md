@@ -4,6 +4,20 @@ All notable changes to `catalogue.gallery` are documented in this file.
 
 The project now uses [Semantic Versioning](https://semver.org/) for public releases. Repository releases are published through GitHub Releases and summarized here in human-readable form.
 
+## [0.1.2] - 2026-03-08
+
+Patch release for home scroll-memory and return-flow fixes.
+
+### Added
+
+- Persistent home-state memory for section, scroll position, and directory pagination
+- Regression coverage for remembered home navigation state
+
+### Changed
+
+- Restored the previous home section when returning via site chrome or browser history instead of forcing the carousel hero
+- Synced artist/gallery exit fallback with the same remembered home navigation state
+
 ## [0.1.1] - 2026-03-08
 
 Homepage, navigation, and Content Lab refinement release for the new spatial CATALOGUE experience.

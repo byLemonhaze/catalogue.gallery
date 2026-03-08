@@ -138,15 +138,6 @@ function AuthGate({ onAuth }: { onAuth: (pw: string) => void }) {
     const [pw, setPw] = useState('');
     return (
         <div className="relative flex min-h-screen items-center justify-center bg-black px-6 text-white">
-            <Link
-                to="/"
-                state={{ homeSection: 'lab' }}
-                className="absolute right-6 top-24 inline-flex h-9 w-9 items-center justify-center border border-white/10 text-lg text-white/40 transition-colors hover:border-white/25 hover:text-white md:top-8"
-                aria-label="Close Content Lab"
-            >
-                ×
-            </Link>
-
             <div className="w-full max-w-sm border border-white/10 bg-white/[0.02] p-6 md:p-7">
                 <p className="mb-6 text-[10px] font-bold uppercase tracking-[0.3em] text-white/30">Content Lab</p>
                 <p className="text-sm leading-relaxed text-white/50">
