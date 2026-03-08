@@ -441,35 +441,28 @@ export function HomeExperience({
             ) : (
               <div className="grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.8fr)]">
                 <div>
-                  <div className="mb-4 flex items-center justify-end gap-3">
-                    <span className="text-[10px] font-mono uppercase tracking-[0.16em] text-white/25">
-                      Artists
-                    </span>
-                    <div className="flex items-center gap-3">
-                      <span className="text-[10px] font-mono uppercase tracking-[0.16em] text-white/25">
-                        {String(normalizedDirectoryPage + 1).padStart(2, '0')} / {String(directoryPageCount).padStart(2, '0')}
-                      </span>
+                  <div className="mb-4 flex items-center justify-center md:justify-end">
+                    <div className="flex items-center gap-3 text-[10px] font-mono uppercase tracking-[0.16em] text-white/25">
                       <button
                         type="button"
                         onClick={() => setDirectoryGridPage((current) => (current - 1 + directoryPageCount) % directoryPageCount)}
-                        className="group inline-flex cursor-pointer appearance-none items-center bg-transparent p-0 rounded-none border-0 text-white/35 transition-colors duration-300 hover:text-white"
+                        className="inline-flex cursor-pointer appearance-none items-center bg-transparent p-0 text-white/35 outline-none transition-colors duration-300 hover:text-white focus:outline-none focus-visible:text-white"
                         aria-label="Previous artist grid"
                       >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-                          <polyline points="15 18 9 12 15 6"></polyline>
-                        </svg>
-                        <span className="ml-2 h-px w-8 bg-current opacity-25 transition-opacity duration-300 group-hover:opacity-70" />
+                        &lt;
                       </button>
+                      <span aria-hidden="true" className="text-white/18">-</span>
+                      <span className="text-[10px] font-mono uppercase tracking-[0.16em] text-white/25">
+                        Artists {String(normalizedDirectoryPage + 1).padStart(2, '0')} / {String(directoryPageCount).padStart(2, '0')}
+                      </span>
+                      <span aria-hidden="true" className="text-white/18">-</span>
                       <button
                         type="button"
                         onClick={() => setDirectoryGridPage((current) => (current + 1) % directoryPageCount)}
-                        className="group inline-flex cursor-pointer appearance-none items-center bg-transparent p-0 rounded-none border-0 text-white/35 transition-colors duration-300 hover:text-white"
+                        className="inline-flex cursor-pointer appearance-none items-center bg-transparent p-0 text-white/35 outline-none transition-colors duration-300 hover:text-white focus:outline-none focus-visible:text-white"
                         aria-label="Next artist grid"
                       >
-                        <span className="mr-2 h-px w-8 bg-current opacity-25 transition-opacity duration-300 group-hover:opacity-70" />
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-                          <polyline points="9 18 15 12 9 6"></polyline>
-                        </svg>
+                        &gt;
                       </button>
                     </div>
                   </div>

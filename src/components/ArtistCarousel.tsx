@@ -221,13 +221,13 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
     return (
         <div className="w-full flex flex-col items-center">
             <div
-                className="relative w-full h-[400px] md:h-[520px] flex items-center justify-center overflow-hidden cursor-default"
+                className="relative w-full h-[400px] md:h-[520px] min-[1700px]:h-[620px] flex items-center justify-center overflow-hidden cursor-default"
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
             >
                 {/* Items */}
-                <div className="relative w-full max-w-7xl h-[360px] md:h-[460px]">
+                <div className="relative w-full max-w-7xl h-[360px] md:h-[460px] min-[1700px]:h-[560px]">
                     {visibleIndices.map((index) => {
                         const artist = artists[index];
                         const { style } = getStyles(index);
@@ -235,7 +235,7 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
                             <div
                                 key={artist.id}
                                 style={style}
-                                className="w-[92vw] max-w-[640px] h-full"
+                                className="h-full w-[92vw] max-w-[640px] min-[1700px]:max-w-[780px] min-[1900px]:max-w-[860px]"
                                 onClick={() => {
                                     if (index === currentIndex) {
                                         const path = artist.type === 'gallery' ? `/gallery/${artist.id}` : `/artist/${artist.id}`;
