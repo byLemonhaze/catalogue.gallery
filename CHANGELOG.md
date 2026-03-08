@@ -4,6 +4,15 @@ All notable changes to `catalogue.gallery` are documented in this file.
 
 The project now uses [Semantic Versioning](https://semver.org/) for public releases. Repository releases are published through GitHub Releases and summarized here in human-readable form.
 
+## [0.1.3] - 2026-03-08
+
+Patch release for homepage presentation refinement.
+
+### Changed
+
+- Increased the carousel hero scale only on very wide desktops so oversized captures keep a stronger visual presence without changing normal laptop behavior
+- Reworked the directory pager into a cleaner text-based control that stays centered on mobile and right-aligned on desktop
+
 ## [0.1.2] - 2026-03-08
 
 Patch release for home scroll-memory and return-flow fixes.
