@@ -22,21 +22,21 @@ export function InfoHub({ setIsLegalModalOpen }: InfoHubProps) {
                         <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/30">About</p>
                         <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-white leading-none">CATALOGUE</h2>
                         <p className="text-white/60 text-sm sm:text-base leading-relaxed max-w-2xl">
-                            A directory of digital artists linking directly to their personal websites, alongside curated galleries, interviews, and art-focused content. Chain and marketplace agnostic, for collectors from the lens of artists.
+                            A directory of digital artists that links directly to their own websites, alongside galleries, interviews, and editorial writing. Chain-agnostic and marketplace-agnostic, with the artist's own presentation kept at the center.
                         </p>
                     </section>
 
                     <section className="py-10 md:py-12 space-y-3">
                         <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/30">For Collectors</p>
                         <p className="text-white/60 text-sm sm:text-base leading-relaxed max-w-2xl">
-                            Showcase your art collection and explore the unique universes of your favorite artists through their own websites: unfiltered, self-curated, and independent.
+                            Explore artists through their own websites, with more context and less dependence on marketplace pages.
                         </p>
                     </section>
 
                     <section className="py-10 md:py-12 space-y-3">
                         <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/30">For Artists</p>
                         <p className="text-white/60 text-sm sm:text-base leading-relaxed max-w-2xl">
-                            CATALOGUE is built around artist-owned universes, connecting collectors directly to your own website where authorship, context, and independence remain fully under your control.
+                            CATALOGUE links collectors directly to your own website so the work is seen in the context you control.
                         </p>
                     </section>
 

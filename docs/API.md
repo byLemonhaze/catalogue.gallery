@@ -18,7 +18,7 @@ All endpoints are served from Cloudflare Pages Functions under `/api/*`.
 | `/api/webhook` | `POST` | `WEBHOOK_SHARED_SECRET` header/bearer | Process Sanity review events and send emails |
 | `/api/content-artists` | `GET` | Content Lab password | List published artists/galleries for Content Lab picker |
 | `/api/content-drafts` | `GET` | Content Lab password | List drafts (optionally filtered by status) |
-| `/api/content-drafts` | `POST` | Content Lab password | Update draft status/metadata |
+| `/api/content-drafts` | `POST` | Content Lab password | Create a draft or update draft status/metadata |
 | `/api/content-drafts` | `DELETE` | Content Lab password | Delete draft by id |
 | `/api/content-generate` | `POST` | Content Lab password | Generate one or more drafts via Grok |
 | `/api/content-scrape` | `POST` | Content Lab password | Scrape artist site + summarize into Sanity `contentBio` |
@@ -121,16 +121,25 @@ All endpoints are served from Cloudflare Pages Functions under `/api/*`.
 
 - Header: `x-content-lab-password`
 - JSON body:
-  - `id` (required)
-  - `status` (optional)
-  - `deploy_target` (optional)
-  - `revision_note` (optional)
-  - `sanity_doc_id` (optional)
-  - `published_at` (optional)
-- Returns: `{ "ok": true }`
+  - Create mode:
+    - `operation: "create"`
+    - `type` (required): `article` | `blog` | `wildcard`
+    - `title`, `excerpt`, `content` (required)
+    - `tags` (optional string array)
+    - `source_artist_id`, `source_artist_name` (optional)
+  - Update mode:
+    - `id` (required)
+    - `status` (optional)
+    - `deploy_target` (optional)
+    - `revision_note` (optional)
+    - `sanity_doc_id` (optional)
+    - `published_at` (optional)
+- Returns:
+  - create: `{ "ok": true, "draft": {...} }`
+  - update: `{ "ok": true }`
 - Errors:
   - `401` unauthorized
-  - `400` missing `id`
+  - `400` missing `id` or required create fields
 
 ### `DELETE /api/content-drafts`
 
@@ -158,6 +167,9 @@ All endpoints are served from Cloudflare Pages Functions under `/api/*`.
 - Errors:
   - `401` unauthorized
   - `500` missing `GROK_API_KEY`
+
+Notes:
+- The private `/content-lab` UI also supports a BYOK mode where the browser calls xAI directly with a user-supplied key and then saves the generated draft through `POST /api/content-drafts`.
 
 ### `POST /api/content-scrape`
 

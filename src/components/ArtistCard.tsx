@@ -20,7 +20,7 @@ export const ArtistCard: React.FC<ArtistProps> = ({ name, thumbnail, subtitle, i
 
     return (
         <div
-            className="group relative flex flex-col h-96 bg-[#0c0c0c] border border-white/10 overflow-hidden transition-colors duration-300 hover:border-white/25 cursor-default"
+            className="group relative flex h-full flex-col bg-[#0c0c0c] border border-white/10 overflow-hidden transition-colors duration-300 hover:border-white/25 cursor-default"
         >
             {/* Image Container - Visual only, parent handles click */}
             <div className="flex-1 relative overflow-hidden cursor-pointer block">
