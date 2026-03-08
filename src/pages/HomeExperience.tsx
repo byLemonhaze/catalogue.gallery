@@ -390,8 +390,8 @@ export function HomeExperience({
                 <h2 className="mt-4 max-w-3xl text-3xl font-black uppercase tracking-[0.04em] text-white md:text-5xl">
                   Artist-owned websites first. Marketplaces second.
                 </h2>
-                <p className="mt-5 max-w-2xl text-sm leading-relaxed text-white/50 md:text-base">
-                  CATALOGUE exists to send collectors straight into the artists' own worlds: personal sites, self-curated universes, and independent presentation. The directory stays chain-agnostic and marketplace-agnostic, with a parallel layer for galleries and platforms shaping the field around them.
+                <p className="mt-5 max-w-2xl text-sm leading-relaxed text-pretty text-white/50 md:text-base">
+                  CATALOGUE helps collectors discover new artists without flattening them into a single marketplace. Instead of hosting the work, it sends people directly into each artist&apos;s own website and self-curated world.
                 </p>
               </div>
               <div className="grid min-w-[240px] grid-cols-2 gap-px border border-white/10 bg-white/10 text-center">

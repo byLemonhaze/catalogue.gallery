@@ -4,6 +4,22 @@ All notable changes to `catalogue.gallery` are documented in this file.
 
 The project now uses [Semantic Versioning](https://semver.org/) for public releases. Repository releases are published through GitHub Releases and summarized here in human-readable form.
 
+## [0.1.1] - 2026-03-08
+
+Homepage, navigation, and Content Lab refinement release for the new spatial CATALOGUE experience.
+
+### Added
+
+- Private Content Lab workspace restored at `/content-lab` with browser-side BYOK generation support
+- Scroll-aware home sections with directory, Content Lab, and apply/about layers
+
+### Changed
+
+- Refined homepage copy, CTA wording, and section labels for consistency
+- Preserved return position when exiting artists and galleries opened from the home directory section
+- Cleaned navigation chrome, archive back-link behavior, and submit/apply entry flow
+- Kept the Content Lab behind a clearer private-beta gate while public access is still in progress
+
 ## [0.1.0] - 2026-03-06
 
 Initial public release for the current hardened and documented baseline of `catalogue.gallery`.
