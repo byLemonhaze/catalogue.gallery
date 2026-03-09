@@ -15,13 +15,13 @@ const FOOTER_VARIANTS: Record<CatalogueFooterVariant, {
 }> = {
     home: {
         desktopLinkClassName: 'inline-flex items-center justify-center text-white/45 hover:text-white transition-colors duration-300',
-        desktopButtonClassName: 'text-[10px] font-display text-white/35 hover:text-white transition-colors duration-300 uppercase tracking-[0.18em] mt-1',
-        mobileItemClassName: 'text-[10px] font-bold text-white/50 hover:text-white uppercase tracking-widest transition-colors duration-300',
+        desktopButtonClassName: 'cursor-pointer text-[10px] font-display text-white/35 hover:text-white transition-colors duration-300 uppercase tracking-[0.18em] mt-1',
+        mobileItemClassName: 'cursor-pointer text-[10px] font-bold text-white/50 hover:text-white uppercase tracking-widest transition-colors duration-300',
     },
     info: {
         desktopLinkClassName: 'inline-flex items-center justify-center text-white/20 hover:text-white transition-colors duration-300',
-        desktopButtonClassName: 'text-[10px] font-bold text-white/20 hover:text-white transition-colors duration-300 uppercase tracking-widest mt-1',
-        mobileItemClassName: 'text-[10px] font-bold text-white/50 hover:text-white uppercase tracking-widest transition-colors duration-300',
+        desktopButtonClassName: 'cursor-pointer text-[10px] font-bold text-white/20 hover:text-white transition-colors duration-300 uppercase tracking-widest mt-1',
+        mobileItemClassName: 'cursor-pointer text-[10px] font-bold text-white/50 hover:text-white uppercase tracking-widest transition-colors duration-300',
     },
 }
 
