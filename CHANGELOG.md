@@ -4,6 +4,16 @@ All notable changes to `catalogue.gallery` are documented in this file.
 
 The project now uses [Semantic Versioning](https://semver.org/) for public releases. Repository releases are published through GitHub Releases and summarized here in human-readable form.
 
+## [0.1.7] - 2026-03-08
+
+Patch release for homepage navigation stop-point correction and cursor polish.
+
+### Changed
+
+- Corrected home section jump-navigation so the top bar lands on the intended section header block instead of stopping too early or too late
+- Removed the persistent blue focus ring from home section nav clicks
+- Added explicit pointer cursors to the top-left CATALOGUE brand and the footer Policy control
+
 ## [0.1.6] - 2026-03-08
 
 Patch release for the homepage Content Lab section layout refactor.
