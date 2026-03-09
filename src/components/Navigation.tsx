@@ -29,8 +29,16 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
     };
 
     const scrollToHomeSection = (section: HomeSectionKey) => {
-        const target = document.getElementById(HOME_SECTION_IDS[section]);
-        target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const container = document.getElementById('home-scroll-container') as HTMLDivElement | null;
+        const sectionElement = document.getElementById(HOME_SECTION_IDS[section]);
+        const target = sectionElement?.querySelector<HTMLElement>('[data-home-scroll-anchor="true"]') || sectionElement;
+        if (!container || !target) return;
+        const containerRect = container.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        container.scrollTo({
+            top: targetRect.top - containerRect.top + container.scrollTop,
+            behavior: 'smooth',
+        });
     };
 
     // Hide navigation on artist pages
