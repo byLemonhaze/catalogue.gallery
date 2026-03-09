@@ -15,7 +15,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@sanity/client": "^7.14.1",
+    "@sanity/client": "^7.16.0",
     "@sanity/image-url": "^2.0.3",
     "@tailwindcss/vite": "^4.1.18",
     "jszip": "^3.10.1",
