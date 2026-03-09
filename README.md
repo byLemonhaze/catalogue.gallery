@@ -2,7 +2,7 @@
 
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/byLemonhaze/catalogue.gallery/badge)](https://securityscorecards.dev/viewer/?uri=github.com/byLemonhaze/catalogue.gallery) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12104/badge)](https://www.bestpractices.dev/projects/12104)
 
-Catalogue.gallery helps collectors discover new artists without flattening them into a single marketplace. Instead of hosting artwork, it sends viewers directly into each artist's own website and self-curated world, while also surfacing galleries and platforms that shape discovery around them.
+Catalogue.gallery is a discovery platform designed around the idea that artists should own their digital environments. Instead of hosting artwork, the platform acts as a navigation layer that lets viewers explore each artist's personal website directly through an embedded browsing interface. This creates a fluid discovery experience while preserving the uniqueness of each artist's creative world. The result is a system where curation and independence coexist, turning the platform into a portal for navigating distributed digital art ecosystems.
 
 ## Stack
 
