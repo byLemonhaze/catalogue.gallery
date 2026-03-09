@@ -4,6 +4,15 @@ All notable changes to `catalogue.gallery` are documented in this file.
 
 The project now uses [Semantic Versioning](https://semver.org/) for public releases. Repository releases are published through GitHub Releases and summarized here in human-readable form.
 
+## [0.1.5] - 2026-03-08
+
+Patch release for homepage arrow cleanup.
+
+### Changed
+
+- Removed the hover arrow inside homepage carousel cards
+- Removed the trailing arrow from the `Apply to Catalogue` CTA
+
 ## [0.1.4] - 2026-03-08
 
 Patch release for homepage editorial copy refinement.
