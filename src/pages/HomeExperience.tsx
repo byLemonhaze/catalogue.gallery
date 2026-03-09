@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { ArtistCarousel } from '../components/ArtistCarousel';
@@ -45,10 +45,23 @@ function getArticleThumbnailUrl(article: ArticleRecord) {
   return article.thumbnailUrl || '/logo.png';
 }
 
+function getSectionScrollTarget(section: HomeSectionKey) {
+  const sectionElement = document.getElementById(HOME_SECTION_IDS[section]);
+  if (!sectionElement) return null;
+  return sectionElement.querySelector<HTMLElement>('[data-home-scroll-anchor="true"]') || sectionElement;
+}
+
+function getContainerScrollTop(container: HTMLDivElement, target: HTMLElement) {
+  const containerRect = container.getBoundingClientRect();
+  const targetRect = target.getBoundingClientRect();
+  const navOffset = window.innerWidth >= 768 ? 104 : 84;
+  return Math.max(0, targetRect.top - containerRect.top + container.scrollTop - navOffset);
+}
+
 function scrollToSection(section: HomeSectionKey, container: HTMLDivElement | null, behavior: ScrollBehavior = 'smooth') {
-  const target = document.getElementById(HOME_SECTION_IDS[section]);
+  const target = getSectionScrollTarget(section);
   if (!target || !container) return;
-  container.scrollTo({ top: target.offsetTop, behavior });
+  container.scrollTo({ top: getContainerScrollTop(container, target), behavior });
 }
 
 function isPlainLeftClick(event: React.MouseEvent<HTMLAnchorElement>) {
@@ -99,38 +112,39 @@ function PreviewArtistCard({
   );
 }
 
-function PreviewArticleCard({ article }: { article: ArticleRecord }) {
+function ArchiveArticleRailItem({
+  article,
+  index,
+}: {
+  article: ArticleRecord;
+  index: number;
+}) {
   return (
     <Link
       to={`/blog/${article.id}`}
-      className="group flex h-full cursor-pointer flex-col overflow-hidden border border-white/10 bg-white/[0.03] transition-colors duration-300 hover:border-white/25"
+      className="group grid cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-4 border-t border-white/8 py-4 transition-colors duration-300 first:border-t-0 hover:border-white/20"
     >
-      <div className="aspect-[16/10] overflow-hidden bg-white/5">
-        <img
-          src={getArticleThumbnailUrl(article)}
-          alt=""
-          className="h-full w-full object-cover opacity-70 transition duration-500 group-hover:scale-[1.03] group-hover:opacity-100"
-        />
-      </div>
-      <div className="flex h-full flex-col justify-between p-5">
-        <div>
-          <div className="mb-4 flex items-center gap-3">
-            <span className="border border-white/10 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.24em] text-white/30">
-              {article.type}
-            </span>
-            <span className="text-[10px] font-mono uppercase tracking-[0.12em] text-white/20">{article.date}</span>
-          </div>
-          <h3 className="max-w-sm text-lg font-bold leading-snug tracking-tight text-white transition-colors duration-300 group-hover:text-white/80">
-            {article.title}
-          </h3>
-          <p className="mt-3 max-w-md text-sm leading-relaxed text-white/45">
-            {article.excerpt}
-          </p>
+      <span className="pt-0.5 text-[10px] font-mono uppercase tracking-[0.18em] text-white/18 transition-colors duration-300 group-hover:text-white/35">
+        {String(index + 1).padStart(2, '0')}
+      </span>
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2 text-[9px] font-bold uppercase tracking-[0.22em] text-white/25">
+          <span>{article.type}</span>
+          <span className="text-white/12">/</span>
+          <span>{article.date}</span>
         </div>
-        <span className="mt-8 text-[10px] font-bold uppercase tracking-[0.24em] text-white/35 transition-colors duration-300 group-hover:text-white">
-          Read entry
-        </span>
+        <h3 className="mt-2 max-w-md text-base font-bold leading-snug tracking-tight text-white transition-colors duration-300 group-hover:text-white/80 md:text-lg">
+          {article.title}
+        </h3>
+        {article.author ? (
+          <p className="mt-2 text-[10px] font-mono uppercase tracking-[0.14em] text-white/22">
+            {article.author}
+          </p>
+        ) : null}
       </div>
+      <span className="pt-0.5 text-[10px] font-bold uppercase tracking-[0.22em] text-white/22 transition-colors duration-300 group-hover:text-white/55">
+        Open
+      </span>
     </Link>
   );
 }
@@ -148,25 +162,59 @@ function FeaturedArticleCard({ article }: { article: ArticleRecord }) {
           className="h-full w-full object-cover opacity-45 transition duration-700 group-hover:scale-[1.04] group-hover:opacity-60"
         />
       </div>
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/78 to-black/20" />
-      <div className="relative flex min-h-[360px] flex-col justify-end p-6 md:min-h-[420px] md:p-8">
-        <div className="mb-4 flex items-center gap-3">
-          <span className="border border-white/10 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.24em] text-white/30">
-            {article.type}
-          </span>
-          <span className="text-[10px] font-mono uppercase tracking-[0.12em] text-white/20">{article.date}</span>
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.25),rgba(0,0,0,0.42)_36%,rgba(0,0,0,0.88)_100%)]" />
+      <div className="relative flex min-h-[380px] flex-col justify-between p-6 md:min-h-[460px] md:p-8">
+        <div>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="border border-white/10 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.24em] text-white/30">
+              Featured
+            </span>
+            <span className="text-[10px] font-mono uppercase tracking-[0.12em] text-white/25">{article.type}</span>
+            <span className="text-[10px] font-mono uppercase tracking-[0.12em] text-white/20">{article.date}</span>
+          </div>
+          <h3 className="mt-6 max-w-2xl text-2xl font-bold leading-tight tracking-tight text-white transition-colors duration-300 group-hover:text-white/80 md:text-[2rem]">
+            {article.title}
+          </h3>
+          {article.author ? (
+            <p className="mt-4 text-[10px] font-mono uppercase tracking-[0.16em] text-white/28">
+              {article.author}
+            </p>
+          ) : null}
         </div>
-        <h3 className="max-w-2xl text-2xl font-bold leading-tight tracking-tight text-white transition-colors duration-300 group-hover:text-white/80 md:text-3xl">
-          {article.title}
-        </h3>
-        <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/60 md:text-base">
-          {article.excerpt}
-        </p>
-        <span className="mt-8 text-[10px] font-bold uppercase tracking-[0.24em] text-white/45 transition-colors duration-300 group-hover:text-white">
-          Read feature
-        </span>
+        <div className="max-w-xl">
+          <p className="border-l border-white/18 pl-4 text-sm leading-relaxed text-white/65 md:text-base">
+            {article.excerpt}
+          </p>
+          <span className="mt-8 inline-flex text-[10px] font-bold uppercase tracking-[0.24em] text-white/45 transition-colors duration-300 group-hover:text-white">
+            Read feature
+          </span>
+        </div>
       </div>
     </Link>
+  );
+}
+
+function ContentLabArchiveRail({ articles }: { articles: ArticleRecord[] }) {
+  return (
+    <div className="h-full border border-white/10 bg-white/[0.02] p-5 md:p-6">
+      <div className="border-b border-white/8 pb-5">
+        <p className="text-[9px] font-bold uppercase tracking-[0.26em] text-white/20">
+          Profiles / Interviews / Essays / Criticism
+        </p>
+        <h3 className="mt-4 text-xl font-bold uppercase tracking-[0.06em] text-white md:text-2xl">
+          Recent archive
+        </h3>
+        <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/42">
+          Writing that adds context, interpretation, and memory around the artists and the wider digital art field.
+        </p>
+      </div>
+
+      <div className="mt-3">
+        {articles.map((article, index) => (
+          <ArchiveArticleRailItem key={article.id} article={article} index={index} />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -205,12 +253,32 @@ export function HomeExperience({
   const featuredArticles = useMemo(() => articles.slice(0, 3), [articles]);
   const directoryPageCount = Math.max(1, Math.ceil(artistEntries.length / 6));
   const normalizedDirectoryPage = directoryGridPage % directoryPageCount;
-  const visibleDirectoryArtists = artistEntries.slice(normalizedDirectoryPage * 6, normalizedDirectoryPage * 6 + 6);
+  const visibleDirectoryArtists = useMemo(() => {
+    if (artistEntries.length === 0) return [];
+
+    const pageSize = 6;
+    const startIndex = normalizedDirectoryPage * pageSize;
+    const pageArtists = artistEntries.slice(startIndex, startIndex + pageSize);
+
+    if (pageArtists.length >= pageSize) {
+      return pageArtists;
+    }
+
+    return [
+      ...pageArtists,
+      ...artistEntries.slice(0, pageSize - pageArtists.length),
+    ];
+  }, [artistEntries, normalizedDirectoryPage]);
   const shouldRestoreStoredHomeMemory = !routeState && navigationType === 'POP' && location.key !== 'default';
   const storedHomeMemory = shouldRestoreStoredHomeMemory ? readHomeMemory() : null;
   const requestedSection = routeState?.homeSection ?? storedHomeMemory?.homeSection;
   const requestedScrollTop = routeState?.homeScrollTop ?? storedHomeMemory?.homeScrollTop;
   const activeSectionRef = useRef<HomeSectionKey>(requestedSection ?? 'hero');
+  const [directoryGridTransitionPhase, setDirectoryGridTransitionPhase] = useState<'idle' | 'out' | 'pre-in'>('idle');
+  const [directoryGridTransitionDirection, setDirectoryGridTransitionDirection] = useState<1 | -1>(1);
+  const directoryTransitionTimeoutRef = useRef<number | null>(null);
+  const directoryTransitionRafRef = useRef<number | null>(null);
+  const directoryTransitioningRef = useRef(false);
 
   const createDirectoryReturnState = () => ({
     from: 'directory-section' as const,
@@ -218,6 +286,38 @@ export function HomeExperience({
     homeScrollTop: scrollRef.current?.scrollTop ?? 0,
     directoryPage: normalizedDirectoryPage,
   });
+
+  const transitionDirectoryGridPage = useCallback((getNextPage: (current: number) => number, direction: 1 | -1) => {
+    if (directoryPageCount <= 1 || directoryTransitioningRef.current) return;
+
+    directoryTransitioningRef.current = true;
+    setDirectoryGridTransitionDirection(direction);
+    setDirectoryGridTransitionPhase('out');
+
+    if (directoryTransitionTimeoutRef.current) {
+      window.clearTimeout(directoryTransitionTimeoutRef.current);
+    }
+
+    if (directoryTransitionRafRef.current) {
+      window.cancelAnimationFrame(directoryTransitionRafRef.current);
+    }
+
+    directoryTransitionTimeoutRef.current = window.setTimeout(() => {
+      setDirectoryGridPage((current: number) => {
+        const nextPage = getNextPage(current);
+        return ((nextPage % directoryPageCount) + directoryPageCount) % directoryPageCount;
+      });
+
+      setDirectoryGridTransitionPhase('pre-in');
+
+      directoryTransitionRafRef.current = window.requestAnimationFrame(() => {
+        directoryTransitionRafRef.current = window.requestAnimationFrame(() => {
+          setDirectoryGridTransitionPhase('idle');
+          directoryTransitioningRef.current = false;
+        });
+      });
+    }, 210);
+  }, [directoryPageCount]);
 
   useLayoutEffect(() => {
     if (!requestedSection && typeof requestedScrollTop !== 'number') return;
@@ -311,6 +411,32 @@ export function HomeExperience({
     });
   }, [normalizedDirectoryPage]);
 
+  useEffect(() => {
+    if (directoryPageCount <= 1) return;
+
+    const interval = window.setInterval(() => {
+      if (document.hidden || activeSectionRef.current !== 'directory' || directoryTransitioningRef.current) {
+        return;
+      }
+
+      transitionDirectoryGridPage((current) => current + 1, 1);
+    }, 7800);
+
+    return () => window.clearInterval(interval);
+  }, [directoryPageCount, transitionDirectoryGridPage]);
+
+  useEffect(() => {
+    return () => {
+      if (directoryTransitionTimeoutRef.current) {
+        window.clearTimeout(directoryTransitionTimeoutRef.current);
+      }
+
+      if (directoryTransitionRafRef.current) {
+        window.cancelAnimationFrame(directoryTransitionRafRef.current);
+      }
+    };
+  }, []);
+
   return (
     <div className="relative h-[100dvh] overflow-hidden">
       <Helmet>
@@ -336,6 +462,7 @@ export function HomeExperience({
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_center,transparent_28%,rgba(0,0,0,0.3)_100%)]" />
 
       <div
+        id="home-scroll-container"
         ref={scrollRef}
         className="relative h-full overflow-y-auto overflow-x-hidden overscroll-y-contain"
       >
@@ -406,7 +533,7 @@ export function HomeExperience({
         >
           <div className="mx-auto flex w-full max-w-7xl flex-col justify-center gap-10">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-2xl">
+              <div className="max-w-2xl" data-home-scroll-anchor="true">
                 <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/25">Directory</p>
                 <h2 className="mt-4 max-w-3xl text-3xl font-black uppercase tracking-[0.04em] text-white md:text-5xl">
                   Artist-owned websites first. Marketplaces second.
@@ -415,14 +542,24 @@ export function HomeExperience({
                   CATALOGUE helps collectors discover new artists without flattening them into a single marketplace. Instead of hosting the work, it sends people directly into each artist&apos;s own website and self-curated world.
                 </p>
               </div>
-              <div className="grid min-w-[240px] grid-cols-2 gap-px border border-white/10 bg-white/10 text-center">
-                <div className="bg-black/70 px-5 py-4">
-                  <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/25">Artist Universes</p>
-                  <p className="mt-2 text-3xl font-bold tracking-tight text-white">{artists.filter((artist) => !artist.type || artist.type === 'artist').length}</p>
+              <div className="flex min-w-[240px] flex-col gap-3">
+                <div className="grid grid-cols-2 gap-px border border-white/10 bg-white/10 text-center">
+                  <div className="bg-black/70 px-5 py-4">
+                    <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/25">Artist Universes</p>
+                    <p className="mt-2 text-3xl font-bold tracking-tight text-white">{artists.filter((artist) => !artist.type || artist.type === 'artist').length}</p>
+                  </div>
+                  <div className="bg-black/70 px-5 py-4">
+                    <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/25">Curated Spaces</p>
+                    <p className="mt-2 text-3xl font-bold tracking-tight text-white">{artists.filter((artist) => artist.type === 'gallery' || artist.type === 'collection').length}</p>
+                  </div>
                 </div>
-                <div className="bg-black/70 px-5 py-4">
-                  <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/25">Curated Spaces</p>
-                  <p className="mt-2 text-3xl font-bold tracking-tight text-white">{artists.filter((artist) => artist.type === 'gallery' || artist.type === 'collection').length}</p>
+                <div className="flex justify-center lg:justify-end">
+                  <Link
+                    to="/artists"
+                    className="inline-flex items-center justify-center border border-white/18 px-6 py-3 text-[10px] font-bold uppercase tracking-[0.24em] text-white transition-colors duration-300 hover:border-white/45 hover:bg-white/5"
+                  >
+                    Browse Artists + Galleries
+                  </Link>
                 </div>
               </div>
             </div>
@@ -445,7 +582,7 @@ export function HomeExperience({
                     <div className="flex items-center gap-3 text-[10px] font-mono uppercase tracking-[0.16em] text-white/25">
                       <button
                         type="button"
-                        onClick={() => setDirectoryGridPage((current) => (current - 1 + directoryPageCount) % directoryPageCount)}
+                        onClick={() => transitionDirectoryGridPage((current: number) => current - 1, -1)}
                         className="inline-flex cursor-pointer appearance-none items-center bg-transparent p-0 text-white/35 outline-none transition-colors duration-300 hover:text-white focus:outline-none focus-visible:text-white"
                         aria-label="Previous artist grid"
                       >
@@ -458,7 +595,7 @@ export function HomeExperience({
                       <span aria-hidden="true" className="text-white/18">-</span>
                       <button
                         type="button"
-                        onClick={() => setDirectoryGridPage((current) => (current + 1) % directoryPageCount)}
+                        onClick={() => transitionDirectoryGridPage((current: number) => current + 1, 1)}
                         className="inline-flex cursor-pointer appearance-none items-center bg-transparent p-0 text-white/35 outline-none transition-colors duration-300 hover:text-white focus:outline-none focus-visible:text-white"
                         aria-label="Next artist grid"
                       >
@@ -467,10 +604,28 @@ export function HomeExperience({
                     </div>
                   </div>
 
-                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  {visibleDirectoryArtists.map((artist) => (
-                    <PreviewArtistCard key={artist.id} artist={artist} getReturnState={createDirectoryReturnState} />
-                  ))}
+                  <div className="overflow-hidden">
+                    <div
+                      className={`grid gap-4 will-change-transform sm:grid-cols-2 xl:grid-cols-3 ${
+                        directoryGridTransitionPhase === 'pre-in'
+                          ? ''
+                          : 'transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]'
+                      } ${
+                        directoryGridTransitionPhase === 'out'
+                          ? directoryGridTransitionDirection === 1
+                            ? '-translate-x-3 opacity-0'
+                            : 'translate-x-3 opacity-0'
+                          : directoryGridTransitionPhase === 'pre-in'
+                            ? directoryGridTransitionDirection === 1
+                              ? 'translate-x-3 opacity-0'
+                              : '-translate-x-3 opacity-0'
+                            : 'translate-x-0 opacity-100'
+                      }`}
+                    >
+                    {visibleDirectoryArtists.map((artist) => (
+                      <PreviewArtistCard key={artist.id} artist={artist} getReturnState={createDirectoryReturnState} />
+                    ))}
+                    </div>
                   </div>
                 </div>
 
@@ -522,16 +677,6 @@ export function HomeExperience({
                   </div>
                 </div>
 
-                <div className="lg:col-span-2">
-                  <div className="flex justify-start md:justify-center">
-                    <Link
-                      to="/artists"
-                      className="inline-flex items-center justify-center border border-white/18 px-6 py-3 text-[10px] font-bold uppercase tracking-[0.24em] text-white transition-colors duration-300 hover:border-white/45 hover:bg-white/5"
-                    >
-                      Browse Artists + Galleries
-                    </Link>
-                  </div>
-                </div>
               </div>
             )}
           </div>
@@ -543,7 +688,7 @@ export function HomeExperience({
         >
           <div className="mx-auto flex w-full max-w-7xl flex-col justify-center gap-10">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-2xl">
+              <div className="max-w-2xl" data-home-scroll-anchor="true">
                 <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/25">Content Lab</p>
                 <h2 className="mt-4 max-w-3xl text-3xl font-black uppercase tracking-[0.04em] text-white md:text-5xl">
                   The writing layer around Catalogue
@@ -552,20 +697,6 @@ export function HomeExperience({
                   The directory is one part of Catalogue. The editorial side adds profiles, interviews, criticism, and essays that give context to the artists, the work, and the wider digital art scene.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  to="/content-lab"
-                  className="inline-flex items-center justify-center border border-white/20 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.24em] text-white transition-colors duration-300 hover:border-white/45 hover:bg-white/5"
-                >
-                  Open Content Lab
-                </Link>
-                <Link
-                  to="/blog"
-                  className="inline-flex items-center justify-center border border-white/10 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.24em] text-white/55 transition-colors duration-300 hover:border-white/35 hover:text-white"
-                >
-                  Browse Archive
-                </Link>
-              </div>
             </div>
 
             {articlesLoading && featuredArticles.length === 0 ? (
@@ -573,13 +704,35 @@ export function HomeExperience({
                 <SquareLoader className="h-7 w-7" label="Loading content preview" strokeWidth={1.6} drift />
               </div>
             ) : (
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
-                {featuredArticles[0] && <FeaturedArticleCard article={featuredArticles[0]} />}
-                <div className="grid gap-4">
-                  {featuredArticles.slice(1).map((article) => (
-                    <PreviewArticleCard key={article.id} article={article} />
-                  ))}
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:items-start">
+                <div className="flex flex-col gap-4">
+                  {featuredArticles[0] ? (
+                    <FeaturedArticleCard article={featuredArticles[0]} />
+                  ) : (
+                    <div className="flex min-h-[380px] items-end border border-white/10 bg-white/[0.03] p-6 md:min-h-[460px] md:p-8">
+                      <p className="max-w-lg text-sm leading-relaxed text-white/45 md:text-base">
+                        The archive is still being assembled. Check back shortly for the latest writing from the Content Lab.
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap gap-3">
+                    <Link
+                      to="/content-lab"
+                      className="inline-flex items-center justify-center border border-white/20 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.24em] text-white transition-colors duration-300 hover:border-white/45 hover:bg-white/5"
+                    >
+                      Open Content Lab
+                    </Link>
+                    <Link
+                      to="/blog"
+                      className="inline-flex items-center justify-center border border-white/10 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.24em] text-white/55 transition-colors duration-300 hover:border-white/35 hover:text-white"
+                    >
+                      Browse Archive
+                    </Link>
+                  </div>
                 </div>
+
+                <ContentLabArchiveRail articles={featuredArticles.slice(1, 4)} />
               </div>
             )}
           </div>
@@ -590,7 +743,7 @@ export function HomeExperience({
           className="relative flex min-h-[90dvh] items-center px-6 py-24 md:py-28"
         >
           <div className="mx-auto grid w-full max-w-7xl gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
-            <div>
+            <div data-home-scroll-anchor="true">
               <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/25">Apply + About</p>
               <h2 className="mt-4 max-w-3xl text-3xl font-black uppercase tracking-[0.04em] text-white md:text-5xl">
                 If the work has its own universe, it belongs here.

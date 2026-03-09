@@ -4,6 +4,18 @@ All notable changes to `catalogue.gallery` are documented in this file.
 
 The project now uses [Semantic Versioning](https://semver.org/) for public releases. Repository releases are published through GitHub Releases and summarized here in human-readable form.
 
+## [0.1.6] - 2026-03-08
+
+Patch release for the homepage Content Lab section layout refactor.
+
+### Changed
+
+- Rebuilt the home Content Lab section into a stronger editorial composition with one featured story and a longer recent-archive rail
+- Moved the Content Lab and archive entry buttons beneath the featured story and removed the duplicate archive CTA from the rail
+- Fixed home section jump-navigation so the top bar lands on the actual section content instead of the padded shell
+- Moved the directory browse CTA up beside the directory stats and added an auto-advancing 6-item directory grid with subtle slide motion
+- Simplified the bottom-right social link to the X icon only
+
 ## [0.1.5] - 2026-03-08
 
 Patch release for homepage arrow cleanup.
