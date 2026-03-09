@@ -14,12 +14,12 @@ const FOOTER_VARIANTS: Record<CatalogueFooterVariant, {
     mobileItemClassName: string
 }> = {
     home: {
-        desktopLinkClassName: 'text-[11px] font-mono text-white/45 hover:text-white transition-colors duration-300 uppercase tracking-[0.12em]',
+        desktopLinkClassName: 'inline-flex items-center justify-center text-white/45 hover:text-white transition-colors duration-300',
         desktopButtonClassName: 'text-[10px] font-display text-white/35 hover:text-white transition-colors duration-300 uppercase tracking-[0.18em] mt-1',
         mobileItemClassName: 'text-[10px] font-bold text-white/50 hover:text-white uppercase tracking-widest transition-colors duration-300',
     },
     info: {
-        desktopLinkClassName: 'text-[10px] font-bold text-white/20 hover:text-white transition-colors duration-300 uppercase tracking-widest',
+        desktopLinkClassName: 'inline-flex items-center justify-center text-white/20 hover:text-white transition-colors duration-300',
         desktopButtonClassName: 'text-[10px] font-bold text-white/20 hover:text-white transition-colors duration-300 uppercase tracking-widest mt-1',
         mobileItemClassName: 'text-[10px] font-bold text-white/50 hover:text-white uppercase tracking-widest transition-colors duration-300',
     },
@@ -46,9 +46,9 @@ export function CatalogueFooterLinks({
                     target="_blank"
                     rel="noreferrer"
                     className={styles.desktopLinkClassName}
+                    aria-label="Catalogue on X"
                 >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" className="inline-block mr-1.5 opacity-70"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.254 5.622L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
-                    @CATALOGUEART
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" className="opacity-70"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.254 5.622L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
                 </a>
                 <button
                     onClick={openPolicy}
@@ -85,8 +85,9 @@ export function CatalogueFooterLinks({
                     className={`text-[10px] font-bold transition-colors duration-300 uppercase tracking-widest p-2 -mr-2 relative z-50 ${
                         showSocialMenu ? 'text-white' : 'text-white/20 hover:text-white'
                     }`}
+                    aria-label="Open social links"
                 >
-                    @
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" className="opacity-80"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.254 5.622L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
                 </button>
             </div>
         </div>
