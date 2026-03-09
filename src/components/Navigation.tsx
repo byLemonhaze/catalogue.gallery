@@ -24,6 +24,12 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
     const isHome = path === '/';
     const homeReturnState = buildHomeNavigationState();
 
+    const getVisibleHomeNavBottom = () => {
+        const navCandidates = Array.from(document.querySelectorAll<HTMLElement>('[data-home-nav="true"]'));
+        const visibleNav = navCandidates.find((element) => element.offsetParent !== null);
+        return visibleNav?.getBoundingClientRect().bottom ?? 0;
+    };
+
     const isLegacySectionActive = (item: typeof NAV_ITEMS[number]) => {
         return item.legacyRoutes.some((route) => path.startsWith(route));
     };
@@ -33,10 +39,10 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
         const sectionElement = document.getElementById(HOME_SECTION_IDS[section]);
         const target = sectionElement?.querySelector<HTMLElement>('[data-home-scroll-anchor="true"]') || sectionElement;
         if (!container || !target) return;
-        const containerRect = container.getBoundingClientRect();
         const targetRect = target.getBoundingClientRect();
+        const desiredTop = getVisibleHomeNavBottom() + 18;
         container.scrollTo({
-            top: targetRect.top - containerRect.top + container.scrollTop,
+            top: Math.max(0, container.scrollTop + targetRect.top - desiredTop),
             behavior: 'smooth',
         });
     };
@@ -45,11 +51,11 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
     if (path.startsWith('/artist/') || path.startsWith('/gallery/')) return null;
 
     const baseLinkClass =
-        'inline-flex items-center pb-1 text-[11px] md:text-[12px] uppercase tracking-[0.12em] md:tracking-[0.16em] text-white/50 transition-colors duration-200 hover:text-white font-display cursor-pointer';
+        'inline-flex items-center pb-1 text-[11px] md:text-[12px] uppercase tracking-[0.12em] md:tracking-[0.16em] text-white/50 transition-colors duration-200 hover:text-white font-display cursor-pointer outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0';
     const mobileLinkClass =
-        'inline-flex items-center pb-1 text-[11px] uppercase tracking-[0.12em] text-white/50 transition-colors duration-200 hover:text-white font-display cursor-pointer';
+        'inline-flex items-center pb-1 text-[11px] uppercase tracking-[0.12em] text-white/50 transition-colors duration-200 hover:text-white font-display cursor-pointer outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0';
     const activeLinkClass = 'text-white underline decoration-white underline-offset-4';
-    const searchButtonClass = 'inline-flex items-center gap-2 pb-1 text-[11px] uppercase tracking-[0.12em] text-white/40 hover:text-white transition-colors duration-200 font-display border-l border-white/10 pl-5 ml-1 cursor-pointer';
+    const searchButtonClass = 'inline-flex items-center gap-2 pb-1 text-[11px] uppercase tracking-[0.12em] text-white/40 hover:text-white transition-colors duration-200 font-display border-l border-white/10 pl-5 ml-1 cursor-pointer outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0';
     const backLinkClass = 'text-white/25 hover:text-white transition-colors duration-200 text-sm';
 
     const renderBrand = (className: string) => {
@@ -57,7 +63,10 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
             return (
                 <button
                     type="button"
-                    onClick={() => scrollToHomeSection('hero')}
+                    onClick={(event) => {
+                        event.currentTarget.blur();
+                        scrollToHomeSection('hero');
+                    }}
                     className={className}
                 >
                     CATALOGUE
@@ -83,7 +92,10 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
                 <button
                     key={item.label}
                     type="button"
-                    onClick={() => scrollToHomeSection(item.section)}
+                    onClick={(event) => {
+                        event.currentTarget.blur();
+                        scrollToHomeSection(item.section);
+                    }}
                     className={resolvedClassName}
                 >
                     {item.label}
@@ -106,7 +118,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
     return (
         <header className="fixed inset-x-0 top-0 z-50 pointer-events-none">
             {/* Mobile */}
-            <div className="pointer-events-auto mt-4 border-y border-white/5 bg-black/65 px-4 pb-2 pt-3 backdrop-blur-md md:hidden">
+            <div data-home-nav="true" className="pointer-events-auto mt-4 border-y border-white/5 bg-black/65 px-4 pb-2 pt-3 backdrop-blur-md md:hidden">
                 <div className="flex items-center justify-center relative">
                     <div className="absolute left-4 inline-flex w-6 justify-center">
                         {path !== '/' && (
@@ -120,7 +132,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
                             </Link>
                         )}
                     </div>
-                    {renderBrand('text-base uppercase tracking-[0.16em] text-white transition-opacity hover:opacity-80 font-display')}
+                    {renderBrand('cursor-pointer text-base uppercase tracking-[0.16em] text-white transition-opacity hover:opacity-80 font-display outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0')}
                 </div>
                 <nav className="mt-3 flex items-center justify-center gap-4 overflow-x-auto px-2 scrollbar-hide">
                     {NAV_ITEMS.map((item) => renderNavItem(item, mobileLinkClass))}
@@ -138,7 +150,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
             </div>
 
             {/* Desktop */}
-            <nav className="pointer-events-auto mx-auto mt-5 hidden w-[calc(100%-2rem)] max-w-7xl items-center justify-between gap-5 border border-white/10 bg-black/35 px-6 py-3 backdrop-blur-md md:flex">
+            <nav data-home-nav="true" className="pointer-events-auto mx-auto mt-5 hidden w-[calc(100%-2rem)] max-w-7xl items-center justify-between gap-5 border border-white/10 bg-black/35 px-6 py-3 backdrop-blur-md md:flex">
                 <div className="grid shrink-0 grid-cols-[1rem_auto] items-center gap-3">
                     <div className="inline-flex w-4 justify-center">
                         {path !== '/' && (
@@ -147,7 +159,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
                             </Link>
                         )}
                     </div>
-                    {renderBrand('text-base md:text-lg uppercase tracking-[0.16em] text-white transition-opacity hover:opacity-80 font-display')}
+                    {renderBrand('cursor-pointer text-base md:text-lg uppercase tracking-[0.16em] text-white transition-opacity hover:opacity-80 font-display outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0')}
                 </div>
 
                 <div className="flex items-center gap-5 overflow-x-auto scrollbar-hide">

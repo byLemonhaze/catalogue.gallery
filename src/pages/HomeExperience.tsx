@@ -54,7 +54,7 @@ function getSectionScrollTarget(section: HomeSectionKey) {
 function getContainerScrollTop(container: HTMLDivElement, target: HTMLElement) {
   const containerRect = container.getBoundingClientRect();
   const targetRect = target.getBoundingClientRect();
-  const navOffset = window.innerWidth >= 768 ? 104 : 84;
+  const navOffset = window.innerWidth >= 768 ? 118 : 92;
   return Math.max(0, targetRect.top - containerRect.top + container.scrollTop - navOffset);
 }
 
