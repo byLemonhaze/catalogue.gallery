@@ -385,7 +385,7 @@ export function HomeExperience({
                   to="/info"
                   className="border-b border-white/15 pb-px text-[10px] font-bold uppercase tracking-[0.22em] text-white/55 transition-colors duration-300 hover:border-white/50 hover:text-white"
                 >
-                  Apply to Catalogue →
+                  Apply to Catalogue
                 </Link>
                 <button
                   type="button"
