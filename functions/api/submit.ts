@@ -1,7 +1,4 @@
-import { encryptEmail } from './_emailCipher';
-import { createContact, type ContactStoreBindings } from './_contactStore';
-
-type EnvVars = ContactStoreBindings & Record<string, unknown>;
+type EnvVars = Record<string, unknown>;
 type WorkerContext = { request: Request; env: EnvVars };
 type SubmissionType = 'artist' | 'gallery';
 
@@ -28,14 +25,12 @@ type SubmissionPayload = {
     name: string;
     subtitle: string;
     websiteUrlInput: string;
-    email: string;
     type: SubmissionType;
     thumbnail: FormDataEntryValue | null;
 };
 
 type SanityConfig = {
     sanityWriteToken: string;
-    emailEncryptionKey: string;
     projectId: string;
     dataset: string;
     baseUrl: string;
@@ -78,10 +73,6 @@ function createSlug(name: string) {
     return base || `entry-${Date.now()}`;
 }
 
-function isValidEmail(email: string) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
 function getErrorMessage(err: unknown) {
     return err instanceof Error ? err.message : 'Internal Server Error';
 }
@@ -97,18 +88,14 @@ function parseSubmissionPayload(formData: FormData): SubmissionPayload {
         name: String(formData.get('name') || '').trim(),
         subtitle: String(formData.get('subtitle') || '').trim(),
         websiteUrlInput: String(formData.get('websiteUrl') || '').trim(),
-        email: String(formData.get('email') || '').trim().toLowerCase(),
         type: typeRaw,
         thumbnail: formData.get('thumbnail'),
     }
 }
 
 function validateSubmissionPayload(payload: SubmissionPayload) {
-    if (!payload.name || !payload.subtitle || !payload.websiteUrlInput || !payload.email) {
-        return jsonResponse({ error: 'Missing required fields: name, subtitle, websiteUrl, and email are required.' }, 400)
-    }
-    if (!isValidEmail(payload.email)) {
-        return jsonResponse({ error: 'Please provide a valid email address.' }, 400)
+    if (!payload.name || !payload.subtitle || !payload.websiteUrlInput) {
+        return jsonResponse({ error: 'Missing required fields: name, subtitle, and websiteUrl are required.' }, 400)
     }
     if (!allowedTypes.has(payload.type)) {
         return jsonResponse({ error: 'Invalid type. Only "artist" and "gallery" submissions are accepted.' }, 400)
@@ -118,33 +105,18 @@ function validateSubmissionPayload(payload: SubmissionPayload) {
 
 function readSanityConfig(env: EnvVars): SanityConfig {
     const sanityWriteToken = readEnvString(env, 'SANITY_WRITE_TOKEN').trim()
-    const emailEncryptionKey = readEnvString(env, 'EMAIL_ENCRYPTION_KEY').trim()
     const projectId = (readEnvString(env, 'SANITY_PROJECT_ID') || readEnvString(env, 'VITE_SANITY_PROJECT_ID') || 'ebj9kqfo').trim()
     const dataset = (readEnvString(env, 'SANITY_DATASET') || readEnvString(env, 'VITE_SANITY_DATASET') || 'production').trim()
 
     if (!sanityWriteToken) {
         throw new Error('Server configuration error: SANITY_WRITE_TOKEN is missing.')
     }
-    if (!emailEncryptionKey) {
-        throw new Error('Server configuration error: EMAIL_ENCRYPTION_KEY is missing.')
-    }
 
     return {
         sanityWriteToken,
-        emailEncryptionKey,
         projectId,
         dataset,
         baseUrl: `https://${projectId}.api.sanity.io/v2024-01-01`,
-    }
-}
-
-async function createSubmissionContactId(env: EnvVars, email: string, emailEncryptionKey: string) {
-    const encryptedEmail = await encryptEmail(email, emailEncryptionKey)
-
-    try {
-        return await createContact(env, encryptedEmail)
-    } catch (storeErr) {
-        throw new Error(`Private contact storage failed: ${getErrorMessage(storeErr)}`)
     }
 }
 
@@ -197,7 +169,6 @@ async function hasDuplicateWebsiteUrl(normalizedUrl: string, config: SanityConfi
 function buildPendingSubmissionDocument(
     payload: SubmissionPayload,
     normalizedUrl: string,
-    contactId: string,
     imageAssetId: string | null
 ) {
     return {
@@ -209,7 +180,6 @@ function buildPendingSubmissionDocument(
         },
         subtitle: payload.subtitle,
         websiteUrl: normalizedUrl,
-        contactId,
         template: 'external',
         status: 'pending',
         thumbnail: imageAssetId
@@ -255,17 +225,12 @@ export const onRequestPost = async (context: WorkerContext) => {
 
         const config = readSanityConfig(env)
         const normalizedUrl = normalizeWebsiteUrl(payload.websiteUrlInput);
-        const contactId = await createSubmissionContactId(env, payload.email, config.emailEncryptionKey)
-        if (!contactId) {
-            return jsonResponse({ error: 'Server configuration error: CONTACTS_DB binding is missing.' }, 500);
-        }
-
         const imageAssetId = await uploadThumbnailAsset(payload.thumbnail, config)
         if (await hasDuplicateWebsiteUrl(normalizedUrl, config)) {
             return jsonResponse({ error: 'This URL is already registered.' }, 400);
         }
 
-        const doc = buildPendingSubmissionDocument(payload, normalizedUrl, contactId, imageAssetId)
+        const doc = buildPendingSubmissionDocument(payload, normalizedUrl, imageAssetId)
         await createPendingSubmissionDocument(doc, config)
 
         return jsonResponse({ success: true });
