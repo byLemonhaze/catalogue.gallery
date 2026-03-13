@@ -9,6 +9,7 @@ export function SubmitArtist() {
         name: '',
         subtitle: '',
         websiteUrl: '',
+        email: '',
         type: 'artist' as 'artist' | 'gallery' | 'collector'
     });
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
@@ -30,6 +31,7 @@ export function SubmitArtist() {
         e.preventDefault();
         if (formData.type === 'collector') return;
 
+        const normalizedEmail = formData.email.trim();
         setIsSubmitting(true);
         setStatus(null);
 
@@ -38,6 +40,7 @@ export function SubmitArtist() {
             submitData.append('name', formData.name);
             submitData.append('subtitle', formData.subtitle);
             submitData.append('websiteUrl', formData.websiteUrl);
+            submitData.append('email', normalizedEmail);
             submitData.append('type', formData.type);
             if (thumbnailFile) {
                 submitData.append('thumbnail', thumbnailFile);
@@ -55,7 +58,7 @@ export function SubmitArtist() {
             }
 
             setStatus({ type: 'success', message: 'Application received. We will be in touch shortly.' });
-            setFormData({ name: '', subtitle: '', websiteUrl: '', type: formData.type });
+            setFormData({ name: '', subtitle: '', websiteUrl: '', email: '', type: formData.type });
             setThumbnailFile(null);
             setPreviewUrl(null);
 
@@ -243,6 +246,19 @@ export function SubmitArtist() {
                                             Test
                                         </button>
                                     </div>
+                                </div>
+
+                                {/* Email */}
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-2">Contact Email</p>
+                                    <input
+                                        type="email"
+                                        required
+                                        value={formData.email}
+                                        onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                        className="w-full bg-transparent border-b border-white/15 py-2.5 text-sm text-white focus:border-white/50 outline-none transition-colors placeholder-white/20"
+                                        placeholder="your@email.com"
+                                    />
                                 </div>
 
                                 {/* Status */}
