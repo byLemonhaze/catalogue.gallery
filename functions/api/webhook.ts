@@ -324,7 +324,7 @@ function readNotificationConfig(env: EnvVars): NotificationConfig {
         resendApiKey,
         baseUrl: (readEnvString(env, 'PUBLIC_BASE_URL') || 'https://catalogue.gallery').replace(/\/+$/, ''),
         fromAddress: readEnvString(env, 'RESEND_FROM_EMAIL') || 'CATALOGUE <apply@catalogue.gallery>',
-        replyTo: readEnvString(env, 'RESEND_REPLY_TO').trim(),
+        replyTo: readEnvString(env, 'RESEND_REPLY_TO').trim() || 'apply@catalogue.gallery',
     };
 }
 

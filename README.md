@@ -10,7 +10,7 @@ Catalogue.gallery is a discovery platform designed around the idea that artists 
 - Content + review backend: Sanity Studio (`/studio`)
 - Public API endpoints: Cloudflare Pages Functions (`/functions/api`)
 - Email delivery: Resend
-- Inbox/reply workflow: ProtonMail (via `reply_to`)
+- Inbox/reply workflow: `apply@catalogue.gallery` Reply-To (CF Email Routing → ProtonMail)
 - Editorial/blog content: Sanity `post` documents (served at `/blog/:slug`)
 
 ## Engineering Docs
@@ -64,11 +64,11 @@ Required app/server env vars:
 - `SANITY_WRITE_TOKEN` (server-side write token for submit endpoint)
 - `RESEND_API_KEY`
 - `RESEND_FROM_EMAIL` (example: `CATALOGUE <apply@catalogue.gallery>`)
-- `RESEND_REPLY_TO` (set to your ProtonMail address)
+- `RESEND_REPLY_TO` (prefer `apply@catalogue.gallery`; CF Email Routing forwards to ProtonMail. Leave unset to use the same default in the webhook)
 - `PUBLIC_BASE_URL` (example: `https://catalogue.gallery`)
 - `VITE_CF_WEB_ANALYTICS_TOKEN` (optional; only needed for manual beacon mode)
 - `WEBHOOK_SHARED_SECRET` (required; webhook requests are rejected without it)
-- `EMAIL_ENCRYPTION_KEY` (32-byte base64 key used to encrypt contact emails before storing in Sanity)
+- `EMAIL_ENCRYPTION_KEY` (32-byte base64 key used to encrypt contact emails at rest in D1; Sanity stores `contactId` only)
 - `SANITY_PROJECT_ID` (optional server override)
 - `SANITY_DATASET` (optional server override)
 
@@ -175,23 +175,25 @@ Full endpoint details: [`docs/API.md`](./docs/API.md)
 - `CLAUDE_API_KEY` — Anthropic API key (Claude Haiku, used for website summarization only)
 - `CONTENT_LAB_PASSWORD` — auth password for the private `/content-lab` route
 
-## ProtonMail + Resend Setup (Recommended)
+## Resend + apply@ Reply-To (Recommended)
 
-Use Resend to send mail and ProtonMail to receive replies:
+Use Resend to send mail, with Reply-To on `apply@catalogue.gallery` so inbound replies land in ProtonMail via Cloudflare Email Routing:
 
 1. In Resend:
    - verify `catalogue.gallery` domain with DNS records
    - set sender as `CATALOGUE <apply@catalogue.gallery>`
-2. In Cloudflare Pages env vars:
+2. In Cloudflare Email Routing:
+   - route `apply@catalogue.gallery` → `[redacted-private-inbox]` (shared inbox)
+3. In Cloudflare Pages env vars:
    - `RESEND_API_KEY`
    - `RESEND_FROM_EMAIL=CATALOGUE <apply@catalogue.gallery>`
-   - `RESEND_REPLY_TO=yourname@proton.me`
-3. In Sanity webhook settings:
+   - `RESEND_REPLY_TO=apply@catalogue.gallery` (or clear the secret; webhook defaults to `apply@`). Do not set a personal `@proton.me` as Reply-To.
+4. In Sanity webhook settings:
    - URL: your deployed webhook endpoint
    - Trigger: document create/update for `artist` and `gallery`
    - Configure the shared secret header using `WEBHOOK_SHARED_SECRET`
 
-This keeps deliverability high (Resend) while all replies route back to ProtonMail.
+This keeps deliverability high (Resend) while replies go to `apply@` and forward into ProtonMail.
 
 ## Testing
 
