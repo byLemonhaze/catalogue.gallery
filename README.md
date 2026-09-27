@@ -177,17 +177,18 @@ Full endpoint details: [`docs/API.md`](./docs/API.md)
 
 ## Resend + apply@ Reply-To (Recommended)
 
-Use Resend to send mail, with Reply-To on `apply@catalogue.gallery` so inbound replies land in ProtonMail via Cloudflare Email Routing:
+Use Resend to send mail, with Reply-To on `apply@catalogue.gallery` so inbound replies land via Cloudflare Email Routing:
 
 1. In Resend:
    - verify `catalogue.gallery` domain with DNS records
    - set sender as `CATALOGUE <apply@catalogue.gallery>`
 2. In Cloudflare Email Routing:
-   - route `apply@catalogue.gallery` → `[redacted-private-inbox]` (shared inbox)
+   - enable routing for `catalogue.gallery`
+   - route `apply@catalogue.gallery` to your private shared inbox (destination stays in the Cloudflare dashboard only — never commit it)
 3. In Cloudflare Pages env vars:
    - `RESEND_API_KEY`
    - `RESEND_FROM_EMAIL=CATALOGUE <apply@catalogue.gallery>`
-   - `RESEND_REPLY_TO=apply@catalogue.gallery` (or clear the secret; webhook defaults to `apply@`). Do not set a personal `@proton.me` as Reply-To.
+   - `RESEND_REPLY_TO=apply@catalogue.gallery` (or clear the secret; webhook defaults to `apply@`). Do not set a personal mailbox as Reply-To.
 4. In Sanity webhook settings:
    - URL: your deployed webhook endpoint
    - Trigger: document create/update for `artist` and `gallery`
