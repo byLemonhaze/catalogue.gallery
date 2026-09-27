@@ -90,7 +90,7 @@ export const ArtistList: React.FC = () => {
                                             <img
                                                 src={artist.isSanity && artist.thumbnail ? urlFor(artist.thumbnail).width(80).url() : (typeof artist.thumbnail === 'string' ? artist.thumbnail : undefined)}
                                                 alt={artist.name}
-                                                className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity duration-300"
+                                                className="w-full h-full object-cover object-top opacity-70 group-hover:opacity-100 transition-opacity duration-300"
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center">
@@ -134,7 +134,7 @@ export const ArtistList: React.FC = () => {
                                         <img
                                             src={gallery.isSanity && gallery.thumbnail ? urlFor(gallery.thumbnail).width(100).url() : (typeof gallery.thumbnail === 'string' ? gallery.thumbnail : undefined)}
                                             alt={gallery.name}
-                                            className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity duration-300"
+                                            className="w-full h-full object-cover object-top opacity-70 group-hover:opacity-100 transition-opacity duration-300"
                                         />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center">
