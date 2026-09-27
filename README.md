@@ -85,9 +85,9 @@ Cloudflare binding (not an env var):
 3. You review in Sanity Studio:
    - pending list: `In Review (New)`
    - for fast workflow use document actions:
-     - `Approve & Notify`
-     - `Decline & Notify`
-   - for declines choose `rejectionReasonCode` and optionally add `rejectionReason` details
+     - `Approve & Notify` (from pending)
+     - `Decline & Notify` (from pending: pick rejection reason in the dialog, then publish)
+   - declines require a `rejectionReasonCode` (and `rejectionReason` when reason is Other)
    - for approvals optionally add `approvalMessage`
 4. Sanity webhook calls `POST /api/webhook`.
 5. `/api/webhook` sends approval/decline email through Resend.
