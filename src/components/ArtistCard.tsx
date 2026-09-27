@@ -29,7 +29,7 @@ export const ArtistCard: React.FC<ArtistProps> = ({ name, thumbnail, subtitle, i
                     <img
                         src={imageUrl}
                         alt={name}
-                        className="absolute inset-0 w-full h-full object-contain opacity-85 group-hover:opacity-100 transition-opacity duration-300"
+                        className="absolute inset-0 w-full h-full object-cover object-top opacity-85 group-hover:opacity-100 transition-opacity duration-300"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center bg-[#101010]">

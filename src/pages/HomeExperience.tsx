@@ -96,7 +96,7 @@ function PreviewArtistCard({
           <img
             src={thumbnailUrl}
             alt={artist.name}
-            className="h-full w-full object-contain opacity-75 transition-opacity duration-500 group-hover:opacity-100"
+            className="h-full w-full object-cover object-top opacity-75 transition-opacity duration-500 group-hover:opacity-100"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-white/5">
