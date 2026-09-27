@@ -4,6 +4,14 @@ All notable changes to `catalogue.gallery` are documented in this file.
 
 The project now uses [Semantic Versioning](https://semver.org/) for public releases. Repository releases are published through GitHub Releases and summarized here in human-readable form.
 
+## [Unreleased]
+
+### Changed
+
+- Apply requires a thumbnail/profile image, name, subtitle, valid HTTPS website URL and contact email before Submit is available; the server enforces the same requirements.
+- Replaced the manual iframe tester with an automatic embedding-permissions check, including provider guidance when catalogue.gallery is blocked and automatic rechecks after returning to the page.
+- Applications wait for a successful permissions check, and the server rechecks before accepting a submission. Unreachable sites show an unverified status instead of a false pass or a permissions error.
+
 ## [0.1.7] - 2026-03-08
 
 Patch release for homepage navigation stop-point correction and cursor polish.

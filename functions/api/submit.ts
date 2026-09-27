@@ -1,3 +1,5 @@
+import { normalizeWebsiteUrl, isValidEmail, thumbnailError } from '../../shared/submission';
+import { checkEmbedding } from './_embedCheck';
 import { encryptEmail } from './_emailCipher';
 import { createContact, type ContactStoreBindings } from './_contactStore';
 
@@ -59,15 +61,6 @@ function jsonResponse(body: Record<string, unknown>, status = 200) {
     });
 }
 
-function normalizeWebsiteUrl(rawUrl: string) {
-    const parsed = new URL(rawUrl.trim());
-    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
-        throw new Error('Only http/https website URLs are supported');
-    }
-    parsed.hash = '';
-    return parsed.toString().replace(/\/+$/, '');
-}
-
 function createSlug(name: string) {
     const base = name
         .toLowerCase()
@@ -76,10 +69,6 @@ function createSlug(name: string) {
         .replace(/^-+|-+$/g, '');
 
     return base || `entry-${Date.now()}`;
-}
-
-function isValidEmail(email: string) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function getErrorMessage(err: unknown) {
@@ -91,13 +80,14 @@ function isFileEntry(value: FormDataEntryValue | null): value is File {
 }
 
 function parseSubmissionPayload(formData: FormData): SubmissionPayload {
-    const typeRaw = String(formData.get('type') || 'artist').trim() as SubmissionType
+    const textField = (key: string) => typeof formData.get(key) === 'string' ? String(formData.get(key)).trim() : '';
+    const typeRaw = (textField('type') || 'artist') as SubmissionType
 
     return {
-        name: String(formData.get('name') || '').trim(),
-        subtitle: String(formData.get('subtitle') || '').trim(),
-        websiteUrlInput: String(formData.get('websiteUrl') || '').trim(),
-        email: String(formData.get('email') || '').trim().toLowerCase(),
+        name: textField('name'),
+        subtitle: textField('subtitle'),
+        websiteUrlInput: textField('websiteUrl'),
+        email: textField('email').toLowerCase(),
         type: typeRaw,
         thumbnail: formData.get('thumbnail'),
     }
@@ -107,6 +97,9 @@ function validateSubmissionPayload(payload: SubmissionPayload) {
     if (!payload.name || !payload.subtitle || !payload.websiteUrlInput || !payload.email) {
         return jsonResponse({ error: 'Missing required fields: name, subtitle, websiteUrl, and email are required.' }, 400)
     }
+    const imageError = thumbnailError(isFileEntry(payload.thumbnail) ? payload.thumbnail : null);
+    if (imageError) return jsonResponse({ error: imageError }, 400);
+    if (payload.subtitle.length > 35) return jsonResponse({ error: 'Keep the subtitle to 35 characters or fewer.' }, 400);
     if (!isValidEmail(payload.email)) {
         return jsonResponse({ error: 'Please provide a valid email address.' }, 400)
     }
@@ -153,7 +146,7 @@ async function uploadThumbnailAsset(
     config: SanityConfig
 ) {
     if (!isFileEntry(thumbnail) || thumbnail.size <= 0) {
-        return null
+        throw new Error('A thumbnail image is required.');
     }
 
     const uploadResponse = await fetch(`${config.baseUrl}/assets/images/${config.dataset}`, {
@@ -171,7 +164,9 @@ async function uploadThumbnailAsset(
     }
 
     const asset = await uploadResponse.json() as SanityAssetResponse
-    return asset.document?._id || asset._id || null
+    const assetId = asset.document?._id || asset._id;
+    if (!assetId) throw new Error('Image upload did not return an asset. Please try again.');
+    return assetId;
 }
 
 async function hasDuplicateWebsiteUrl(normalizedUrl: string, config: SanityConfig) {
@@ -198,7 +193,7 @@ function buildPendingSubmissionDocument(
     payload: SubmissionPayload,
     normalizedUrl: string,
     contactId: string,
-    imageAssetId: string | null
+    imageAssetId: string
 ) {
     return {
         _type: payload.type,
@@ -212,15 +207,13 @@ function buildPendingSubmissionDocument(
         contactId,
         template: 'external',
         status: 'pending',
-        thumbnail: imageAssetId
-            ? {
-                _type: 'image',
-                asset: {
-                    _type: 'reference',
-                    _ref: imageAssetId,
-                },
-            }
-            : undefined,
+        thumbnail: {
+            _type: 'image',
+            asset: {
+                _type: 'reference',
+                _ref: imageAssetId,
+            },
+        },
     }
 }
 
@@ -253,17 +246,26 @@ export const onRequestPost = async (context: WorkerContext) => {
             return validationError
         }
 
+        let normalizedUrl: string;
+        try {
+            normalizedUrl = normalizeWebsiteUrl(payload.websiteUrlInput);
+        } catch {
+            return jsonResponse({ error: 'Enter a valid public HTTPS website URL.' }, 400);
+        }
+        const embedCheck = await checkEmbedding(normalizedUrl);
+        if (embedCheck.status !== 'compatible') {
+            return jsonResponse({ error: embedCheck.message, embedStatus: embedCheck.status }, embedCheck.status === 'blocked' ? 422 : 503);
+        }
         const config = readSanityConfig(env)
-        const normalizedUrl = normalizeWebsiteUrl(payload.websiteUrlInput);
+        if (await hasDuplicateWebsiteUrl(normalizedUrl, config)) {
+            return jsonResponse({ error: 'This URL is already registered.' }, 400);
+        }
         const contactId = await createSubmissionContactId(env, payload.email, config.emailEncryptionKey)
         if (!contactId) {
             return jsonResponse({ error: 'Server configuration error: CONTACTS_DB binding is missing.' }, 500);
         }
 
         const imageAssetId = await uploadThumbnailAsset(payload.thumbnail, config)
-        if (await hasDuplicateWebsiteUrl(normalizedUrl, config)) {
-            return jsonResponse({ error: 'This URL is already registered.' }, 400);
-        }
 
         const doc = buildPendingSubmissionDocument(payload, normalizedUrl, contactId, imageAssetId)
         await createPendingSubmissionDocument(doc, config)

@@ -14,6 +14,7 @@ All endpoints are served from Cloudflare Pages Functions under `/api/*`.
 |---|---|---|---|
 | `/api/artists` | `GET` | Public | Read-only public directory feed for published profiles |
 | `/api/client-errors` | `POST` | Public | Collect browser runtime errors into Cloudflare logs |
+| `/api/check-embed` | `GET` | Public | Check website embedding permissions for catalogue.gallery |
 | `/api/submit` | `POST` | Public | Submit artist/gallery application |
 | `/api/webhook` | `POST` | `WEBHOOK_SHARED_SECRET` header/bearer | Process Sanity review events and send emails |
 | `/api/content-artists` | `GET` | Content Lab password | List published artists/galleries for Content Lab picker |
@@ -67,20 +68,36 @@ All endpoints are served from Cloudflare Pages Functions under `/api/*`.
   - `400` invalid JSON body
   - `415` unsupported content type
 
+### `GET /api/check-embed`
+
+- Query: `url` (required public HTTPS URL; no credentials, IP literals, local domains or custom ports).
+- Returns `200` with `{ "status": "compatible" | "blocked" | "unknown", "message": "..." }` and `Cache-Control: no-store`.
+- Invalid input returns `400` with `{ "error": "..." }`.
+- Uses GET and inspects the final HTML response after at most four redirects with an eight-second overall timeout. Redirect destinations are validated before fetching; HTTP downgrades are blocked. Response bodies are discarded.
+- Evaluates enforced CSP `frame-ancestors` for `https://catalogue.gallery`, including multiple policies, and falls back to `X-Frame-Options` when no enforced `frame-ancestors` directive exists. Report-only policies do not grant permissions.
+- `unknown` includes network errors, non-HTML pages, unsuccessful HTTP responses and redirect failures. It does not mean the provider blocks embedding.
+- This checks response-header permissions, not a browser render. JavaScript behavior, challenges, login requirements and different responses served to browsers still require the existing editorial review.
+- Intended for Cloudflare Pages Functions' public outbound fetch runtime; do not expose an unrestricted local development server to untrusted callers.
+- Apply checks automatically after 600 ms without typing, cancels stale checks, and rechecks on window focus or on leaving the URL field after an unsuccessful check. No Test button is needed.
+
 ### `POST /api/submit`
 
 - Request content type: `multipart/form-data`
 - Required fields:
   - `name`
-  - `subtitle`
-  - `websiteUrl`
-  - `email`
+  - `subtitle` (nonblank, at most 35 characters)
+  - `websiteUrl` (public HTTPS URL; same validation as `/api/check-embed`)
+  - `email` (valid contact address)
+  - `thumbnail` (nonempty JPG, PNG, WebP or GIF `File`, at most 10 MiB)
 - Optional fields:
   - `type` (`artist` or `gallery`, defaults to `artist`)
-  - `thumbnail` (`File`)
+- All text fields are trimmed. Whitespace-only values and files supplied in text fields are rejected. An uploaded image asset is required before the pending listing is created.
+- Embedding permissions are checked again on the server before storage; client check results are never trusted. Submit remains disabled until the form is complete and the current URL has a compatible check.
 - Success: `200` with `{ "success": true }`
 - Common errors:
-  - `400` missing fields / invalid email / duplicate URL / invalid type
+  - `400` missing fields / invalid image, URL or email / subtitle too long / duplicate URL / invalid type
+  - `422` website blocks embedding (`embedStatus: "blocked"`)
+  - `503` website could not be checked (`embedStatus: "unknown"`); retry after resolving connectivity/access issues
   - `500` missing server config (`SANITY_WRITE_TOKEN`, `EMAIL_ENCRYPTION_KEY`, `CONTACTS_DB`) or upstream failure
 
 ### `POST /api/webhook`
@@ -231,3 +248,4 @@ The following files are helpers only and are not routed as API endpoints:
 - `_contentPrompts.ts`
 - `_draftParser.ts`
 - `_emailCipher.ts`
+- `_embedCheck.ts`
