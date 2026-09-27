@@ -11,7 +11,7 @@ The project now uses [Semantic Versioning](https://semver.org/) for public relea
 - Apply requires a thumbnail/profile image, name, subtitle, valid HTTPS website URL and contact email before an application can be sent; clicking Submit highlights all missing or invalid fields together, and the server enforces the same requirements.
 - Replaced the manual iframe tester with an automatic embedding-permissions check, including provider guidance when catalogue.gallery is blocked and automatic rechecks after returning to the page.
 - Applications wait for a successful permissions check, and the server rechecks before accepting a submission. Unreachable sites show an unverified status instead of a false pass or a permissions error.
-- Profile images continue to fill carousel, directory and search cards edge to edge, with top-aligned framing to preserve faces such as HARTO’s. Upload previews use the same framing; directory thumbnails no longer receive a premature center crop or hover zoom.
+- HARTO’s carousel and directory cards use a top-aligned crop to keep his head visible while filling the card. All other profiles, galleries, search thumbnails and upload previews retain their original centered framing.
 
 ## [0.1.7] - 2026-03-08
 
