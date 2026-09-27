@@ -1,5 +1,6 @@
 import { encryptEmail } from './_emailCipher';
 import { createContact, type ContactStoreBindings } from './_contactStore';
+import { checkIframeCompat, normalizeWebsiteUrl, IFRAME_FIX_HINT } from './_iframeCompat';
 
 type EnvVars = ContactStoreBindings & Record<string, unknown>;
 type WorkerContext = { request: Request; env: EnvVars };
@@ -59,15 +60,6 @@ function jsonResponse(body: Record<string, unknown>, status = 200) {
     });
 }
 
-function normalizeWebsiteUrl(rawUrl: string) {
-    const parsed = new URL(rawUrl.trim());
-    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
-        throw new Error('Only http/https website URLs are supported');
-    }
-    parsed.hash = '';
-    return parsed.toString().replace(/\/+$/, '');
-}
-
 function createSlug(name: string) {
     const base = name
         .toLowerCase()
@@ -112,6 +104,9 @@ function validateSubmissionPayload(payload: SubmissionPayload) {
     }
     if (!allowedTypes.has(payload.type)) {
         return jsonResponse({ error: 'Invalid type. Only "artist" and "gallery" submissions are accepted.' }, 400)
+    }
+    if (!isFileEntry(payload.thumbnail) || payload.thumbnail.size <= 0) {
+        return jsonResponse({ error: 'Profile thumbnail image is required.' }, 400)
     }
     return null
 }
@@ -254,13 +249,34 @@ export const onRequestPost = async (context: WorkerContext) => {
         }
 
         const config = readSanityConfig(env)
-        const normalizedUrl = normalizeWebsiteUrl(payload.websiteUrlInput);
+        let normalizedUrl: string
+        try {
+            normalizedUrl = normalizeWebsiteUrl(payload.websiteUrlInput)
+        } catch (err) {
+            return jsonResponse({ error: getErrorMessage(err) }, 400)
+        }
+
+        const embedCheck = await checkIframeCompat(normalizedUrl)
+        if (!embedCheck.ok) {
+            return jsonResponse({
+                error: `Website is not embeddable: ${embedCheck.reason || 'blocked'}. ${IFRAME_FIX_HINT}`,
+                embedCheck: {
+                    ok: false,
+                    url: embedCheck.url,
+                    reason: embedCheck.reason || null,
+                },
+            }, 400)
+        }
+
         const contactId = await createSubmissionContactId(env, payload.email, config.emailEncryptionKey)
         if (!contactId) {
             return jsonResponse({ error: 'Server configuration error: CONTACTS_DB binding is missing.' }, 500);
         }
 
         const imageAssetId = await uploadThumbnailAsset(payload.thumbnail, config)
+        if (!imageAssetId) {
+            return jsonResponse({ error: 'Profile thumbnail image is required.' }, 400)
+        }
         if (await hasDuplicateWebsiteUrl(normalizedUrl, config)) {
             return jsonResponse({ error: 'This URL is already registered.' }, 400);
         }

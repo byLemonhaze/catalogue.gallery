@@ -1,21 +1,25 @@
 import { useState, useRef } from 'react';
+import { normalizeWebsiteUrlInput } from '../utils/websiteUrl';
 
 interface IframeTesterProps {
     isOpen: boolean;
     onClose: () => void;
+    /** Prefill from the apply form so Test reuses the same URL. */
+    initialUrl?: string;
 }
 
-export function IframeTester({ isOpen, onClose }: IframeTesterProps) {
-    const [url, setUrl] = useState('');
+export function IframeTester({ isOpen, onClose, initialUrl = '' }: IframeTesterProps) {
+    const [editedUrl, setEditedUrl] = useState<string | null>(null);
     const [status, setStatus] = useState<'ready' | 'loading' | 'success' | 'error'>('ready');
     const [iframeSrc, setIframeSrc] = useState('about:blank');
 
     const iframeRef = useRef<HTMLIFrameElement>(null);
+    const url = editedUrl ?? initialUrl;
 
     const resetState = () => {
         setIframeSrc('about:blank');
         setStatus('ready');
-        setUrl('');
+        setEditedUrl(null);
     };
 
     const closeAndReset = () => {
@@ -26,17 +30,18 @@ export function IframeTester({ isOpen, onClose }: IframeTesterProps) {
     const runTest = () => {
         if (!url.trim()) return;
 
-        let testUrl = url.trim();
-        if (!testUrl.startsWith('http://') && !testUrl.startsWith('https://')) {
-            testUrl = 'https://' + testUrl;
-            setUrl(testUrl);
+        const normalized = normalizeWebsiteUrlInput(url);
+        if (!normalized) {
+            setStatus('error');
+            return;
         }
+        setEditedUrl(normalized);
 
         setStatus('loading');
         setIframeSrc('about:blank');
 
         setTimeout(() => {
-            setIframeSrc(testUrl);
+            setIframeSrc(normalized);
             setStatus('success');
         }, 100);
     };
@@ -65,7 +70,7 @@ export function IframeTester({ isOpen, onClose }: IframeTesterProps) {
                         <input
                             type="text"
                             value={url}
-                            onChange={(e) => setUrl(e.target.value)}
+                            onChange={(e) => setEditedUrl(e.target.value)}
                             onKeyDown={handleKeyDown}
                             className="flex-1 bg-transparent py-2.5 text-xs font-mono text-white outline-none placeholder-white/20"
                             placeholder="https://your-website.com"

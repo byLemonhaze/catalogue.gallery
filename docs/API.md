@@ -15,6 +15,7 @@ All endpoints are served from Cloudflare Pages Functions under `/api/*`.
 | `/api/artists` | `GET` | Public | Read-only public directory feed for published profiles |
 | `/api/client-errors` | `POST` | Public | Collect browser runtime errors into Cloudflare logs |
 | `/api/submit` | `POST` | Public | Submit artist/gallery application |
+| `/api/check-embed` | `GET`/`POST` | Public | Check whether a URL allows iframe embeds from catalogue.gallery |
 | `/api/webhook` | `POST` | `WEBHOOK_SHARED_SECRET` header/bearer | Process Sanity review events and send emails |
 | `/api/content-artists` | `GET` | Content Lab password | List published artists/galleries for Content Lab picker |
 | `/api/content-drafts` | `GET` | Content Lab password | List drafts (optionally filtered by status) |
@@ -73,15 +74,22 @@ All endpoints are served from Cloudflare Pages Functions under `/api/*`.
 - Required fields:
   - `name`
   - `subtitle`
-  - `websiteUrl`
+  - `websiteUrl` (scheme optional; `https://` is prepended when missing)
   - `email`
+  - `thumbnail` (`File` — profile image required)
 - Optional fields:
   - `type` (`artist` or `gallery`, defaults to `artist`)
-  - `thumbnail` (`File`)
+- Server also rejects URLs that fail the iframe embed check (X-Frame-Options / CSP `frame-ancestors`)
 - Success: `200` with `{ "success": true }`
 - Common errors:
-  - `400` missing fields / invalid email / duplicate URL / invalid type
+  - `400` missing fields / missing thumbnail / invalid email / non-embeddable URL / duplicate URL / invalid type
   - `500` missing server config (`SANITY_WRITE_TOKEN`, `EMAIL_ENCRYPTION_KEY`, `CONTACTS_DB`) or upstream failure
+
+### `GET` / `POST` `/api/check-embed`
+
+- Public helper used by the Apply form to auto-check iframe compatibility
+- Query/body: `url` or `websiteUrl`
+- Success: `200` with `{ "ok": true|false, "url", "reason", "hint", ... }`
 
 ### `POST /api/webhook`
 
