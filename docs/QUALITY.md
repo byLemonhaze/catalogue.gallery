@@ -69,4 +69,4 @@ When a change updates a public interface, the author should also update the rele
 
 ## Apply Regression Coverage
 
-The Apply tests cover required fields, image type/size, invalid contact details, direct API bypass attempts, automatic check debouncing and stale results, and complete artist/gallery submissions. Embedding checks cover CSP and X-Frame-Options precedence, redirects, inaccessible websites, and unsafe URL inputs. Browser checks can mock `/api/check-embed` and `/api/submit` to exercise every state without creating real applications.
+The Apply tests cover simultaneous missing-field highlighting, live correction, required fields, image type/size, invalid contact details, direct API bypass attempts, automatic check debouncing and stale results, and complete artist/gallery submissions. Embedding checks cover CSP and X-Frame-Options precedence, redirects, inaccessible websites, and unsafe URL inputs. Browser checks can mock `/api/check-embed` and `/api/submit` to exercise every state without creating real applications.

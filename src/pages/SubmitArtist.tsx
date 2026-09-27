@@ -1,94 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useEmbedCheck } from '../hooks/useEmbedCheck';
-import { isValidEmail, normalizeWebsiteUrl, thumbnailError, THUMBNAIL_TYPES } from '../../shared/submission';
+import { useApplicationForm } from '../hooks/useApplicationForm';
+import { THUMBNAIL_TYPES } from '../../shared/submission';
+import { ApplicationWebsiteField } from '../components/ApplicationWebsiteField';
 import { SquareLoader } from '../components/SquareLoader';
 
 
 export function SubmitArtist() {
-    const [formData, setFormData] = useState({
-        name: '',
-        subtitle: '',
-        websiteUrl: '',
-        email: '',
-        type: 'artist' as 'artist' | 'gallery' | 'collector'
-    });
-    const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-    const [imageError, setImageError] = useState<string | null>(null);
-    const fileInput = useRef<HTMLInputElement>(null);
-    const submitting = useRef(false);
-    const embedCheck = useEmbedCheck(formData.websiteUrl);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [status, setStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
-
-    const canSubmit = Boolean(formData.name.trim() && formData.subtitle.trim() &&
-        formData.subtitle.trim().length <= 35 && isValidEmail(formData.email) &&
-        !thumbnailError(thumbnailFile) && embedCheck.status === 'compatible' && !isSubmitting);
-
-    useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0] || null;
-        const error = thumbnailError(file);
-        setImageError(error);
-        setThumbnailFile(error ? null : file);
-        setPreviewUrl(!error && file ? URL.createObjectURL(file) : null);
-        if (error) e.target.value = '';
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (formData.type === 'collector' || !canSubmit || submitting.current) return;
-        submitting.current = true;
-
-        const normalizedEmail = formData.email.trim();
-        setIsSubmitting(true);
-        setStatus(null);
-
-        try {
-            const submitData = new FormData();
-            submitData.append('name', formData.name.trim());
-            submitData.append('subtitle', formData.subtitle.trim());
-            submitData.append('websiteUrl', normalizeWebsiteUrl(formData.websiteUrl));
-            submitData.append('email', normalizedEmail);
-            submitData.append('type', formData.type);
-            if (thumbnailFile) {
-                submitData.append('thumbnail', thumbnailFile);
-            }
-
-            const response = await fetch('/api/submit', {
-                method: 'POST',
-                body: submitData
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                if (result.embedStatus) embedCheck.recheck();
-                throw new Error(result.error || 'Submission failed');
-            }
-
-            setStatus({ type: 'success', message: 'Application received. We will be in touch shortly.' });
-            setFormData({ name: '', subtitle: '', websiteUrl: '', email: '', type: formData.type });
-            setThumbnailFile(null);
-            setPreviewUrl(null);
-            setImageError(null);
-            if (fileInput.current) fileInput.current.value = '';
-
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'Submission failed';
-            const isCorsError = message === 'Failed to fetch' || (err instanceof TypeError);
-            setStatus({
-                type: 'error',
-                message: isCorsError ? 'Network error. Please check your connection and try again.' : message
-            });
-        } finally {
-            submitting.current = false;
-            setIsSubmitting(false);
-        }
-    };
+    const { formData, setFormData, previewUrl, imageError, fieldErrors, fileInput, embedCheck, isSubmitting, status, submitDisabled, handleFileChange, handleSubmit } = useApplicationForm();
 
     return (
         <div className="min-h-screen bg-black text-white selection:bg-white/20 overflow-y-auto overflow-x-hidden">
@@ -177,16 +95,17 @@ export function SubmitArtist() {
 
                         {/* Right: Form */}
                         <div className="animate-fade-in">
-                            <form onSubmit={handleSubmit} className="space-y-5">
-                                <p className="text-xs text-white/40">All fields are required. Submit becomes available once your details are complete and your website’s embedding permissions pass the automatic check.</p>
+                            <form noValidate onSubmit={handleSubmit} className="space-y-5">
+                                <p className="text-xs text-white/40">All fields are required. Your website must pass the automatic embedding check before your application can be sent.</p>
                                 <fieldset disabled={isSubmitting} className="space-y-5 disabled:opacity-60">
 
                                     {/* Thumbnail Upload */}
                                     <div>
                                         <label htmlFor="thumbnail" className="block text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-2">Thumbnail / Profile Image</label>
-                                        <div className="relative w-full aspect-[25/16] max-h-44 md:max-h-none border border-white/10 hover:border-white/25 transition-colors cursor-pointer overflow-hidden group">
+                                        <div className={`relative w-full aspect-[25/16] max-h-44 md:max-h-none border ${imageError ? 'border-red-400/70' : 'border-white/10 hover:border-white/25'} transition-colors cursor-pointer overflow-hidden group`}>
                                             <input
                                                 id="thumbnail"
+                                                name="thumbnail"
                                                 ref={fileInput}
                                                 type="file"
                                                 required
@@ -198,7 +117,7 @@ export function SubmitArtist() {
                                             />
                                             {previewUrl ? (
                                                 <>
-                                                    <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                                                    <img src={previewUrl} alt="Preview" className="w-full h-full object-contain" />
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                                                     <div className="absolute bottom-0 inset-x-0 p-5 pointer-events-none">
                                                         <p className="text-base font-bold text-white tracking-tight">{formData.name || 'Your Name'}</p>
@@ -227,13 +146,17 @@ export function SubmitArtist() {
                                         </label>
                                         <input
                                             id="applicant-name"
+                                            name="name"
+                                            aria-invalid={Boolean(fieldErrors.name)}
+                                            aria-describedby="applicant-name-error"
                                             type="text"
                                             required
                                             value={formData.name}
                                             onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                            className="w-full bg-transparent border-b border-white/15 py-2.5 text-sm text-white focus:border-white/50 outline-none transition-colors placeholder-white/20"
+                                            className="w-full bg-transparent border-b border-white/15 aria-invalid:border-red-400/70 py-2.5 text-sm text-white focus:border-white/50 outline-none transition-colors placeholder-white/20"
                                             placeholder={formData.type === 'artist' ? 'e.g. XCOPY' : 'e.g. Verse, Art Blocks'}
                                         />
+                                        {fieldErrors.name && <p id="applicant-name-error" className="mt-2 text-xs text-red-400">{fieldErrors.name}</p>}
                                     </div>
 
                                     {/* Subtitle */}
@@ -244,35 +167,24 @@ export function SubmitArtist() {
                                             required
                                             maxLength={35}
                                             id="subtitle"
+                                            name="subtitle"
+                                            aria-invalid={Boolean(fieldErrors.subtitle)}
+                                            aria-describedby="subtitle-error"
                                             value={formData.subtitle}
                                             onChange={e => setFormData({ ...formData, subtitle: e.target.value })}
-                                            className="w-full bg-transparent border-b border-white/15 py-2.5 text-sm text-white focus:border-white/50 outline-none transition-colors placeholder-white/20 pr-10"
+                                            className="w-full bg-transparent border-b border-white/15 aria-invalid:border-red-400/70 py-2.5 text-sm text-white focus:border-white/50 outline-none transition-colors placeholder-white/20 pr-10"
                                             placeholder={formData.type === 'artist' ? 'e.g. Crypto Artist' : 'e.g. Curatorial mission'}
                                         />
-                                        <span className="absolute right-0 bottom-3 text-[10px] text-white/20 pointer-events-none">{formData.subtitle.length}/35</span>
+                                        <span className="absolute right-0 top-9 text-[10px] text-white/20 pointer-events-none">{formData.subtitle.length}/35</span>
+                                        {fieldErrors.subtitle && <p id="subtitle-error" className="mt-2 text-xs text-red-400">{fieldErrors.subtitle}</p>}
                                     </div>
 
-                                    {/* Website */}
-                                    <div>
-                                        <label htmlFor="website-url" className="block text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-2">Website URL</label>
-                                        <div className="flex gap-3 items-end border-b border-white/15 focus-within:border-white/50 transition-colors">
-                                            <input
-                                                type="url"
-                                                required
-                                                aria-describedby="embed-status"
-                                                onBlur={() => { if (embedCheck.status === 'blocked' || embedCheck.status === 'unknown') embedCheck.recheck(); }}
-                                                id="website-url"
-                                                value={formData.websiteUrl}
-                                                onChange={e => setFormData({ ...formData, websiteUrl: e.target.value })}
-                                                className="flex-1 bg-transparent py-2.5 text-sm text-white outline-none placeholder-white/20"
-                                                placeholder="https://your-website.com"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <p id="embed-status" role="status" aria-live="polite" className={`text-xs leading-relaxed ${embedCheck.status === 'blocked' || embedCheck.status === 'invalid' ? 'text-red-400' : embedCheck.status === 'compatible' ? 'text-emerald-400' : 'text-white/50'}`}>
-                                        {embedCheck.message}
-                                    </p>
+                                    <ApplicationWebsiteField
+                                        value={formData.websiteUrl}
+                                        onChange={websiteUrl => setFormData({ ...formData, websiteUrl })}
+                                        check={embedCheck}
+                                        error={fieldErrors.websiteUrl}
+                                    />
 
                                     {/* Email */}
                                     <div>
@@ -281,18 +193,22 @@ export function SubmitArtist() {
                                             type="email"
                                             required
                                             id="contact-email"
+                                            name="email"
+                                            aria-invalid={Boolean(fieldErrors.email)}
+                                            aria-describedby="contact-email-error"
                                             value={formData.email}
                                             onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                            className="w-full bg-transparent border-b border-white/15 py-2.5 text-sm text-white focus:border-white/50 outline-none transition-colors placeholder-white/20"
+                                            className="w-full bg-transparent border-b border-white/15 aria-invalid:border-red-400/70 py-2.5 text-sm text-white focus:border-white/50 outline-none transition-colors placeholder-white/20"
                                             placeholder="your@email.com"
                                         />
+                                        {fieldErrors.email && <p id="contact-email-error" className="mt-2 text-xs text-red-400">{fieldErrors.email}</p>}
                                     </div>
 
                                 </fieldset>
 
                                 {/* Status */}
                                 {status && (
-                                    <p className={`text-xs py-3 border-b ${status.type === 'success' ? 'text-white/70 border-white/10' : 'text-red-400/80 border-red-500/20'}`}>
+                                    <p role="alert" className={`text-xs py-3 border-b ${status.type === 'success' ? 'text-white/70 border-white/10' : 'text-red-400/80 border-red-500/20'}`}>
                                         {status.message}
                                     </p>
                                 )}
@@ -301,11 +217,11 @@ export function SubmitArtist() {
                                 <div className="pt-2">
                                     <button
                                         type="submit"
-                                        disabled={!canSubmit}
+                                        disabled={submitDisabled}
                                         className={`w-full py-3.5 text-[11px] font-bold uppercase tracking-[0.25em] border transition-colors duration-200 flex items-center justify-center gap-3
                                             ${isSubmitting
                                                 ? 'border-white/10 text-white/30 cursor-wait'
-                                                : !canSubmit ? 'border-white/10 text-white/30 cursor-not-allowed'
+                                                : submitDisabled ? 'border-white/10 text-white/30 cursor-not-allowed'
                                                 : 'border-white/20 text-white/80 hover:border-white/40 hover:text-white cursor-pointer'}`}
                                     >
                                         {isSubmitting ? (

@@ -29,7 +29,7 @@ const SearchResultItem: React.FC<SearchResultItemProps> = ({ artist, onSelect })
                 <img
                     src={artist.isSanity ? urlFor(artist.thumbnail).width(80).url() : (artist.thumbnail as string)}
                     alt={artist.name}
-                    className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"
+                    className="w-full h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity duration-300"
                 />
             ) : (
                 <div className="w-full h-full flex items-center justify-center bg-[#0f0f0f]">

@@ -32,3 +32,23 @@ export type EmbedCheckResult = {
     status: 'compatible' | 'blocked' | 'unknown';
     message: string;
 };
+
+export type ApplicationFields = { name: string; subtitle: string; websiteUrl: string; email: string };
+export type ApplicationErrors = Partial<Record<keyof ApplicationFields | 'thumbnail', string>>;
+
+export function applicationErrors(fields: ApplicationFields, image: File | null): ApplicationErrors {
+    const errors: ApplicationErrors = {};
+    const imageProblem = thumbnailError(image);
+    if (imageProblem) errors.thumbnail = imageProblem;
+    if (!fields.name.trim()) errors.name = 'Add your name.';
+    if (!fields.subtitle.trim()) errors.subtitle = 'Add a subtitle.';
+    else if (fields.subtitle.trim().length > 35) errors.subtitle = 'Keep the subtitle to 35 characters or fewer.';
+    if (!fields.websiteUrl.trim()) errors.websiteUrl = 'Add your website URL.';
+    else {
+        try { normalizeWebsiteUrl(fields.websiteUrl); }
+        catch { errors.websiteUrl = 'Enter a complete public HTTPS website URL.'; }
+    }
+    if (!fields.email.trim()) errors.email = 'Add your contact email.';
+    else if (!isValidEmail(fields.email)) errors.email = 'Enter a valid contact email.';
+    return errors;
+}

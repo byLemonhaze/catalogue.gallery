@@ -92,7 +92,7 @@ All endpoints are served from Cloudflare Pages Functions under `/api/*`.
 - Optional fields:
   - `type` (`artist` or `gallery`, defaults to `artist`)
 - All text fields are trimmed. Whitespace-only values and files supplied in text fields are rejected. An uploaded image asset is required before the pending listing is created.
-- Embedding permissions are checked again on the server before storage; client check results are never trusted. Submit remains disabled until the form is complete and the current URL has a compatible check.
+- Embedding permissions are checked again on the server before storage; client check results are never trusted. Clicking Submit on an incomplete form highlights all missing or invalid fields together without sending a request. Once the details are complete, Submit remains disabled until the current URL has a compatible check.
 - Success: `200` with `{ "success": true }`
 - Common errors:
   - `400` missing fields / invalid image, URL or email / subtitle too long / duplicate URL / invalid type
