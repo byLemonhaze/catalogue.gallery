@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { IframeTester } from '../components/IframeTester';
 import { SquareLoader } from '../components/SquareLoader';
+import { IFRAME_FIX_NOTICE, normalizeWebsiteUrlInput } from '../utils/websiteUrl';
 
+type EmbedStatus = 'idle' | 'checking' | 'pass' | 'fail' | 'invalid';
 
 export function SubmitArtist() {
     const [formData, setFormData] = useState({
@@ -19,6 +21,11 @@ export function SubmitArtist() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [status, setStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
+    const [embedStatus, setEmbedStatus] = useState<EmbedStatus>('idle');
+    const [embedNotice, setEmbedNotice] = useState<string | null>(null);
+    const embedRequestId = useRef(0);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
@@ -27,11 +34,85 @@ export function SubmitArtist() {
         }
     };
 
+    const runEmbedCheck = useCallback(async (rawUrl: string) => {
+        const trimmed = rawUrl.trim();
+        if (!trimmed) {
+            setEmbedStatus('idle');
+            setEmbedNotice(null);
+            return;
+        }
+
+        const normalized = normalizeWebsiteUrlInput(trimmed);
+        if (!normalized) {
+            setEmbedStatus('invalid');
+            setEmbedNotice('enter a valid website url (with or without https://)');
+            return;
+        }
+
+        const requestId = ++embedRequestId.current;
+        setEmbedStatus('checking');
+        setEmbedNotice(null);
+
+        try {
+            const response = await fetch(`/api/check-embed?url=${encodeURIComponent(normalized)}`, {
+                method: 'GET',
+                headers: { Accept: 'application/json' },
+            });
+            const result = await response.json() as {
+                ok?: boolean;
+                reason?: string | null;
+                hint?: string | null;
+                error?: string;
+            };
+
+            if (requestId !== embedRequestId.current) return;
+
+            if (result.ok) {
+                setEmbedStatus('pass');
+                setEmbedNotice(null);
+            } else {
+                setEmbedStatus('fail');
+                setEmbedNotice(result.hint || IFRAME_FIX_NOTICE);
+            }
+        } catch {
+            if (requestId !== embedRequestId.current) return;
+            setEmbedStatus('fail');
+            setEmbedNotice('could not verify embed — try again, or use Test to preview');
+        }
+    }, []);
+
+    const scheduleEmbedCheck = useCallback((rawUrl: string) => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => {
+            void runEmbedCheck(rawUrl);
+        }, 500);
+    }, [runEmbedCheck]);
+
+    useEffect(() => {
+        return () => {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+        };
+    }, []);
+
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim());
+    const canSubmit =
+        formData.type !== 'collector' &&
+        Boolean(formData.name.trim()) &&
+        Boolean(formData.subtitle.trim()) &&
+        emailOk &&
+        Boolean(thumbnailFile) &&
+        embedStatus === 'pass' &&
+        !isSubmitting;
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (formData.type === 'collector') return;
+        if (!canSubmit) return;
 
         const normalizedEmail = formData.email.trim();
+        const normalizedUrl = normalizeWebsiteUrlInput(formData.websiteUrl);
+        if (!normalizedUrl || !thumbnailFile) return;
+
         setIsSubmitting(true);
         setStatus(null);
 
@@ -39,12 +120,10 @@ export function SubmitArtist() {
             const submitData = new FormData();
             submitData.append('name', formData.name);
             submitData.append('subtitle', formData.subtitle);
-            submitData.append('websiteUrl', formData.websiteUrl);
+            submitData.append('websiteUrl', normalizedUrl);
             submitData.append('email', normalizedEmail);
             submitData.append('type', formData.type);
-            if (thumbnailFile) {
-                submitData.append('thumbnail', thumbnailFile);
-            }
+            submitData.append('thumbnail', thumbnailFile);
 
             const response = await fetch('/api/submit', {
                 method: 'POST',
@@ -61,6 +140,8 @@ export function SubmitArtist() {
             setFormData({ name: '', subtitle: '', websiteUrl: '', email: '', type: formData.type });
             setThumbnailFile(null);
             setPreviewUrl(null);
+            setEmbedStatus('idle');
+            setEmbedNotice(null);
 
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : 'Submission failed';
@@ -80,7 +161,11 @@ export function SubmitArtist() {
                 <title>Apply | CATALOGUE</title>
             </Helmet>
 
-            <IframeTester isOpen={isTesterOpen} onClose={() => setIsTesterOpen(false)} />
+            <IframeTester
+                isOpen={isTesterOpen}
+                onClose={() => setIsTesterOpen(false)}
+                initialUrl={formData.websiteUrl}
+            />
 
             <div className="max-w-5xl mx-auto w-full px-6 lg:px-12 pt-28 md:pt-32 pb-24 animate-fade-in">
 
@@ -157,7 +242,7 @@ export function SubmitArtist() {
                             </div>
 
                             <p className="text-[10px] text-white/25 leading-relaxed">
-                                Ensure your website loads inside an iframe. Use the Test button in the form to verify.
+                                Website must load inside an iframe. URL is checked automatically — use Test to preview.
                             </p>
                         </div>
 
@@ -167,7 +252,9 @@ export function SubmitArtist() {
 
                                 {/* Thumbnail Upload */}
                                 <div>
-                                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-2">Thumbnail</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-2">
+                                        Thumbnail <span className="text-white/20 normal-case tracking-normal font-medium">required</span>
+                                    </p>
                                     <div className="relative w-full aspect-[25/16] max-h-44 md:max-h-none border border-white/10 hover:border-white/25 transition-colors cursor-pointer overflow-hidden group">
                                         <input
                                             type="file"
@@ -194,6 +281,9 @@ export function SubmitArtist() {
                                             </div>
                                         )}
                                     </div>
+                                    {!thumbnailFile && (
+                                        <p className="mt-2 text-[10px] text-white/25">add a profile image to enable submit</p>
+                                    )}
                                 </div>
 
                                 {/* Name */}
@@ -231,12 +321,24 @@ export function SubmitArtist() {
                                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-2">Website URL</p>
                                     <div className="flex gap-3 items-end border-b border-white/15 focus-within:border-white/50 transition-colors">
                                         <input
-                                            type="url"
+                                            type="text"
                                             required
+                                            inputMode="url"
+                                            autoComplete="url"
                                             value={formData.websiteUrl}
-                                            onChange={e => setFormData({ ...formData, websiteUrl: e.target.value })}
+                                            onChange={e => {
+                                                const next = e.target.value;
+                                                setFormData({ ...formData, websiteUrl: next });
+                                                setEmbedStatus(next.trim() ? 'checking' : 'idle');
+                                                setEmbedNotice(null);
+                                                scheduleEmbedCheck(next);
+                                            }}
+                                            onBlur={e => {
+                                                if (debounceRef.current) clearTimeout(debounceRef.current);
+                                                void runEmbedCheck(e.target.value);
+                                            }}
                                             className="flex-1 bg-transparent py-2.5 text-sm text-white outline-none placeholder-white/20"
-                                            placeholder="https://your-website.com"
+                                            placeholder="your-website.com"
                                         />
                                         <button
                                             type="button"
@@ -246,6 +348,15 @@ export function SubmitArtist() {
                                             Test
                                         </button>
                                     </div>
+                                    {embedStatus === 'checking' && (
+                                        <p className="mt-2 text-[10px] text-white/30">checking embed…</p>
+                                    )}
+                                    {embedStatus === 'pass' && (
+                                        <p className="mt-2 text-[10px] text-white/40">embed ok</p>
+                                    )}
+                                    {(embedStatus === 'fail' || embedStatus === 'invalid') && embedNotice && (
+                                        <p className="mt-2 text-[10px] text-red-400/80 leading-relaxed">{embedNotice}</p>
+                                    )}
                                 </div>
 
                                 {/* Email */}
@@ -272,10 +383,10 @@ export function SubmitArtist() {
                                 <div className="pt-2">
                                     <button
                                         type="submit"
-                                        disabled={isSubmitting}
+                                        disabled={!canSubmit}
                                         className={`w-full py-3.5 text-[11px] font-bold uppercase tracking-[0.25em] border transition-colors duration-200 flex items-center justify-center gap-3
-                                            ${isSubmitting
-                                                ? 'border-white/10 text-white/30 cursor-wait'
+                                            ${!canSubmit
+                                                ? 'border-white/10 text-white/25 cursor-not-allowed'
                                                 : 'border-white/20 text-white/80 hover:border-white/40 hover:text-white cursor-pointer'}`}
                                     >
                                         {isSubmitting ? (
