@@ -37,7 +37,10 @@ interface DirectoryReturnState {
 
 function getArtistThumbnailUrl(artist: Artist) {
   if (!artist.thumbnail) return null;
-  if (artist.isSanity) return urlFor(artist.thumbnail).width(320).height(400).fit('max').url();
+  if (artist.isSanity) {
+    const image = urlFor(artist.thumbnail).width(320).height(400);
+    return artist.id === 'harto' ? image.fit('max').url() : image.url();
+  }
   return typeof artist.thumbnail === 'string' ? artist.thumbnail : null;
 }
 
@@ -96,7 +99,8 @@ function PreviewArtistCard({
           <img
             src={thumbnailUrl}
             alt={artist.name}
-            className="h-full w-full object-cover object-top opacity-75 transition-opacity duration-500 group-hover:opacity-100"
+            style={{ objectPosition: artist.id === 'harto' ? 'center top' : 'center' }}
+            className="h-full w-full object-cover opacity-75 transition duration-500 group-hover:scale-[1.03] group-hover:opacity-100"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-white/5">

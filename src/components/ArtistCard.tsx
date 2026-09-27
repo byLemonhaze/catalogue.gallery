@@ -12,7 +12,7 @@ interface ArtistProps {
     isSanity?: boolean;
 }
 
-export const ArtistCard: React.FC<ArtistProps> = ({ name, thumbnail, subtitle, isSanity }) => {
+export const ArtistCard: React.FC<ArtistProps> = ({ id, name, thumbnail, subtitle, isSanity }) => {
     // Resolve image URL
     const imageUrl = isSanity && thumbnail
         ? urlFor(thumbnail).width(800).url()
@@ -23,13 +23,14 @@ export const ArtistCard: React.FC<ArtistProps> = ({ name, thumbnail, subtitle, i
             className="group relative flex h-full flex-col bg-[#0c0c0c] border border-white/10 overflow-hidden transition-colors duration-300 hover:border-white/25 cursor-default"
         >
             {/* Image Container - Visual only, parent handles click */}
-            <div className="min-h-0 flex-1 relative overflow-hidden cursor-pointer block">
+            <div className="flex-1 relative overflow-hidden cursor-pointer block">
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10 opacity-60 pointer-events-none" />
                 {imageUrl ? (
                     <img
                         src={imageUrl}
                         alt={name}
-                        className="absolute inset-0 w-full h-full object-cover object-top opacity-85 group-hover:opacity-100 transition-opacity duration-300"
+                        style={{ objectPosition: id === 'harto' ? 'center top' : 'center' }}
+                        className="w-full h-full object-cover opacity-85 group-hover:opacity-100 transition-opacity duration-300"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center bg-[#101010]">
