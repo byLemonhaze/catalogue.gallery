@@ -94,7 +94,7 @@ The existing `catalogue` Pages project (`artfinder.pages.dev`, custom domain `ca
 1. Merge the approved PR into `main` after the required GitHub check passes.
 2. Build the merged commit with `npm run build` and the production public CMS settings.
 3. Verify Cloudflare authentication with `npx wrangler whoami`.
-4. From the repo root, run `npx wrangler pages deploy dist --project-name catalogue --branch main --commit-hash <merged-commit-sha>`. Running from the root includes Pages Functions in `/functions` and the existing D1 binding from `wrangler.toml`.
+4. From the repo root, run `npx wrangler pages deploy dist --project-name catalogue --branch production --commit-hash <merged-commit-sha>`. Cloudflare’s configured production branch is named `production`; `main` uploads are previews. The source commit still comes from GitHub `main`. Running from the root includes Pages Functions in `/functions` and the existing D1 binding from `wrangler.toml`.
 5. Confirm the deployment is production, then check `https://catalogue.gallery`, artist/article routes, API availability, and asset/HTML caching headers.
 
 PR branches can be uploaded explicitly as Cloudflare previews when needed. They are not deployed automatically.
