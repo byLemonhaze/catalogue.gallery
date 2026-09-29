@@ -26,8 +26,11 @@ This document is the high-level engineering map for `catalogue.gallery`:
 ### 1) Public Browse Flow
 
 1. Browser loads the SPA.
-2. Frontend reads published artist/gallery/post content from Sanity APIs.
-3. Profile routes render artist pages and iframe artist websites.
+2. Frontend reads public artist/gallery/post summaries from the Sanity CDN. Concurrent artist subscribers share one request; resolved lists remain cached for the SPA session. Article Markdown is fetched only when its reader opens.
+3. Generated profile HTML embeds a minimal, escaped `catalogue-profile` JSON record and a website-origin preconnect. The artist route validates this record against its slug/type and can open the website while the full directory loads. A later directory response takes precedence.
+4. Artist routes do not load article summaries. The artist view chunk is prefetched at idle after the homepage load, except on data-saving/slow connections. Known blocked profiles (burst, far, nullish, from the performance audit) show an unavailable state without attempting the iframe. Exit is the only CATALOGUE control on every artist view and preserves the browsing context; iframe load is not treated as proof the embedded page is usable.
+5. The homepage orders its main content as carousel, editorial lead, three recent stories, directory, then four long-lived editor picks above the About/Apply footer. Lead, picks, and recent stories share one editorial selection without duplication. An optional `homepageEditorial` Sanity document controls the lead and ordered picks; the most recently updated published document wins. Missing/deleted picks fall back to the curated slugs in `src/lib/editorial.ts`, then older available stories. The reader links to the featured artist and related stories. Editorial dates are preserved. Navigation is ordered Content Lab, Directory, Apply, Search. Content Lab jumps to the lead section, while both editorial sections highlight that menu item. Section jumps share measured header clearance; cross-route restoration waits for content and runs once per navigation.
+6. Local Vite development/preview forwards public GET query requests through `/__catalogue_sanity` to avoid changing production CORS settings. Credentials are stripped; mutations are rejected. Images still use the public image CDN. This proxy is not part of the production deployment.
 
 ### 2) Submission Flow (`POST /api/submit`)
 

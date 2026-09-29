@@ -20,7 +20,7 @@ interface SearchResultItemProps {
 
 const SearchResultItem: React.FC<SearchResultItemProps> = ({ artist, onSelect }) => (
     <a
-        href={artist.type === 'gallery' ? `/gallery/${artist.id}` : `/artist/${artist.id}`}
+        href={artist.type === 'gallery' ? `/gallery/${artist.id}/` : `/artist/${artist.id}/`}
         onClick={onSelect}
         className="flex items-center gap-3 p-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 group"
     >
@@ -136,7 +136,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
                                         <div>
                                             <div className="px-4 py-2 bg-white/3 text-[9px] font-bold text-white/30 uppercase tracking-[0.25em]">Interviews</div>
                                             {interviews.map(a => (
-                                                <a key={a.id} href={`/blog/${a.id}`} onClick={onClose}
+                                                <a key={a.id} href={`/blog/${a.id}/`} onClick={onClose}
                                                     className="flex items-center gap-3 p-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 group">
                                                     <div className="flex-1 min-w-0">
                                                         <h3 className="text-xs font-bold text-white truncate">{a.title}</h3>
@@ -151,7 +151,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
                                         <div>
                                             <div className="px-4 py-2 bg-white/3 text-[9px] font-bold text-white/30 uppercase tracking-[0.25em]">Articles</div>
                                             {articles.map(a => (
-                                                <a key={a.id} href={`/blog/${a.id}`} onClick={onClose}
+                                                <a key={a.id} href={`/blog/${a.id}/`} onClick={onClose}
                                                     className="flex items-center gap-3 p-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 group">
                                                     <div className="flex-1 min-w-0">
                                                         <h3 className="text-xs font-bold text-white truncate">{a.title}</h3>

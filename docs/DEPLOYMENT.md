@@ -89,15 +89,19 @@ Apply migrations in order:
 
 ### Deploy
 
-- Recommended: Git-integrated Cloudflare Pages deploys from GitHub branches.
-  - Preview deploys from PR branches.
-  - Production deploys from `main`.
+The existing `catalogue` Pages project (`artfinder.pages.dev`, custom domain `catalogue.gallery`) uses direct uploads; it has no Git provider connected as verified on 29 September 2026. A GitHub merge does not deploy production automatically.
 
-If you use CLI-based deploys in your account, ensure build output is `dist` and Pages Functions are included from `/functions`.
+1. Merge the approved PR into `main` after the required GitHub check passes.
+2. Build the merged commit with `npm run build` and the production public CMS settings.
+3. Verify Cloudflare authentication with `npx wrangler whoami`.
+4. From the repo root, run `npx wrangler pages deploy dist --project-name catalogue --branch main --commit-hash <merged-commit-sha>`. Running from the root includes Pages Functions in `/functions` and the existing D1 binding from `wrangler.toml`.
+5. Confirm the deployment is production, then check `https://catalogue.gallery`, artist/article routes, API availability, and asset/HTML caching headers.
+
+PR branches can be uploaded explicitly as Cloudflare previews when needed. They are not deployed automatically.
 
 ### Preview Links (for social QA)
 
-Use the actual Cloudflare preview deployment URL from the PR/deployment page when validating social embeds.
+Use the actual Cloudflare deployment URL returned by Wrangler when validating social embeds.
 
 Checklist:
 
@@ -147,3 +151,12 @@ These are operational repo settings and are intentionally not represented as cod
 - [ ] Configure branch protection on `main`
 - [ ] Require CI status check before merge
 - [ ] Restrict direct pushes to `main` (recommended)
+
+## 11) Editorial selection and asset caching
+
+- Build/validate Studio locally with `cd studio && npm ci && npm run build`. Deploying Studio is a separate authorized operation. The frontend works with stable defaults before the schema or a selection document is published.
+- In Studio, create one **Homepage editorial selection** document. Choose an optional lead and up to four ordered story references for **Worth returning to**. Keep original publication dates. If multiple selection documents exist, the most recently updated published one wins.
+- Public Sanity reads use the CDN, so editorial changes may take time to appear. A full page reload refreshes the app's in-memory query cache.
+- `/assets/*` receives one-year immutable caching because Vite fingerprints those filenames. HTML and generated profile metadata do not receive this policy.
+- A stale lazy import triggers at most one automatic reload per minute; subsequent failures show a manual retry screen. This handles stale lazy chunks after a Pages deployment but cannot recover an entry script that fails before React starts. Keep HTML revalidated and verify old-tab navigation across deployments.
+- For local visual review, run `npm run build` then `npm run preview -- --host 127.0.0.1 --port 4173`. This reads public CMS content through a local GET-only proxy. Vite preview does not emulate Pages Functions, Cloudflare headers, or edge caching.

@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Sora:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -116,4 +115,81 @@ a {
     stroke-dashoffset: -120;
     opacity: 0.72;
   }
+}
+
+/* The hero stays visually familiar; browser scrolling owns vertical gestures. */
+.carousel-arrow { min-width: 48px; min-height: 48px; display: grid; place-items: center; }
+.carousel-caption { transform: none; }
+@media (hover: hover) and (pointer: fine) {
+  .carousel-caption { transform: translateY(8px); transition: transform 240ms ease; }
+  .group:hover .carousel-caption { transform: translateY(0); }
+}
+a:focus-visible, button:focus-visible { outline: 2px solid #eee; outline-offset: 5px; }
+@media (prefers-reduced-motion: reduce) {
+  .carousel-slide { transition: none !important; }
+  .carousel-caption { transform: none; transition: none; }
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+/* Editorial pages: a publication with room for both new and enduring stories. */
+.editorial-section { padding: 72px 24px 40px; }
+.editorial-inner { max-width: 1280px; margin: 0 auto; }
+.editorial-kicker { font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: .18em; font-size: 10px; color: #aaa; }
+.editorial-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; padding-bottom: 34px; border-bottom: 1px solid #303030; }
+.editorial-heading h2, .editorial-index-title { font-size: clamp(38px, 5vw, 70px); letter-spacing: -.04em; line-height: 1.04; margin-top: 16px; font-weight: 600; }
+.editorial-intro { max-width: 400px; }
+.editorial-intro p { font-family: 'Sora', sans-serif; color: #aaa; line-height: 1.85; font-size: 14px; margin-bottom: 25px; }
+.editorial-link { display: inline-flex; gap: 24px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; border-bottom: 1px solid #555; padding: 10px 0; color: #ddd; }
+.editorial-link:hover { color: white; border-color: white; }
+.editorial-lead { display: grid; grid-template-columns: 1.2fr 1fr; gap: 46px; padding: 34px 0 48px; }
+.editorial-lead-image { overflow: hidden; aspect-ratio: 1.4; background: #111; }
+.editorial-lead-image img, .editorial-image img { width: 100%; height: 100%; object-fit: cover; }
+.editorial-lead-copy { display: flex; flex-direction: column; justify-content: center; }
+.editorial-lead-copy h3 { font-size: clamp(28px, 3vw, 44px); line-height: 1.12; letter-spacing: -.025em; margin: 15px 0 22px; font-weight: 600; }
+.editorial-lead-copy > p { font-family: Sora, sans-serif; font-size: 13px; line-height: 1.9; color: #aaa; }
+.editorial-meta { display: flex; flex-wrap: wrap; gap: 7px 14px; font: 9px/1.7 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: .06em; color: #999; margin-top: 16px; }
+.editorial-meta > span:first-child { color: #d1d1c4; }
+.editorial-lead-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; gap: 15px; font: 10px Sora, sans-serif; color: #aaa; }
+.editorial-shelf { border-top: 1px solid #303030; padding-top: 30px; }
+.editorial-shelf-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 30px; margin-bottom: 28px; }
+.editorial-shelf-heading h3, .editorial-recent h3 { font-size: clamp(26px, 3vw, 36px); font-weight: 600; letter-spacing: -.025em; margin-top: 8px; }
+.editorial-shelf-heading > p { color: #999; font-family: Sora, sans-serif; font-size: 12px; line-height: 1.8; }
+.editorial-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+.editorial-image { aspect-ratio: 1.35; overflow: hidden; background: #111; }
+.editorial-card h3 { font-size: 22px; font-weight: 600; line-height: 1.22; letter-spacing: -.015em; margin-top: 12px; }
+.editorial-card p { font-family: Sora, sans-serif; color: #999; font-size: 11px; line-height: 1.85; margin-top: 12px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.editorial-card a:hover h3, .editorial-lead-copy a:hover h3 { color: #c8c8bd; }
+.editorial-recent { display: grid; grid-template-columns: 1fr 2fr; gap: 50px; margin-top: 48px; padding-top: 28px; border-top: 1px solid #303030; }
+.editorial-recent-list > a { display: grid; grid-template-columns: 25px 1fr 16px; gap: 18px; align-items: start; padding: 18px 0; border-bottom: 1px solid #252525; }
+.editorial-recent-list > a:first-child { padding-top: 0; }
+.editorial-recent-list .editorial-meta { margin-top: 0; }
+.editorial-number { font: 11px 'IBM Plex Mono', monospace; color: #666; padding-top: 3px; }
+.editorial-recent h4 { font-size: 20px; font-weight: 500; letter-spacing: -.01em; line-height: 1.3; margin-top: 7px; }
+.editorial-directory-note { border-bottom: 1px solid #303030; padding: 32px 0; display: flex; justify-content: space-between; align-items: center; gap: 25px; margin-top: 24px; }
+.editorial-directory-note p { color: #aaa; font: 12px/1.8 Sora, sans-serif; }
+.editorial-status { padding: 90px 0; color: #aaa; }
+.editorial-filters { display: flex; gap: 12px; flex-wrap: wrap; margin: 35px 0; }
+.editorial-filters button { padding: 10px 16px; min-height: 44px; font: 11px 'IBM Plex Mono', monospace; border: 1px solid #333; color: #bbb; }
+.editorial-filters button[aria-pressed=true] { background: #eee; color: #111; border-color: #eee; }
+@media(max-width: 900px) {
+  .editorial-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px 22px; }
+  .editorial-lead { gap: 28px; }
+}
+@media(max-width: 640px) {
+  .editorial-section { padding: 48px 22px 20px; }
+  .editorial-heading { display: block; padding-bottom: 25px; }
+  .editorial-intro { margin-top: 24px; }
+  .editorial-intro p { font-size: 13px; margin-bottom: 12px; }
+  .editorial-lead { grid-template-columns: 1fr; gap: 24px; padding: 25px 0 35px; }
+  .editorial-lead-image { aspect-ratio: 1.3; }
+  .editorial-lead-copy h3 { font-size: 31px; margin: 12px 0 16px; }
+  .editorial-shelf-heading { display: block; }
+  .editorial-shelf-heading > p { margin-top: 14px; }
+  .editorial-grid { gap: 28px 18px; }
+  .editorial-card h3 { font-size: 19px; }
+  .editorial-card p { display: none; }
+  .editorial-meta { font-size: 9px; }
+  .editorial-recent { grid-template-columns: 1fr; gap: 24px; margin-top: 35px; }
+  .editorial-recent h4 { font-size: 19px; }
+  .editorial-directory-note { align-items: flex-start; flex-direction: column; gap: 8px; }
 }

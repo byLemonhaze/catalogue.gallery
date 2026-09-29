@@ -9,12 +9,12 @@ type Props = {
 
 export function ApplicationWebsiteField({ value, onChange, check, error }: Props) {
     const invalid = Boolean(error) || check.status === 'blocked' || check.status === 'invalid';
-    const noteColor = invalid ? 'text-red-400' : check.status === 'compatible' ? 'text-emerald-400' : 'text-white/50';
+    const noteColor = invalid ? 'text-red-400' : check.status === 'compatible' ? 'text-emerald-400' : 'text-[#c7c7c7]';
 
     return (
         <div>
-            <label htmlFor="website-url" className="block text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-2">Website URL</label>
-            <div data-invalid={invalid} className="flex gap-3 items-end border-b border-white/15 data-[invalid=true]:border-red-400/70 focus-within:border-white/50 transition-colors">
+            <label htmlFor="website-url" className="block text-xs font-bold uppercase tracking-[0.2em] text-[#c7c7c7] mb-2">Website URL</label>
+            <div data-invalid={invalid} className="flex gap-3 items-end border border-[#707070] bg-[#111111] px-3 data-[invalid=true]:border-red-400 focus-within:border-white transition-colors">
                 <input
                     type="url"
                     required
@@ -25,7 +25,7 @@ export function ApplicationWebsiteField({ value, onChange, check, error }: Props
                     aria-invalid={invalid}
                     value={value}
                     onChange={event => onChange(event.target.value)}
-                    className="min-w-0 flex-1 bg-transparent py-2.5 text-sm text-white outline-none placeholder-white/20"
+                    className="min-w-0 flex-1 bg-transparent py-3 text-base text-white outline-none placeholder:text-[#a3a3a3]"
                     placeholder="https://your-website.com"
                 />
             </div>

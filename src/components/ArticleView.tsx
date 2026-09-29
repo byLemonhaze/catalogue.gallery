@@ -1,3 +1,5 @@
+import { useArticleBody } from '../hooks/useArticleBody';
+import { EditorialCard } from './ContentLabSection';
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
@@ -29,6 +31,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
     const { id } = useParams<{ id: string }>();
     const { artists } = useArtists();
     const article = articles.find(a => a.id === id);
+    const body = useArticleBody(article);
     const [copied, setCopied] = useState(false);
 
     const handleCopy = () => {
@@ -52,7 +55,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
                     <h1 className="text-4xl font-bold mb-4">404</h1>
                     <p className="text-white/50 mb-8">Article not found.</p>
                     <Link to="/blog" className="px-6 py-3 bg-[#0d0d0d] border border-white/10 hover:bg-[#121212] transition-colors">
-                        Return to Archives
+                        Explore Content Lab
                     </Link>
                 </div>
             </div>
@@ -83,21 +86,8 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
                             {article.type}
                         </span>
                     </div>
-                    {article.title.includes(':') ? (
-                        <>
-                            <h1 className="text-2xl md:text-3xl font-black tracking-widest mb-6 leading-tight text-white uppercase break-words max-w-3xl mx-auto">
-                                {article.title.split(':')[0]}:
-                            </h1>
-                            <div className="w-16 h-px bg-white/20 mx-auto mb-6"></div>
-                            <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-8 text-white/80 max-w-3xl mx-auto leading-normal">
-                                {article.title.split(':')[1]}
-                            </h2>
-                        </>
-                    ) : (
-                        <h1 className="text-2xl md:text-4xl font-black tracking-tighter mb-8 leading-tight text-white uppercase break-words max-w-3xl mx-auto">
-                            {article.title}
-                        </h1>
-                    )}
+                    <h1 className="text-3xl md:text-5xl font-semibold tracking-tight mb-7 leading-tight text-white max-w-3xl mx-auto">{article.title}</h1>
+                    <p className="max-w-2xl mx-auto text-sm md:text-base leading-relaxed text-white/60 mb-8">{article.excerpt}</p>
                     <div className="flex items-center justify-center gap-6 text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] border-t border-white/10 pt-6 max-w-md mx-auto relative">
                         <span>{article.date}</span>
                         <span>•</span>
@@ -124,6 +114,8 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
                 </header>
 
                 <div className="max-w-2xl mx-auto">
+                    {body.loading && <p role="status" className="text-white/60">Loading the story…</p>}
+                    {body.error && <div role="alert" className="border border-white/20 p-6 mb-8"><p>This story could not load. Please check your connection.</p><button className="editorial-link" onClick={() => window.location.reload()}>Try again</button></div>}
                     <ReactMarkdown
                         components={{
                             h1: () => null,
@@ -147,15 +139,17 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
                             }
                         }}
                     >
-                        {processArticleContent(article.content, artists)}
+                        {processArticleContent(body.content, artists)}
                     </ReactMarkdown>
                 </div>
 
+                {article.featuredArtistId && <aside className="mt-16 border-y border-white/15 py-7"><span className="editorial-kicker">Beyond the story</span><h2 className="text-2xl mt-3 mb-4">Enter the artist’s world.</h2><Link className="editorial-link" to={`/${article.featuredArtistType === 'gallery' ? 'gallery' : 'artist'}/${article.featuredArtistId}/`}>Explore the practice ↗</Link></aside>}
+                <aside className="mt-16"><span className="editorial-kicker">Keep reading</span><div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mt-6">{articles.filter(item => item.id !== article.id).slice(0, 2).map(item => <EditorialCard key={item.id} article={item} />)}</div></aside>
                 {/* Footer Section */}
                 <hr className="my-20 border-white/10" />
                 <div className="flex items-center justify-between">
                     <Link to="/blog" className="text-[10px] font-bold uppercase tracking-widest text-white/30 hover:text-white transition-colors">
-                        ← Archives
+                        ← All stories
                     </Link>
                     <Link to="/" className="text-[10px] font-bold uppercase tracking-widest text-white/30 hover:text-white transition-colors">
                         Home →

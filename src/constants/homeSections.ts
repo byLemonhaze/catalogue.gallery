@@ -6,3 +6,6 @@ export const HOME_SECTION_IDS = {
 } as const;
 
 export type HomeSectionKey = keyof typeof HOME_SECTION_IDS;
+
+// A second editorial section shares the Content Lab navigation state.
+export const EDITOR_PICKS_SECTION_ID = 'catalogue-home-editor-picks';

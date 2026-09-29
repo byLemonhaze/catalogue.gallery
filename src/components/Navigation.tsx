@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { HOME_SECTION_IDS, type HomeSectionKey } from '../constants/homeSections';
+import { type HomeSectionKey } from '../constants/homeSections';
 import { buildHomeNavigationState } from '../lib/homeMemory';
+import { scrollToHomeSection } from '../lib/homeNavigation';
 
 interface NavigationProps {
     onSearchOpen?: () => void;
@@ -13,8 +14,8 @@ const NAV_ITEMS: Array<{
     section: HomeSectionKey;
     legacyRoutes: string[];
 }> = [
-    { label: 'Directory', section: 'directory', legacyRoutes: ['/artists'] },
     { label: 'Content Lab', section: 'lab', legacyRoutes: ['/blog', '/content-lab'] },
+    { label: 'Directory', section: 'directory', legacyRoutes: ['/artists'] },
     { label: 'Apply', section: 'apply', legacyRoutes: ['/info', '/submit'] },
 ];
 
@@ -24,27 +25,8 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
     const isHome = path === '/';
     const homeReturnState = buildHomeNavigationState();
 
-    const getVisibleHomeNavBottom = () => {
-        const navCandidates = Array.from(document.querySelectorAll<HTMLElement>('[data-home-nav="true"]'));
-        const visibleNav = navCandidates.find((element) => element.offsetParent !== null);
-        return visibleNav?.getBoundingClientRect().bottom ?? 0;
-    };
-
     const isLegacySectionActive = (item: typeof NAV_ITEMS[number]) => {
         return item.legacyRoutes.some((route) => path.startsWith(route));
-    };
-
-    const scrollToHomeSection = (section: HomeSectionKey) => {
-        const container = document.getElementById('home-scroll-container') as HTMLDivElement | null;
-        const sectionElement = document.getElementById(HOME_SECTION_IDS[section]);
-        const target = sectionElement?.querySelector<HTMLElement>('[data-home-scroll-anchor="true"]') || sectionElement;
-        if (!container || !target) return;
-        const targetRect = target.getBoundingClientRect();
-        const desiredTop = getVisibleHomeNavBottom() + 18;
-        container.scrollTo({
-            top: Math.max(0, container.scrollTop + targetRect.top - desiredTop),
-            behavior: 'smooth',
-        });
     };
 
     // Hide navigation on artist pages
@@ -96,6 +78,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
                         event.currentTarget.blur();
                         scrollToHomeSection(item.section);
                     }}
+                    aria-current={isSectionActive ? 'location' : undefined}
                     className={resolvedClassName}
                 >
                     {item.label}
@@ -108,7 +91,8 @@ export const Navigation: React.FC<NavigationProps> = ({ onSearchOpen, activeHome
                 key={item.label}
                 to="/"
                 state={{ homeSection: item.section }}
-                className={resolvedClassName}
+                aria-current={isSectionActive ? 'location' : undefined}
+                    className={resolvedClassName}
             >
                 {item.label}
             </Link>

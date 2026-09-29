@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ArtistCard } from './ArtistCard';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { moveGesture, gestureStep, type Gesture } from '../lib/carouselGesture';
 import { urlFor } from '../sanity/image';
 import type { Artist } from '../hooks/useArtists';
 
@@ -26,9 +27,8 @@ function CarouselArrow({
         <button
             type="button"
             onClick={onClick}
-            onMouseUp={(event) => event.currentTarget.blur()}
             aria-label={isPrev ? 'Previous artist' : 'Next artist'}
-            className={`group absolute top-1/2 z-30 -translate-y-1/2 cursor-pointer appearance-none rounded-none border-0 bg-transparent p-0 text-white/28 outline-none transition-colors duration-300 hover:text-white focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:text-white ${className}`}
+            className={`group absolute top-1/2 z-30 -translate-y-1/2 cursor-pointer appearance-none rounded-none border-0 bg-transparent p-0 text-white/60 carousel-arrow transition-colors duration-300 hover:text-white focus-visible:outline-2 focus-visible:outline-white focus-visible:text-white ${className}`}
         >
             <span className={`flex items-center ${isPrev ? '' : 'justify-end'}`}>
                 {isPrev && (
@@ -47,10 +47,11 @@ function CarouselArrow({
 }
 
 export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initialIndex = 0, onIndexChange, onGlowColor }) => {
-    const navigate = useNavigate();
     const [activeIndex, setActiveIndex] = useState(initialIndex);
-    const [touchStart, setTouchStart] = useState<number | null>(null);
-    const [touchEnd, setTouchEnd] = useState<number | null>(null);
+    const gesture = useRef<Gesture | null>(null);
+    const suppressClick = useRef(false);
+    const motionFrame = useRef(0);
+    useEffect(() => () => cancelAnimationFrame(motionFrame.current), []);
     const [dragOffset, setDragOffset] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
     const totalItems = artists.length;
@@ -70,16 +71,6 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
     useEffect(() => {
         onIndexChange?.(currentIndex);
     }, [currentIndex, onIndexChange]);
-
-    // Keyboard navigation — stable deps via useCallback
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'ArrowLeft') prev();
-            if (e.key === 'ArrowRight') next();
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [prev, next]);
 
     // Sample dominant color from active artist thumbnail
     useEffect(() => {
@@ -116,42 +107,42 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
         return () => { cancelled = true; };
     }, [currentIndex, artists, onGlowColor]);
 
-    // Swipe handlers
-    const onTouchStart = (e: React.TouchEvent) => {
-        setTouchEnd(null);
-        setTouchStart(e.targetTouches[0].clientX);
-        setIsDragging(true);
-        setDragOffset(0);
-    };
-
-    const onTouchMove = (e: React.TouchEvent) => {
-        if (!touchStart) return;
-        const currentClientX = e.targetTouches[0].clientX;
-        setTouchEnd(currentClientX);
-        const offset = currentClientX - touchStart;
-        setDragOffset(offset);
-    };
-
-    const onTouchEnd = () => {
+    const resetGesture = () => {
+        cancelAnimationFrame(motionFrame.current);
+        gesture.current = null;
         setIsDragging(false);
-        if (!touchStart || !touchEnd) {
-            setDragOffset(0);
-            return;
-        }
-
-        const distance = touchStart - touchEnd;
-        const isLeftSwipe = distance > 50;
-        const isRightSwipe = distance < -50;
-
-        if (isLeftSwipe) {
-            next();
-        } else if (isRightSwipe) {
-            prev();
-        }
-
         setDragOffset(0);
-        setTouchStart(null);
-        setTouchEnd(null);
+    };
+    const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+        if (!event.isPrimary) { suppressClick.current = true; resetGesture(); return; }
+        if (event.pointerType === 'mouse' || (event.target as Element).closest('button')) return;
+        suppressClick.current = false;
+        gesture.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, dx: 0, axis: 'pending', moved: false };
+    };
+    const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+        const current = gesture.current;
+        if (!current || current.pointerId !== event.pointerId) return;
+        const nextGesture = moveGesture(current, event.clientX, event.clientY);
+        gesture.current = nextGesture;
+        if (nextGesture.moved) suppressClick.current = true;
+        if (nextGesture.axis !== 'horizontal') return;
+        if (!event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.setPointerCapture(event.pointerId);
+        setIsDragging(true);
+        cancelAnimationFrame(motionFrame.current);
+        motionFrame.current = requestAnimationFrame(() => setDragOffset(Math.max(-100, Math.min(100, nextGesture.dx * 0.65))));
+    };
+    const onPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+        if (!gesture.current || gesture.current.pointerId !== event.pointerId) return;
+        const completed = moveGesture(gesture.current, event.clientX, event.clientY);
+        suppressClick.current = completed.moved;
+        const step = gestureStep(completed);
+        if (step === 1) next();
+        if (step === -1) prev();
+        resetGesture();
+    };
+    const cancelGesture = () => {
+        if (gesture.current) suppressClick.current = true;
+        resetGesture();
     };
 
     const getRelativeDiff = (index: number) => {
@@ -173,7 +164,7 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
         const isNext = diff === 1;
         const transition = isDragging
             ? 'none'
-            : 'transform 420ms cubic-bezier(0.22, 1, 0.36, 1), opacity 260ms ease, filter 320ms ease';
+            : 'transform 240ms ease-out, opacity 180ms ease';
 
         const base: React.CSSProperties = {
             transition,
@@ -219,12 +210,26 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
     };
 
     return (
-        <div className="w-full flex flex-col items-center">
+        <div className="w-full flex flex-col items-center" role="region" aria-roledescription="carousel" aria-label="Discover artists"
+            onKeyDown={(event) => {
+                if ((event.target as Element).closest('input, textarea, select')) return;
+                if (event.key === 'ArrowLeft') { event.preventDefault(); prev(); }
+                if (event.key === 'ArrowRight') { event.preventDefault(); next(); }
+            }}>
+            <span className="sr-only" aria-live="polite" aria-atomic="true">{artists[currentIndex]?.name}, {currentIndex + 1} of {totalItems}</span>
             <div
                 className="relative w-full h-[400px] md:h-[520px] min-[1700px]:h-[620px] flex items-center justify-center overflow-hidden cursor-default"
-                onTouchStart={onTouchStart}
-                onTouchMove={onTouchMove}
-                onTouchEnd={onTouchEnd}
+                style={{ touchAction: 'pan-y pinch-zoom' }}
+                onPointerDown={onPointerDown}
+                onPointerMove={onPointerMove}
+                onPointerUp={onPointerUp}
+                onPointerCancel={cancelGesture}
+                onLostPointerCapture={cancelGesture}
+                onClickCapture={(event) => {
+                    if (event.detail !== 0 && suppressClick.current && !(event.target as Element).closest('button')) {
+                        event.preventDefault(); event.stopPropagation(); suppressClick.current = false;
+                    }
+                }}
             >
                 {/* Items */}
                 <div className="relative w-full max-w-7xl h-[360px] md:h-[460px] min-[1700px]:h-[560px]">
@@ -235,17 +240,19 @@ export const ArtistCarousel: React.FC<ArtistCarouselProps> = ({ artists, initial
                             <div
                                 key={artist.id}
                                 style={style}
-                                className="h-full w-[92vw] max-w-[640px] min-[1700px]:max-w-[780px] min-[1900px]:max-w-[860px]"
-                                onClick={() => {
-                                    if (index === currentIndex) {
-                                        const path = artist.type === 'gallery' ? `/gallery/${artist.id}` : `/artist/${artist.id}`;
-                                        navigate(path, { state: { from: 'home', slideIndex: index } });
-                                    } else {
-                                        setActiveIndex(index);
-                                    }
-                                }}
+                                className="carousel-slide h-full w-[92vw] max-w-[640px] min-[1700px]:max-w-[780px] min-[1900px]:max-w-[860px]"
+                                aria-hidden={index !== currentIndex}
                             >
-                                <ArtistCard {...artist} />
+                                <Link
+                                    to={`/${artist.type === 'gallery' ? 'gallery' : 'artist'}/${artist.id}/`}
+                                    state={{ from: 'home', slideIndex: index }}
+                                    tabIndex={index === currentIndex ? 0 : -1}
+                                    aria-label={`Explore ${artist.name}`}
+                                    className="block h-full"
+                                    draggable={false}
+                                >
+                                    <ArtistCard {...artist} priority={index === currentIndex} />
+                                </Link>
                             </div>
                         );
                     })}

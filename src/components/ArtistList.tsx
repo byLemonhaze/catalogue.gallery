@@ -81,7 +81,7 @@ export const ArtistList: React.FC = () => {
                             {groupedArtists[letter].map(artist => (
                                 <Link
                                     key={artist.id}
-                                    to={`/artist/${artist.id}`}
+                                    to={`/artist/${artist.id}/`}
                                     state={{ from: 'directory' }}
                                     className="group flex items-center gap-4 py-3 border-b border-white/6 hover:border-white/20 transition-colors duration-200"
                                 >
@@ -125,7 +125,7 @@ export const ArtistList: React.FC = () => {
                         {galleries.map(gallery => (
                             <Link
                                 key={gallery.id}
-                                to={`/gallery/${gallery.id}`}
+                                to={`/gallery/${gallery.id}/`}
                                 state={{ from: 'directory' }}
                                 className="group flex items-center gap-4 py-3 border-b border-white/6 hover:border-white/20 transition-colors duration-200"
                             >

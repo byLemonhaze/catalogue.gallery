@@ -36,6 +36,9 @@ type MetaArticle = {
 type MetaProfile = {
     id: string;
     route: 'artist' | 'gallery';
+    websiteUrl?: string;
+    desktopExitPosition?: string;
+    mobileExitPosition?: string;
     name: string;
     subtitle: string;
     thumbnailUrl: string;
@@ -133,7 +136,7 @@ async function fetchSanityMetaProfiles(): Promise<MetaProfile[]> {
         "id": slug.current,
         "route": _type,
         name,
-        subtitle,
+        subtitle, websiteUrl, desktopExitPosition, mobileExitPosition,
         "thumbnailAssetUrl": thumbnail.asset->url
       }`;
 
@@ -154,6 +157,9 @@ async function fetchSanityMetaProfiles(): Promise<MetaProfile[]> {
             route?: string;
             name?: string;
             subtitle?: string;
+            websiteUrl?: string;
+            desktopExitPosition?: string;
+            mobileExitPosition?: string;
             thumbnailAssetUrl?: string;
         }>;
     };
@@ -167,6 +173,9 @@ async function fetchSanityMetaProfiles(): Promise<MetaProfile[]> {
             route: profile.route as 'artist' | 'gallery',
             name: profile.name as string,
             subtitle: (profile.subtitle || '').trim(),
+            websiteUrl: profile.websiteUrl,
+            desktopExitPosition: profile.desktopExitPosition,
+            mobileExitPosition: profile.mobileExitPosition,
             thumbnailUrl: normalizeImageUrl(profile.thumbnailAssetUrl || '/logo.png'),
         }));
 }
@@ -343,7 +352,7 @@ async function generateArticles(template: string) {
         const articleDir = path.join(DIST_DIR, 'blog', article.id);
         fs.mkdirSync(articleDir, { recursive: true });
 
-        const articleUrl = `${SITE_ORIGIN}/blog/${article.id}`;
+        const articleUrl = `${SITE_ORIGIN}/blog/${article.id}/`;
         const content = applyMetaTemplate(template, {
             title: article.title,
             description: article.excerpt,
@@ -366,7 +375,7 @@ async function generateProfiles(template: string) {
         const profileDir = path.join(DIST_DIR, profile.route, profile.id);
         fs.mkdirSync(profileDir, { recursive: true });
 
-        const profileUrl = `${SITE_ORIGIN}/${profile.route}/${profile.id}`;
+        const profileUrl = `${SITE_ORIGIN}/${profile.route}/${profile.id}/`;
         const imageUrl = await generateSplitProfileImage(profile);
         const description = profile.subtitle
             ? `${profile.subtitle} — view ${profile.name} on CATALOGUE.`
@@ -378,7 +387,15 @@ async function generateProfiles(template: string) {
             imageUrl,
         });
 
-        fs.writeFileSync(path.join(profileDir, 'index.html'), content);
+        let html = content;
+        try {
+            const website = new URL(profile.websiteUrl || '');
+            if (website.protocol === 'https:') {
+                const bootstrap = JSON.stringify({ id: profile.id, type: profile.route, name: profile.name, subtitle: profile.subtitle, websiteUrl: website.href, desktopExitPosition: profile.desktopExitPosition, mobileExitPosition: profile.mobileExitPosition }).replace(/</g, '\\u003c');
+                html = html.replace('<head>', `<head>\n<link rel="preconnect" href="${website.origin.replace(/"/g, '&quot;')}">\n<script type="application/json" id="catalogue-profile">${bootstrap}</script>`);
+            }
+        } catch { /* Profiles without a valid HTTPS URL use the runtime lookup. */ }
+        fs.writeFileSync(path.join(profileDir, 'index.html'), html);
         console.log(`Generated profile meta: ${profile.route}/${profile.id}`);
     }
 

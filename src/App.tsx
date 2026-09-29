@@ -1,3 +1,4 @@
+import { RouteRecoveryBoundary, loadArtistFrame, prefetchArtistFrame, recoverImport } from './lib/routeLoading';
 import { useState, useMemo, lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { useArtists } from './hooks/useArtists';
@@ -11,13 +12,13 @@ import { type HomeSectionKey } from './constants/homeSections';
 import { HomeExperience } from './pages/HomeExperience';
 
 // Lazy-loaded routes — only fetched when the user navigates to them
-const ArtistList = lazy(() => import('./components/ArtistList').then(m => ({ default: m.ArtistList })));
-const ArticleView = lazy(() => import('./components/ArticleView').then(m => ({ default: m.ArticleView })));
-const ArticleList = lazy(() => import('./components/ArticleList').then(m => ({ default: m.ArticleList })));
-const InfoHub = lazy(() => import('./components/InfoHub').then(m => ({ default: m.InfoHub })));
-const ArtistFrame = lazy(() => import('./pages/ArtistFrame').then(m => ({ default: m.ArtistFrame })));
-const SubmitArtist = lazy(() => import('./pages/SubmitArtist').then(m => ({ default: m.SubmitArtist })));
-const ContentLab = lazy(() => import('./pages/ContentLab').then(m => ({ default: m.ContentLab })));
+const ArtistList = lazy(() => recoverImport(() => import('./components/ArtistList').then(m => ({ default: m.ArtistList }))));
+const ArticleView = lazy(() => recoverImport(() => import('./components/ArticleView').then(m => ({ default: m.ArticleView }))));
+const ArticleList = lazy(() => recoverImport(() => import('./components/ArticleList').then(m => ({ default: m.ArticleList }))));
+const InfoHub = lazy(() => recoverImport(() => import('./components/InfoHub').then(m => ({ default: m.InfoHub }))));
+const ArtistFrame = lazy(() => recoverImport(loadArtistFrame));
+const SubmitArtist = lazy(() => recoverImport(() => import('./pages/SubmitArtist').then(m => ({ default: m.SubmitArtist }))));
+const ContentLab = lazy(() => recoverImport(() => import('./pages/ContentLab').then(m => ({ default: m.ContentLab }))));
 
 function shuffleArray<T>(items: T[]) {
   const clone = [...items];
@@ -32,12 +33,14 @@ const AppContent = () => {
   const location = useLocation();
   const isArtistPage = location.pathname.startsWith('/artist/') || location.pathname.startsWith('/gallery/');
 
-  const { artists, loading, error: artistsError } = useArtists();
-  const { articles, loading: articlesLoading } = useArticles();
+  const { artists, loading, error: artistsError } = useArtists(!isArtistPage);
+  const { articles, loading: articlesLoading } = useArticles(!isArtistPage);
   const [search, setSearch] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
   const [homeSection, setHomeSection] = useState<HomeSectionKey>('hero');
+
+  useEffect(() => { if (!isArtistPage) return prefetchArtistFrame(); }, [isArtistPage]);
 
   // Cmd+K / Ctrl+K to open search
   useEffect(() => {
@@ -87,6 +90,7 @@ const AppContent = () => {
         onClose={() => setIsSearchOpen(false)}
       />
 
+      <RouteRecoveryBoundary>
       <Suspense fallback={
         <div className="flex items-center justify-center min-h-screen">
           <SquareLoader className="w-6 h-6" label="Loading page" strokeWidth={1.6} />
@@ -120,6 +124,7 @@ const AppContent = () => {
           <Route path="/info" element={<InfoHub setIsLegalModalOpen={setIsLegalModalOpen} />} />
         </Routes>
       </Suspense>
+      </RouteRecoveryBoundary>
     </div>
   );
 };

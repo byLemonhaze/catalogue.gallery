@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { client } from '../sanity/client'
-import { articles as legacyArticles } from '../data/articles'
 import type { ArticleRecord } from '../types/article'
 
 type SanityPost = {
@@ -15,6 +14,9 @@ type SanityPost = {
     featuredArtistThumbnailUrl?: string
     thumbnailUrl?: string
     thumbnailPath?: string
+    hasContent?: boolean
+    featuredArtistId?: string
+    featuredArtistType?: string
     sortOrder?: number
 }
 
@@ -73,7 +75,7 @@ function mapSanityArticle(post: SanityPost): ArticleRecord | null {
     const title = post.title?.trim()
     const excerpt = post.excerpt?.trim()
     const content = post.content || ''
-    if (!id || !title || !excerpt || !content) return null
+    if (!id || !title || !excerpt || !(post.hasContent ?? Boolean(content))) return null
 
     return {
         id,
@@ -85,6 +87,8 @@ function mapSanityArticle(post: SanityPost): ArticleRecord | null {
         content,
         thumbnailUrl: normalizeImageUrl(post.featuredArtistThumbnailUrl || post.thumbnailUrl || post.thumbnailPath),
         source: 'sanity',
+        featuredArtistId: post.featuredArtistId,
+        featuredArtistType: post.featuredArtistType,
     }
 }
 
@@ -98,7 +102,9 @@ async function fetchSanityArticles(): Promise<ArticleRecord[]> {
             publishedAt,
             type,
             excerpt,
-            content,
+            "hasContent": defined(content) && content != "",
+            "featuredArtistId": featuredArtist->slug.current,
+            "featuredArtistType": featuredArtist->_type,
             "featuredArtistThumbnailUrl": featuredArtist->thumbnail.asset->url,
             thumbnailPath,
             "thumbnailUrl": thumbnail.asset->url
@@ -108,44 +114,28 @@ async function fetchSanityArticles(): Promise<ArticleRecord[]> {
     return posts.map(mapSanityArticle).filter((item): item is ArticleRecord => item !== null)
 }
 
-export function useArticles() {
-    const [articles, setArticles] = useState<ArticleRecord[]>(articleCache || [])
-    const [loading, setLoading] = useState(!articleCache)
-
+let pending: Promise<ArticleRecord[]> | null = null;
+async function loadArticles() {
+    if (articleCache) return articleCache;
+    pending ??= (async () => {
+        try {
+            const articles = await fetchSanityArticles();
+            if (articles.length) { articleCache = articles; return articles; }
+        } catch { /* Legacy content is a read-only offline fallback. */ }
+        const { articles } = await import('../data/articles');
+        return articles.map(mapLegacyArticle);
+    })().finally(() => { pending = null; });
+    return pending;
+}
+export function useArticles(enabled = true) {
+    const [articles, setArticles] = useState<ArticleRecord[]>(articleCache || []);
+    const [loading, setLoading] = useState(!articleCache);
     useEffect(() => {
-        if (articleCache) return
-
-        let isCancelled = false
-
-        const load = async () => {
-            try {
-                const sanityArticles = await fetchSanityArticles()
-                const resolved = sanityArticles.length > 0
-                    ? sanityArticles
-                    : legacyArticles.map(mapLegacyArticle)
-
-                if (!isCancelled) {
-                    articleCache = resolved
-                    setArticles(resolved)
-                }
-            } catch (error) {
-                console.error('Failed to fetch Sanity articles, using local fallback:', error)
-                const fallback = legacyArticles.map(mapLegacyArticle)
-                if (!isCancelled) {
-                    articleCache = fallback
-                    setArticles(fallback)
-                }
-            } finally {
-                if (!isCancelled) setLoading(false)
-            }
-        }
-
-        load()
-
-        return () => {
-            isCancelled = true
-        }
-    }, [])
-
-    return { articles, loading }
+        if (!enabled) return;
+        let cancelled = false;
+        void loadArticles().then(data => { if (!cancelled) setArticles(data); })
+            .finally(() => { if (!cancelled) setLoading(false); });
+        return () => { cancelled = true; };
+    }, [enabled]);
+    return { articles, loading: enabled && loading };
 }

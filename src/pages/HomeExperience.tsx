@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
+import { ContentLabSection, EditorPicksSection } from '../components/ContentLabSection';
 import { ArtistCarousel } from '../components/ArtistCarousel';
 import { CatalogueFooterLinks } from '../components/CatalogueFooterLinks';
 import { SquareLoader } from '../components/SquareLoader';
-import { HOME_SECTION_IDS, type HomeSectionKey } from '../constants/homeSections';
+import { EDITOR_PICKS_SECTION_ID, HOME_SECTION_IDS, type HomeSectionKey } from '../constants/homeSections';
 import type { Artist } from '../hooks/useArtists';
 import { readHomeMemory, writeHomeMemory } from '../lib/homeMemory';
+import { scrollToHomeSection } from '../lib/homeNavigation';
 import { urlFor } from '../sanity/image';
 import type { ArticleRecord } from '../types/article';
+import { useEditorialSelection } from '../hooks/useEditorialSelection';
 
 interface HomeExperienceProps {
   artists: Artist[];
@@ -38,33 +41,10 @@ interface DirectoryReturnState {
 function getArtistThumbnailUrl(artist: Artist) {
   if (!artist.thumbnail) return null;
   if (artist.isSanity) {
-    const image = urlFor(artist.thumbnail).width(320).height(400);
+    const image = urlFor(artist.thumbnail).width(480).height(600).auto('format').quality(80);
     return artist.id === 'harto' ? image.fit('max').url() : image.url();
   }
   return typeof artist.thumbnail === 'string' ? artist.thumbnail : null;
-}
-
-function getArticleThumbnailUrl(article: ArticleRecord) {
-  return article.thumbnailUrl || '/logo.png';
-}
-
-function getSectionScrollTarget(section: HomeSectionKey) {
-  const sectionElement = document.getElementById(HOME_SECTION_IDS[section]);
-  if (!sectionElement) return null;
-  return sectionElement.querySelector<HTMLElement>('[data-home-scroll-anchor="true"]') || sectionElement;
-}
-
-function getContainerScrollTop(container: HTMLDivElement, target: HTMLElement) {
-  const containerRect = container.getBoundingClientRect();
-  const targetRect = target.getBoundingClientRect();
-  const navOffset = window.innerWidth >= 768 ? 118 : 92;
-  return Math.max(0, targetRect.top - containerRect.top + container.scrollTop - navOffset);
-}
-
-function scrollToSection(section: HomeSectionKey, container: HTMLDivElement | null, behavior: ScrollBehavior = 'smooth') {
-  const target = getSectionScrollTarget(section);
-  if (!target || !container) return;
-  container.scrollTo({ top: getContainerScrollTop(container, target), behavior });
 }
 
 function isPlainLeftClick(event: React.MouseEvent<HTMLAnchorElement>) {
@@ -80,8 +60,8 @@ function PreviewArtistCard({
 }) {
   const navigate = useNavigate();
   const href = artist.type === 'gallery' || artist.type === 'collection'
-    ? `/gallery/${artist.id}`
-    : `/artist/${artist.id}`;
+    ? `/gallery/${artist.id}/`
+    : `/artist/${artist.id}/`;
   const thumbnailUrl = getArtistThumbnailUrl(artist);
 
   return (
@@ -99,6 +79,7 @@ function PreviewArtistCard({
           <img
             src={thumbnailUrl}
             alt={artist.name}
+            loading="lazy" decoding="async" width="480" height="600"
             style={{ objectPosition: artist.id === 'harto' ? 'center top' : 'center' }}
             className="h-full w-full object-cover opacity-75 transition duration-500 group-hover:scale-[1.03] group-hover:opacity-100"
           />
@@ -116,112 +97,6 @@ function PreviewArtistCard({
   );
 }
 
-function ArchiveArticleRailItem({
-  article,
-  index,
-}: {
-  article: ArticleRecord;
-  index: number;
-}) {
-  return (
-    <Link
-      to={`/blog/${article.id}`}
-      className="group grid cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-4 border-t border-white/8 py-4 transition-colors duration-300 first:border-t-0 hover:border-white/20"
-    >
-      <span className="pt-0.5 text-[10px] font-mono uppercase tracking-[0.18em] text-white/18 transition-colors duration-300 group-hover:text-white/35">
-        {String(index + 1).padStart(2, '0')}
-      </span>
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2 text-[9px] font-bold uppercase tracking-[0.22em] text-white/25">
-          <span>{article.type}</span>
-          <span className="text-white/12">/</span>
-          <span>{article.date}</span>
-        </div>
-        <h3 className="mt-2 max-w-md text-base font-bold leading-snug tracking-tight text-white transition-colors duration-300 group-hover:text-white/80 md:text-lg">
-          {article.title}
-        </h3>
-        {article.author ? (
-          <p className="mt-2 text-[10px] font-mono uppercase tracking-[0.14em] text-white/22">
-            {article.author}
-          </p>
-        ) : null}
-      </div>
-      <span className="pt-0.5 text-[10px] font-bold uppercase tracking-[0.22em] text-white/22 transition-colors duration-300 group-hover:text-white/55">
-        Open
-      </span>
-    </Link>
-  );
-}
-
-function FeaturedArticleCard({ article }: { article: ArticleRecord }) {
-  return (
-    <Link
-      to={`/blog/${article.id}`}
-      className="group relative cursor-pointer overflow-hidden border border-white/10 bg-white/[0.03] transition-colors duration-300 hover:border-white/25"
-    >
-      <div className="absolute inset-0">
-        <img
-          src={getArticleThumbnailUrl(article)}
-          alt=""
-          className="h-full w-full object-cover opacity-45 transition duration-700 group-hover:scale-[1.04] group-hover:opacity-60"
-        />
-      </div>
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.25),rgba(0,0,0,0.42)_36%,rgba(0,0,0,0.88)_100%)]" />
-      <div className="relative flex min-h-[380px] flex-col justify-between p-6 md:min-h-[460px] md:p-8">
-        <div>
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="border border-white/10 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.24em] text-white/30">
-              Featured
-            </span>
-            <span className="text-[10px] font-mono uppercase tracking-[0.12em] text-white/25">{article.type}</span>
-            <span className="text-[10px] font-mono uppercase tracking-[0.12em] text-white/20">{article.date}</span>
-          </div>
-          <h3 className="mt-6 max-w-2xl text-2xl font-bold leading-tight tracking-tight text-white transition-colors duration-300 group-hover:text-white/80 md:text-[2rem]">
-            {article.title}
-          </h3>
-          {article.author ? (
-            <p className="mt-4 text-[10px] font-mono uppercase tracking-[0.16em] text-white/28">
-              {article.author}
-            </p>
-          ) : null}
-        </div>
-        <div className="max-w-xl">
-          <p className="border-l border-white/18 pl-4 text-sm leading-relaxed text-white/65 md:text-base">
-            {article.excerpt}
-          </p>
-          <span className="mt-8 inline-flex text-[10px] font-bold uppercase tracking-[0.24em] text-white/45 transition-colors duration-300 group-hover:text-white">
-            Read feature
-          </span>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function ContentLabArchiveRail({ articles }: { articles: ArticleRecord[] }) {
-  return (
-    <div className="h-full border border-white/10 bg-white/[0.02] p-5 md:p-6">
-      <div className="border-b border-white/8 pb-5">
-        <p className="text-[9px] font-bold uppercase tracking-[0.26em] text-white/20">
-          Profiles / Interviews / Essays / Criticism
-        </p>
-        <h3 className="mt-4 text-xl font-bold uppercase tracking-[0.06em] text-white md:text-2xl">
-          Recent archive
-        </h3>
-        <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/42">
-          Writing that adds context, interpretation, and memory around the artists and the wider digital art field.
-        </p>
-      </div>
-
-      <div className="mt-3">
-        {articles.map((article, index) => (
-          <ArchiveArticleRailItem key={article.id} article={article} index={index} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function HomeExperience({
   artists,
   loading,
@@ -231,10 +106,12 @@ export function HomeExperience({
   setIsLegalModalOpen,
   onSectionChange,
 }: HomeExperienceProps) {
+  const editorialSelection = useEditorialSelection();
   const location = useLocation();
   const navigate = useNavigate();
   const navigationType = useNavigationType();
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const restoredLocationKey = useRef<string | null>(null);
   const routeState = (location.state as HomeRouteState | null) ?? null;
   const [glowColor, setGlowColor] = useState('20, 20, 20');
   const [directoryGridPage, setDirectoryGridPage] = useState(() => routeState?.directoryPage ?? 0);
@@ -254,7 +131,6 @@ export function HomeExperience({
     () => artists.filter((artist) => artist.type === 'gallery' || artist.type === 'collection').slice(0, 4),
     [artists],
   );
-  const featuredArticles = useMemo(() => articles.slice(0, 3), [articles]);
   const directoryPageCount = Math.max(1, Math.ceil(artistEntries.length / 6));
   const normalizedDirectoryPage = directoryGridPage % directoryPageCount;
   const visibleDirectoryArtists = useMemo(() => {
@@ -325,6 +201,9 @@ export function HomeExperience({
 
   useLayoutEffect(() => {
     if (!requestedSection && typeof requestedScrollTop !== 'number') return;
+    // Wait for section heights, and restore only once per navigation (not on every scroll).
+    if (loading || articlesLoading || restoredLocationKey.current === location.key) return;
+    restoredLocationKey.current = location.key;
 
     if (typeof requestedScrollTop === 'number' && scrollRef.current) {
       scrollRef.current.scrollTop = requestedScrollTop;
@@ -332,7 +211,7 @@ export function HomeExperience({
       activeSectionRef.current = restoredSection;
       onSectionChange(restoredSection);
     } else if (requestedSection) {
-      scrollToSection(requestedSection, scrollRef.current, 'auto');
+      scrollToHomeSection(requestedSection, 'instant');
       activeSectionRef.current = requestedSection;
       onSectionChange(requestedSection);
     }
@@ -340,14 +219,20 @@ export function HomeExperience({
     if (location.state) {
       navigate(location.pathname, { replace: true });
     }
-  }, [location.pathname, location.state, navigate, onSectionChange, requestedScrollTop, requestedSection]);
+  }, [location.key, location.pathname, location.state, loading, articlesLoading, navigate, onSectionChange, requestedScrollTop, requestedSection]);
 
   useEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
 
     let frame = 0;
-    const sections: HomeSectionKey[] = ['hero', 'directory', 'lab', 'apply'];
+    const sections: { key: HomeSectionKey; id: string }[] = [
+      { key: 'hero', id: HOME_SECTION_IDS.hero },
+      { key: 'lab', id: HOME_SECTION_IDS.lab },
+      { key: 'directory', id: HOME_SECTION_IDS.directory },
+      { key: 'lab', id: EDITOR_PICKS_SECTION_ID },
+      { key: 'apply', id: HOME_SECTION_IDS.apply },
+    ];
     const updateActiveSection = () => {
       const scrollTop = container.scrollTop;
       const viewportHeight = container.clientHeight;
@@ -355,8 +240,8 @@ export function HomeExperience({
       let activeSection: HomeSectionKey = 'hero';
       let bestDistance = Number.POSITIVE_INFINITY;
 
-      sections.forEach((section) => {
-        const element = document.getElementById(HOME_SECTION_IDS[section]);
+      sections.forEach(({ key: section, id }) => {
+        const element = document.getElementById(id);
         if (!element) return;
 
         const sectionTop = element.offsetTop;
@@ -472,7 +357,7 @@ export function HomeExperience({
       >
         <section
           id={HOME_SECTION_IDS.hero}
-          className="relative flex min-h-[100dvh] items-center px-0 pb-12 pt-24 md:px-6 md:pb-8"
+          className="relative flex min-h-[100svh] md:min-h-[100dvh] items-center px-0 pb-12 pt-24 md:px-6 md:pb-8"
         >
           <div className="mx-auto flex w-full max-w-7xl flex-col items-center">
             {loading ? (
@@ -486,9 +371,7 @@ export function HomeExperience({
                   <p className="mt-3 text-xs leading-relaxed text-white/40">
                     {artistsError || 'Could not reach Sanity right now.'}
                   </p>
-                  <p className="mt-2 text-[11px] leading-relaxed text-white/30">
-                    If testing from phone on local dev, add your local origin to Sanity CORS (example: {window.location.origin}).
-                  </p>
+
                 </div>
               </div>
             ) : (
@@ -520,7 +403,7 @@ export function HomeExperience({
                 </Link>
                 <button
                   type="button"
-                  onClick={() => scrollToSection('directory', scrollRef.current)}
+                  onClick={() => scrollToHomeSection('lab')}
                   className="mt-4 inline-flex items-center gap-3 text-[10px] font-mono uppercase tracking-[0.22em] text-white/30 transition-colors duration-300 hover:text-white/70"
                 >
                   <span>Explore</span>
@@ -531,19 +414,21 @@ export function HomeExperience({
           </div>
         </section>
 
+        <ContentLabSection articles={articles} loading={articlesLoading} selection={editorialSelection} />
+
         <section
           id={HOME_SECTION_IDS.directory}
-          className="relative flex min-h-[100dvh] items-center px-6 py-24 md:py-28"
+          className="relative flex items-center px-6 py-16 md:py-24"
         >
           <div className="mx-auto flex w-full max-w-7xl flex-col justify-center gap-10">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-2xl" data-home-scroll-anchor="true">
                 <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/25">Directory</p>
-                <h2 className="mt-4 max-w-3xl text-3xl font-black uppercase tracking-[0.04em] text-white md:text-5xl">
-                  Artist-owned websites first. Marketplaces second.
+                <h2 className="mt-4 max-w-3xl text-3xl font-bold tracking-tight text-white md:text-5xl">
+                  Discover the artists. Enter their worlds.
                 </h2>
                 <p className="mt-5 max-w-2xl text-sm leading-relaxed text-pretty text-white/50 md:text-base">
-                  CATALOGUE helps collectors discover new artists without flattening them into a single marketplace. Instead of hosting the work, it sends people directly into each artist&apos;s own website and self-curated world.
+                  Explore independent practices through the artists’ own websites. Follow your curiosity, discover a new perspective, and see the work as its maker intended.
                 </p>
               </div>
               <div className="flex min-w-[240px] flex-col gap-3">
@@ -610,7 +495,7 @@ export function HomeExperience({
 
                   <div className="overflow-hidden">
                     <div
-                      className={`grid gap-4 will-change-transform sm:grid-cols-2 xl:grid-cols-3 ${
+                      className={`grid grid-cols-2 gap-4 will-change-transform xl:grid-cols-3 ${
                         directoryGridTransitionPhase === 'pre-in'
                           ? ''
                           : 'transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]'
@@ -642,18 +527,18 @@ export function HomeExperience({
                   </div>
 
                   <p className="mt-5 text-sm leading-relaxed text-white/45">
-                    The directory also includes galleries, platforms, and other spaces that shape discovery around the artists.
+                    Meet the galleries and independent spaces bringing artists and audiences together.
                   </p>
 
                   <div className="mt-6 space-y-4">
                     {galleryEntries.map((gallery) => (
                       <Link
                         key={gallery.id}
-                        to={`/gallery/${gallery.id}`}
+                        to={`/gallery/${gallery.id}/`}
                         onClick={(event) => {
                           if (!isPlainLeftClick(event)) return;
                           event.preventDefault();
-                          navigate(`/gallery/${gallery.id}`, { state: createDirectoryReturnState() });
+                          navigate(`/gallery/${gallery.id}/`, { state: createDirectoryReturnState() });
                         }}
                         className="group flex items-start gap-4 border-b border-white/8 pb-4 last:border-b-0 last:pb-0"
                       >
@@ -662,6 +547,7 @@ export function HomeExperience({
                             <img
                               src={getArtistThumbnailUrl(gallery) || ''}
                               alt={gallery.name}
+                              loading="lazy" decoding="async" width="48" height="48"
                               className="h-full w-full object-cover opacity-75 transition duration-300 group-hover:opacity-100"
                             />
                           ) : (
@@ -686,121 +572,61 @@ export function HomeExperience({
           </div>
         </section>
 
-        <section
-          id={HOME_SECTION_IDS.lab}
-          className="relative flex min-h-[92dvh] items-center px-6 py-24 md:py-28"
-        >
-          <div className="mx-auto flex w-full max-w-7xl flex-col justify-center gap-10">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-2xl" data-home-scroll-anchor="true">
-                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/25">Content Lab</p>
-                <h2 className="mt-4 max-w-3xl text-3xl font-black uppercase tracking-[0.04em] text-white md:text-5xl">
-                  The writing layer around Catalogue
-                </h2>
-                <p className="mt-5 max-w-2xl text-sm leading-relaxed text-white/50 md:text-base">
-                  The directory is one part of Catalogue. The editorial side adds profiles, interviews, criticism, and essays that give context to the artists, the work, and the wider digital art scene.
-                </p>
-              </div>
-            </div>
-
-            {articlesLoading && featuredArticles.length === 0 ? (
-              <div className="flex h-48 items-center justify-center border border-white/10 bg-white/[0.03]">
-                <SquareLoader className="h-7 w-7" label="Loading content preview" strokeWidth={1.6} drift />
-              </div>
-            ) : (
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:items-start">
-                <div className="flex flex-col gap-4">
-                  {featuredArticles[0] ? (
-                    <FeaturedArticleCard article={featuredArticles[0]} />
-                  ) : (
-                    <div className="flex min-h-[380px] items-end border border-white/10 bg-white/[0.03] p-6 md:min-h-[460px] md:p-8">
-                      <p className="max-w-lg text-sm leading-relaxed text-white/45 md:text-base">
-                        The archive is still being assembled. Check back shortly for the latest writing from the Content Lab.
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="flex flex-wrap gap-3">
-                    <Link
-                      to="/content-lab"
-                      className="inline-flex items-center justify-center border border-white/20 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.24em] text-white transition-colors duration-300 hover:border-white/45 hover:bg-white/5"
-                    >
-                      Open Content Lab
-                    </Link>
-                    <Link
-                      to="/blog"
-                      className="inline-flex items-center justify-center border border-white/10 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.24em] text-white/55 transition-colors duration-300 hover:border-white/35 hover:text-white"
-                    >
-                      Browse Archive
-                    </Link>
-                  </div>
-                </div>
-
-                <ContentLabArchiveRail articles={featuredArticles.slice(1, 4)} />
-              </div>
-            )}
-          </div>
-        </section>
+        <EditorPicksSection articles={articles} loading={articlesLoading} selection={editorialSelection} />
 
         <section
           id={HOME_SECTION_IDS.apply}
-          className="relative flex min-h-[90dvh] items-center px-6 py-24 md:py-28"
+          className="relative flex items-center border-t border-white/20 bg-[#080808] px-6 py-16 md:py-24"
         >
           <div className="mx-auto grid w-full max-w-7xl gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
             <div data-home-scroll-anchor="true">
-              <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/25">Apply + About</p>
-              <h2 className="mt-4 max-w-3xl text-3xl font-black uppercase tracking-[0.04em] text-white md:text-5xl">
-                If the work has its own universe, it belongs here.
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#c7c7c7]">Apply + About</p>
+              <h2 className="mt-4 max-w-3xl text-3xl font-bold tracking-tight text-white md:text-5xl">
+                Your practice. Your perspective. Your place here.
               </h2>
-              <p className="mt-5 max-w-2xl text-sm leading-relaxed text-white/50 md:text-base">
-                CATALOGUE is built for artists and galleries who want their presence represented on their own terms: direct links to personal sites, better context, and less dependence on flattened marketplace frames.
+              <p className="mt-5 max-w-2xl text-base leading-7 text-[#d1d1d1]">
+                CATALOGUE brings together a publication and an independent directory for digital art. We connect readers with artists, their work, and the ideas behind it.
               </p>
 
               <div className="mt-8 grid gap-4 md:grid-cols-3">
-                <div className="border border-white/10 bg-white/[0.03] p-5">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/25">Artists</p>
-                  <p className="mt-3 text-sm leading-relaxed text-white/50">
+                <div className="border border-[#3d3d3d] bg-[#141414] p-5">
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ededed]">Artists</p>
+                  <p className="mt-3 text-[15px] leading-7 text-[#d1d1d1]">
                     Lead with your own website, your own context, and your own presentation.
                   </p>
                 </div>
-                <div className="border border-white/10 bg-white/[0.03] p-5">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/25">Galleries</p>
-                  <p className="mt-3 text-sm leading-relaxed text-white/50">
-                    Present coherent curatorial ecosystems alongside individual artistic practices.
+                <div className="border border-[#3d3d3d] bg-[#141414] p-5">
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ededed]">Galleries</p>
+                  <p className="mt-3 text-[15px] leading-7 text-[#d1d1d1]">
+                    Introduce the artists, exhibitions, and ideas that shape your programme.
                   </p>
                 </div>
-                <div className="border border-white/10 bg-white/[0.03] p-5">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/25">Collectors</p>
-                  <p className="mt-3 text-sm leading-relaxed text-white/50">
-                    Discover digital art through artists' worlds rather than through marketplace listings alone.
+                <div className="border border-[#3d3d3d] bg-[#141414] p-5">
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ededed]">Collectors</p>
+                  <p className="mt-3 text-[15px] leading-7 text-[#d1d1d1]">
+                    Get to know the work, the artist, and the story behind the practice.
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="border border-white/10 bg-white/[0.03] p-6 md:p-7">
-              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/25">Next Step</p>
-              <p className="mt-4 max-w-sm text-2xl font-black uppercase tracking-[0.04em] text-white">
-                Submit a profile & learn more about Catalogue.
+            <div className="border border-[#575757] bg-[#1b1b1b] p-6 md:p-8">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#c7c7c7]">Next Step</p>
+              <p className="mt-4 max-w-sm text-2xl font-bold tracking-tight text-white">
+                Introduce us to your world.
               </p>
-              <p className="mt-4 max-w-md text-sm leading-relaxed text-white/50">
-                Applications are reviewed before publication. Artists should have their own website, and galleries should present a clear curatorial context.
+              <p className="mt-4 max-w-md text-[15px] leading-7 text-[#d1d1d1]">
+                Have an artist website or a gallery programme to share? Send it our way. Every application is reviewed before it joins the directory.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <Link
-                  to="/info"
-                  className="inline-flex items-center justify-center border border-white/10 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.24em] text-white/55 transition-colors duration-300 hover:border-white/35 hover:text-white"
-                >
+                <Link to="/submit" className="inline-flex min-h-12 items-center justify-center border border-[#f2f2ef] bg-[#f2f2ef] px-6 py-3 text-xs font-bold uppercase tracking-[0.14em] !text-[#111111] transition-colors hover:bg-white">
+                  Apply now ↗
+                </Link>
+                <Link to="/info" className="inline-flex min-h-12 items-center justify-center border border-[#777777] px-5 py-3 text-xs font-bold uppercase tracking-[0.14em] text-[#ededed] transition-colors hover:border-white hover:bg-white/10">
                   About Catalogue
                 </Link>
-                <Link
-                  to="/submit"
-                  className="inline-flex items-center justify-center border border-white/20 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.24em] text-white transition-colors duration-300 hover:border-white/45 hover:bg-white/5"
-                >
-                  Apply now
-                </Link>
               </div>
-              <p className="mt-10 text-[10px] uppercase tracking-[0.2em] text-white/15">
+              <p className="mt-10 text-xs tracking-[0.12em] text-[#b5b5b5]">
                 CATALOGUE © 2026
               </p>
             </div>
