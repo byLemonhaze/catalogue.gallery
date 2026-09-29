@@ -8,6 +8,16 @@ The project now uses [Semantic Versioning](https://semver.org/) for public relea
 
 ### Changed
 
+- Improved Apply and About readability with solid brighter text, larger supporting copy, distinct charcoal panels, a prominent light application button, and clearer form labels, placeholders, input borders, and upload guidance.
+
+- Ordered both navigation menus as Content Lab, Directory, Apply, Search; aligned same-page and return-to-home section jumps below the visible header, and kept the lower editor picks associated with Content Lab.
+
+- Ordered the homepage as carousel, editorial lead, recent stories, directory, then four persistent editor picks above the About/Apply footer; refreshed the archive, reader recommendations, and platform introduction copy.
+- Added an optional Sanity homepage editorial selection document, with stable local defaults when no selection is published.
+- Preserved the landing carousel composition while adding directional touch gestures, drag-click suppression, larger arrow targets, scoped keyboard controls, reduced-motion support, and a stable mobile hero height.
+- Kept Exit as the sole artist-view control, added explicit states for known blocked embeds, and generated profile bootstrap data so direct artist links do not wait for the entire directory.
+- Shared concurrent artist reads, deferred article bodies until opened, enabled public CMS CDN reads and idle artist-view prefetch, optimized thumbnail delivery, consolidated font requests, and added immutable caching for fingerprinted app assets with bounded lazy-import reload recovery.
+
 - Apply requires a thumbnail/profile image, name, subtitle, valid HTTPS website URL and contact email before an application can be sent; clicking Submit highlights all missing or invalid fields together, and the server enforces the same requirements.
 - Replaced the manual iframe tester with an automatic embedding-permissions check, including provider guidance when catalogue.gallery is blocked and automatic rechecks after returning to the page.
 - Applications wait for a successful permissions check, and the server rechecks before accepting a submission. Unreachable sites show an unverified status instead of a false pass or a permissions error.

@@ -70,3 +70,11 @@ When a change updates a public interface, the author should also update the rele
 ## Apply Regression Coverage
 
 The Apply tests cover simultaneous missing-field highlighting, live correction, required fields, image type/size, invalid contact details, direct API bypass attempts, automatic check debouncing and stale results, and complete artist/gallery submissions. Embedding checks cover CSP and X-Frame-Options precedence, redirects, inaccessible websites, and unsafe URL inputs. Browser checks can mock `/api/check-embed` and `/api/submit` to exercise every state without creating real applications.
+
+## Editorial and mobile regression checks
+
+Automated coverage includes shared artist requests and retry, deferred article summaries, persistent editorial selection/deduplication, profile-bootstrap validation, known blocked-profile states, bounded lazy-import recovery, and carousel gesture direction/cancellation/click suppression.
+
+Before release, review the homepage, archive, reader, and artist routes at desktop and narrow widths. On physical iOS Safari and Android Chrome, test vertical and diagonal scrolls starting on the carousel, intentional horizontal swipes, arrow taps, pinch zoom, cancelled gestures, reduced motion, and browser toolbar expansion/collapse. Browser viewport checks and synthetic pointer tests do not replace real-device checks.
+
+For matched performance measurements, retain the audit's six artists, throttle settings, and journey definitions. Measure direct artist links separately from carousel taps, and first embedded visits separately from repeat visits to the same artist. Record LCP/interaction timing and transferred bytes; do not add savings from separate journeys or treat a session byte total as cache proof. Repeat after an authorized deployment to validate CDN headers and deployment-specific behavior.

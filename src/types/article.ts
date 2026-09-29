@@ -9,6 +9,8 @@ export interface ArticleRecord {
     excerpt: string
     content: string
     thumbnailUrl: string
+    featuredArtistId?: string
+    featuredArtistType?: string
     sortOrder?: number
     source: 'sanity' | 'legacy'
 }

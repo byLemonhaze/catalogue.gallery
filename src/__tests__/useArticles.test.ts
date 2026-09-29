@@ -138,3 +138,17 @@ describe('useArticles', () => {
         expect(result.current.articles[0].thumbnailUrl).toBe('/logo.png')
     })
 })
+
+describe('lightweight article feed', () => {
+    beforeEach(() => vi.resetModules());
+    it('does not fetch on disabled artist routes and accepts summaries without body downloads', async () => {
+        const fetch = vi.fn().mockResolvedValue([{ id: 'summary', title: 'Summary', excerpt: 'Excerpt', hasContent: true }]);
+        vi.doMock('../sanity/client', () => ({ client: { fetch } }));
+        const { useArticles } = await import('../hooks/useArticles');
+        const hook = renderHook(({ enabled }) => useArticles(enabled), { initialProps: { enabled: false } });
+        expect(fetch).not.toHaveBeenCalled(); hook.rerender({ enabled: true });
+        await waitFor(() => expect(hook.result.current.articles).toHaveLength(1));
+        expect(hook.result.current.articles[0].content).toBe('');
+        expect(fetch.mock.calls[0][0]).not.toMatch(/\n\s+content,/);
+    });
+});

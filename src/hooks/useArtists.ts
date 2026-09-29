@@ -29,75 +29,47 @@ export interface Artist {
     mobileExitPosition?: 'bottom-center' | 'top-right' | 'top-left' | 'top-center';
 }
 
-// Module-level cache — avoids redundant Sanity fetches across navigation.
-// Reset with vi.resetModules() in tests, or migrate to React Query for a proper solution.
+// Cache a successful result and the in-flight request separately. Failures remain retryable.
 let artistCache: Artist[] | null = null;
-
-export function useArtists() {
+let pending: Promise<Artist[]> | null = null;
+function fetchArtists(): Promise<Artist[]> {
+    if (artistCache) return Promise.resolve(artistCache);
+    if (pending) return pending;
+    const query = `*[_type in ["artist", "gallery", "collector"] && (status == "published" || !defined(status))] | order(name asc) {
+        "id": coalesce(slug.current, _id), "type": _type, name, subtitle, websiteUrl, thumbnail,
+        template, desktopExitPosition, mobileExitPosition
+    }`;
+    pending = (async () => {
+        const controller = new AbortController();
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        try {
+            const data = await Promise.race([
+                client.fetch<SanityArtistRaw[]>(query, {}, { signal: controller.signal }),
+                new Promise<never>((_, reject) => { timer = setTimeout(() => { controller.abort(); reject(new Error('Artist request timed out')); }, 10000); }),
+            ]);
+            if (!Array.isArray(data)) throw new Error('Unexpected Sanity response');
+            const mapped = data.map(artist => ({ ...artist, isSanity: true }));
+            artistCache = mapped;
+            return mapped;
+        } finally { clearTimeout(timer); pending = null; }
+    })();
+    return pending;
+}
+export function useArtists(enabled = true) {
     const [artists, setArtists] = useState<Artist[]>(artistCache || []);
     const [loading, setLoading] = useState(!artistCache);
     const [error, setError] = useState<string | null>(null);
-
     useEffect(() => {
-        if (artistCache) return;
-
-        async function fetchArtists() {
-            let timeoutId: ReturnType<typeof setTimeout> | null = null;
-            try {
-                const query = `*[_type in ["artist", "gallery", "collector"] && (status == "published" || !defined(status))] | order(name asc) {
-                    "id": coalesce(slug.current, _id),
-                    "type": _type,
-                    name,
-                    subtitle,
-                    websiteUrl,
-                    thumbnail,
-                    template,
-                    desktopExitPosition,
-                    mobileExitPosition
-                }`;
-                const timeoutPromise = new Promise<never>((_, reject) => {
-                    timeoutId = setTimeout(() => reject(new Error('Sanity fetch timed out')), 10000);
-                });
-
-                const sanityData = await Promise.race([
-                    client.fetch<SanityArtistRaw[]>(query),
-                    timeoutPromise,
-                ]);
-
-                if (!Array.isArray(sanityData)) {
-                    throw new Error('Unexpected Sanity response');
-                }
-
-                const mappedSanity: Artist[] = sanityData.map((a) => ({
-                    id: a.id,
-                    name: a.name,
-                    subtitle: a.subtitle,
-                    websiteUrl: a.websiteUrl,
-                    thumbnail: a.thumbnail,
-                    type: a.type,
-                    template: a.template,
-                    desktopExitPosition: a.desktopExitPosition,
-                    mobileExitPosition: a.mobileExitPosition,
-                    isSanity: true,
-                }));
-
-                setArtists(mappedSanity);
-                if (mappedSanity.length > 0) {
-                    artistCache = mappedSanity;
-                }
-                setError(mappedSanity.length === 0 ? 'No artists were returned from Sanity.' : null);
-            } catch (err) {
-                console.error('Failed to fetch Sanity artists:', err);
-                setArtists([]);
-                setError('Could not load artist data from Sanity.');
-            } finally {
-                if (timeoutId) clearTimeout(timeoutId);
-                setLoading(false);
-            }
-        }
-
-        fetchArtists();
-    }, []);
-
-    return { artists, loading, error };
+        if (!enabled) return;
+        let cancelled = false;
+        fetchArtists().then(data => {
+            if (cancelled) return;
+            setArtists(data);
+            setError(data.length ? null : 'No artists were returned from Sanity.');
+        }).catch(() => {
+            if (!cancelled) setError('Could not load artist data from Sanity.');
+        }).finally(() => { if (!cancelled) setLoading(false); });
+        return () => { cancelled = true; };
+    }, [enabled]);
+    return { artists, loading: enabled && loading, error };
 }

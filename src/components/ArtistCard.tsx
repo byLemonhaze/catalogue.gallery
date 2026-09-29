@@ -10,12 +10,13 @@ interface ArtistProps {
     badge?: string; // Optional custom badge text
     type?: string; // artist or collection
     isSanity?: boolean;
+    priority?: boolean;
 }
 
-export const ArtistCard: React.FC<ArtistProps> = ({ id, name, thumbnail, subtitle, isSanity }) => {
+export const ArtistCard: React.FC<ArtistProps> = ({ id, name, thumbnail, subtitle, isSanity, priority = false }) => {
     // Resolve image URL
     const imageUrl = isSanity && thumbnail
-        ? urlFor(thumbnail).width(800).url()
+        ? urlFor(thumbnail).width(960).auto('format').quality(80).url()
         : (typeof thumbnail === 'string' ? thumbnail : undefined);
 
     return (
@@ -29,6 +30,12 @@ export const ArtistCard: React.FC<ArtistProps> = ({ id, name, thumbnail, subtitl
                     <img
                         src={imageUrl}
                         alt={name}
+                        draggable={false}
+                        decoding="async"
+                        loading={priority ? 'eager' : 'lazy'}
+                        fetchPriority={priority ? 'high' : 'low'}
+                        sizes="(max-width: 700px) 92vw, 640px"
+                        srcSet={isSanity && thumbnail ? [480, 800, 1280].map(width => `${urlFor(thumbnail).width(width).auto('format').quality(80).url()} ${width}w`).join(', ') : undefined}
                         style={{ objectPosition: id === 'harto' ? 'center top' : 'center' }}
                         className="w-full h-full object-cover opacity-85 group-hover:opacity-100 transition-opacity duration-300"
                     />
@@ -40,7 +47,7 @@ export const ArtistCard: React.FC<ArtistProps> = ({ id, name, thumbnail, subtitl
             </div>
 
             {/* Content Container - Visual only, strictly non-interactive to pass clicks to the Link behind */}
-            <div className="absolute bottom-0 inset-x-0 p-6 z-20 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500 pointer-events-none">
+            <div className="carousel-caption absolute bottom-0 inset-x-0 p-6 z-20 pointer-events-none">
                 <h3 className="text-2xl font-bold text-white mb-2 tracking-tight group-hover:text-white transition-colors">
                     {name}
                 </h3>
