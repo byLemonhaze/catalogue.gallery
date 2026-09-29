@@ -8,11 +8,15 @@ The project now uses [Semantic Versioning](https://semver.org/) for public relea
 
 ### Changed
 
+- Grouped the carousel and directory before Content Lab, recent stories, and editor picks; ordered navigation as Directory, Content Lab, Apply, Search.
+
+- Removed decorative diagonal arrows from interface links and tightened recent-story rows for a minimal presentation.
+
 - Improved Apply and About readability with solid brighter text, larger supporting copy, distinct charcoal panels, a prominent light application button, and clearer form labels, placeholders, input borders, and upload guidance.
 
-- Ordered both navigation menus as Content Lab, Directory, Apply, Search; aligned same-page and return-to-home section jumps below the visible header, and kept the lower editor picks associated with Content Lab.
+- Aligned same-page and return-to-home section jumps below the visible header, and kept the editor picks associated with Content Lab.
 
-- Ordered the homepage as carousel, editorial lead, recent stories, directory, then four persistent editor picks above the About/Apply footer; refreshed the archive, reader recommendations, and platform introduction copy.
+- Added four persistent editor picks above the About/Apply footer; refreshed the archive, reader recommendations, and platform introduction copy.
 - Added an optional Sanity homepage editorial selection document, with stable local defaults when no selection is published.
 - Preserved the landing carousel composition while adding directional touch gestures, drag-click suppression, larger arrow targets, scoped keyboard controls, reduced-motion support, and a stable mobile hero height.
 - Kept Exit as the sole artist-view control, added explicit states for known blocked embeds, and generated profile bootstrap data so direct artist links do not wait for the entire directory.
