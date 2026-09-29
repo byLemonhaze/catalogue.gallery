@@ -228,8 +228,8 @@ export function HomeExperience({
     let frame = 0;
     const sections: { key: HomeSectionKey; id: string }[] = [
       { key: 'hero', id: HOME_SECTION_IDS.hero },
-      { key: 'lab', id: HOME_SECTION_IDS.lab },
       { key: 'directory', id: HOME_SECTION_IDS.directory },
+      { key: 'lab', id: HOME_SECTION_IDS.lab },
       { key: 'lab', id: EDITOR_PICKS_SECTION_ID },
       { key: 'apply', id: HOME_SECTION_IDS.apply },
     ];
@@ -403,7 +403,7 @@ export function HomeExperience({
                 </Link>
                 <button
                   type="button"
-                  onClick={() => scrollToHomeSection('lab')}
+                  onClick={() => scrollToHomeSection('directory')}
                   className="mt-4 inline-flex items-center gap-3 text-[10px] font-mono uppercase tracking-[0.22em] text-white/30 transition-colors duration-300 hover:text-white/70"
                 >
                   <span>Explore</span>
@@ -413,8 +413,6 @@ export function HomeExperience({
             )}
           </div>
         </section>
-
-        <ContentLabSection articles={articles} loading={articlesLoading} selection={editorialSelection} />
 
         <section
           id={HOME_SECTION_IDS.directory}
@@ -572,6 +570,8 @@ export function HomeExperience({
           </div>
         </section>
 
+        <ContentLabSection articles={articles} loading={articlesLoading} selection={editorialSelection} />
+
         <EditorPicksSection articles={articles} loading={articlesLoading} selection={editorialSelection} />
 
         <section
@@ -620,7 +620,7 @@ export function HomeExperience({
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <Link to="/submit" className="inline-flex min-h-12 items-center justify-center border border-[#f2f2ef] bg-[#f2f2ef] px-6 py-3 text-xs font-bold uppercase tracking-[0.14em] !text-[#111111] transition-colors hover:bg-white">
-                  Apply now ↗
+                  Apply now
                 </Link>
                 <Link to="/info" className="inline-flex min-h-12 items-center justify-center border border-[#777777] px-5 py-3 text-xs font-bold uppercase tracking-[0.14em] text-[#ededed] transition-colors hover:border-white hover:bg-white/10">
                   About Catalogue

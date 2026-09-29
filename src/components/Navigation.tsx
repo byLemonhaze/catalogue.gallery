@@ -14,8 +14,8 @@ const NAV_ITEMS: Array<{
     section: HomeSectionKey;
     legacyRoutes: string[];
 }> = [
-    { label: 'Content Lab', section: 'lab', legacyRoutes: ['/blog', '/content-lab'] },
     { label: 'Directory', section: 'directory', legacyRoutes: ['/artists'] },
+    { label: 'Content Lab', section: 'lab', legacyRoutes: ['/blog', '/content-lab'] },
     { label: 'Apply', section: 'apply', legacyRoutes: ['/info', '/submit'] },
 ];
 

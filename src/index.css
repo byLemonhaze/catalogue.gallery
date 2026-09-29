@@ -160,7 +160,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid #eee; outline-offset:
 .editorial-card p { font-family: Sora, sans-serif; color: #999; font-size: 11px; line-height: 1.85; margin-top: 12px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .editorial-card a:hover h3, .editorial-lead-copy a:hover h3 { color: #c8c8bd; }
 .editorial-recent { display: grid; grid-template-columns: 1fr 2fr; gap: 50px; margin-top: 48px; padding-top: 28px; border-top: 1px solid #303030; }
-.editorial-recent-list > a { display: grid; grid-template-columns: 25px 1fr 16px; gap: 18px; align-items: start; padding: 18px 0; border-bottom: 1px solid #252525; }
+.editorial-recent-list > a { display: grid; grid-template-columns: 25px 1fr; gap: 18px; align-items: start; padding: 18px 0; border-bottom: 1px solid #252525; }
 .editorial-recent-list > a:first-child { padding-top: 0; }
 .editorial-recent-list .editorial-meta { margin-top: 0; }
 .editorial-number { font: 11px 'IBM Plex Mono', monospace; color: #666; padding-top: 3px; }

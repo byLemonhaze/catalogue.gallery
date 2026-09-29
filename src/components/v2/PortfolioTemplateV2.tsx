@@ -69,7 +69,7 @@ export const PortfolioTemplateV2: React.FC<{ artist: Artist }> = ({ artist }) =>
                         CATALOGUE
                     </Link>
                     <Link to="/" className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50 hover:text-white transition-colors">
-                        Exit View ↗
+                        Exit View
                     </Link>
                 </div>
 

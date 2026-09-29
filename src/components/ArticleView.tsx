@@ -143,7 +143,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
                     </ReactMarkdown>
                 </div>
 
-                {article.featuredArtistId && <aside className="mt-16 border-y border-white/15 py-7"><span className="editorial-kicker">Beyond the story</span><h2 className="text-2xl mt-3 mb-4">Enter the artist’s world.</h2><Link className="editorial-link" to={`/${article.featuredArtistType === 'gallery' ? 'gallery' : 'artist'}/${article.featuredArtistId}/`}>Explore the practice ↗</Link></aside>}
+                {article.featuredArtistId && <aside className="mt-16 border-y border-white/15 py-7"><span className="editorial-kicker">Beyond the story</span><h2 className="text-2xl mt-3 mb-4">Enter the artist’s world.</h2><Link className="editorial-link" to={`/${article.featuredArtistType === 'gallery' ? 'gallery' : 'artist'}/${article.featuredArtistId}/`}>Explore the practice</Link></aside>}
                 <aside className="mt-16"><span className="editorial-kicker">Keep reading</span><div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mt-6">{articles.filter(item => item.id !== article.id).slice(0, 2).map(item => <EditorialCard key={item.id} article={item} />)}</div></aside>
                 {/* Footer Section */}
                 <hr className="my-20 border-white/10" />
