@@ -25,6 +25,7 @@ export interface Artist {
     type?: 'artist' | 'gallery' | 'collector' | 'collection';
     template?: string;
     provenanceUrl?: string;
+    seoImageUrl?: string;
     desktopExitPosition?: 'top-right' | 'top-left' | 'top-center' | 'bottom-right' | 'bottom-left';
     mobileExitPosition?: 'bottom-center' | 'top-right' | 'top-left' | 'top-center';
 }

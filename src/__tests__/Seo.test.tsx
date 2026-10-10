@@ -1,0 +1,21 @@
+import { afterEach, expect, it } from 'vitest';
+import { cleanup, render, waitFor } from '@testing-library/react';
+import { HelmetProvider } from 'react-helmet-async';
+import { Seo } from '../components/Seo';
+import { applyPageMeta, articleMeta, staticPages } from '../lib/seo';
+afterEach(() => { cleanup(); document.head.querySelectorAll('[data-rh]').forEach(node => node.remove()); });
+it('adopts server metadata and removes article metadata after client navigation to the directory', async () => {
+    const article = articleMeta({ id: 'story', title: 'A story', excerpt: 'The story description.' });
+    const html = applyPageMeta('<html><head></head><body></body></html>', article);
+    const initial = new DOMParser().parseFromString(html, 'text/html');
+    for (const node of Array.from(initial.head.children)) document.head.appendChild(node.cloneNode(true));
+    const { rerender } = render(<HelmetProvider><Seo meta={staticPages[0]} /><Seo meta={article} /></HelmetProvider>);
+    await waitFor(() => expect(document.querySelectorAll('meta[name="description"]')).toHaveLength(1));
+    expect(document.querySelector('meta[name="description"]')?.getAttribute('content')).toBe(article.description);
+    rerender(<HelmetProvider><Seo meta={staticPages[1]} /></HelmetProvider>);
+    await waitFor(() => expect(document.querySelector('meta[name="description"]')?.getAttribute('content')).toBe(staticPages[1].description));
+    expect(document.querySelectorAll('meta[name="description"]')).toHaveLength(1);
+    expect(document.querySelectorAll('link[rel="canonical"]')).toHaveLength(1);
+    expect(document.querySelector('meta[property="og:url"]')?.getAttribute('content')).toBe('https://catalogue.gallery/artists/');
+    expect(document.title).toBe(staticPages[1].title);
+});

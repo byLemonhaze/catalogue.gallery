@@ -19,10 +19,11 @@ it('opens the bootstrap website while the directory is still loading', () => {
     expect(screen.getAllByRole('link')).toHaveLength(1);
     expect(screen.getByRole('link', { name: 'Exit Artist Universe' })).toHaveAttribute('href', '/');
 });
-it.each(['burst', 'far', 'nullish'])('keeps only Exit without creating a blocked iframe for %s', id => {
+it.each(['burst', 'far', 'nullish'])('offers the official website without creating a blocked iframe for %s', id => {
     seed(id); const { container } = setup(id); expect(container.querySelector('iframe')).toBeNull();
     expect(screen.getByRole('heading', { name: 'This website cannot be displayed here.' })).toBeVisible();
-    expect(screen.getAllByRole('link')).toHaveLength(1);
+    expect(screen.getAllByRole('link')).toHaveLength(2);
+    expect(screen.getByRole('link', { name: 'Open official website ↗' })).toHaveAttribute('href', 'https://example.com/');
     expect(screen.getByRole('link', { name: 'Exit Artist Universe' })).toHaveAttribute('href', '/');
 });
 it('replaces the spinner with a nonblocking slow-load message and removes it on load', () => {

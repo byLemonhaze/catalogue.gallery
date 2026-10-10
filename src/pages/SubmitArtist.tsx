@@ -1,4 +1,3 @@
-import { Helmet } from 'react-helmet-async';
 import { useApplicationForm } from '../hooks/useApplicationForm';
 import { ApplicationThumbnailField } from '../components/ApplicationThumbnailField';
 import { ApplicationWebsiteField } from '../components/ApplicationWebsiteField';
@@ -10,9 +9,7 @@ export function SubmitArtist() {
 
     return (
         <div className="min-h-screen bg-black text-white selection:bg-white/20 overflow-y-auto overflow-x-hidden">
-            <Helmet>
-                <title>Apply | CATALOGUE</title>
-            </Helmet>
+
 
             <div className="max-w-5xl mx-auto w-full px-6 lg:px-12 pt-28 md:pt-32 pb-24 animate-fade-in">
 

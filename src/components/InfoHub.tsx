@@ -1,4 +1,3 @@
-import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { CatalogueFooterLinks } from './CatalogueFooterLinks';
 
@@ -9,9 +8,7 @@ interface InfoHubProps {
 export function InfoHub({ setIsLegalModalOpen }: InfoHubProps) {
     return (
         <div className="min-h-screen bg-black text-white selection:bg-white/20">
-            <Helmet>
-                <title>About | CATALOGUE</title>
-            </Helmet>
+
 
             <div className="pt-28 md:pt-24 p-6 max-w-5xl mx-auto min-h-screen animate-fade-in relative pb-32">
 

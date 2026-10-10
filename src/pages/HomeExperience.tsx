@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { Link, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { ContentLabSection, EditorPicksSection } from '../components/ContentLabSection';
 import { ArtistCarousel } from '../components/ArtistCarousel';
@@ -328,9 +327,7 @@ export function HomeExperience({
 
   return (
     <div className="relative h-[100dvh] overflow-hidden">
-      <Helmet>
-        <title>CATALOGUE</title>
-      </Helmet>
+
 
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(255,255,255,0.07),transparent_30%),radial-gradient(circle_at_84%_6%,rgba(255,255,255,0.04),transparent_24%),linear-gradient(180deg,#040404,#000)]" />
       <div
