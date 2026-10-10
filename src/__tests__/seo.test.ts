@@ -12,7 +12,9 @@ describe('SEO document generation', () => {
         expect(doc.querySelector('meta[name="description"]')?.getAttribute('content')).toBe(meta.description);
         expect(doc.querySelector('meta[property="og:type"]')?.getAttribute('content')).toBe('article');
         expect(doc.querySelectorAll('link[rel="canonical"]')).toHaveLength(1);
-        expect(doc.querySelectorAll('script')).toHaveLength(0);
+        expect(doc.querySelectorAll('script')).toHaveLength(1);
+        expect(doc.querySelector('script')?.type).toBe('application/ld+json');
+        expect(JSON.parse(doc.querySelector('script')!.textContent!)['@graph'].some((item: Record<string, string>) => item.headline === 'Art <script> & "ideas"')).toBe(true);
         expect(doc.querySelector('meta[name="viewport"]')).not.toBeNull();
         const next = new DOMParser().parseFromString(second, 'text/html');
         expect(next.querySelector('meta[name="description"]')?.getAttribute('content')).toBe(staticPages[1].description);

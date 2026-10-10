@@ -15,5 +15,5 @@ export default defineConfig(({ mode }) => {
       });
     },
   };
-  return { plugins: [react(), tailwindcss()], server: { proxy: { '/__catalogue_sanity': publicReadProxy } }, preview: { proxy: { '/__catalogue_sanity': publicReadProxy } } };
+  return { ssr: { target: 'webworker', noExternal: true, resolve: { conditions: ['worker', 'module', 'production'] } }, plugins: [react(), tailwindcss()], server: { proxy: { '/__catalogue_sanity': publicReadProxy } }, preview: { proxy: { '/__catalogue_sanity': publicReadProxy } } };
 });

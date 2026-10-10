@@ -65,9 +65,9 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
                     <h1 className="text-3xl md:text-5xl font-semibold tracking-tight mb-7 leading-tight text-white max-w-3xl mx-auto">{article.title}</h1>
                     <p className="max-w-2xl mx-auto text-sm md:text-base leading-relaxed text-white/60 mb-8">{article.excerpt}</p>
                     <div className="flex items-center justify-center gap-6 text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] border-t border-white/10 pt-6 max-w-md mx-auto relative">
-                        <span>{article.date}</span>
+                        <time dateTime={article.publishedAt}>{article.date}</time>
                         <span>•</span>
-                        <span>{article.author}</span>
+                        <Link to="/info/" rel="author" className="hover:text-white underline-offset-4 hover:underline">{article.author}</Link>
                         <span>•</span>
                         <button
                             onClick={handleCopy}
@@ -107,7 +107,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
                             li: (props) => <li className="pl-2" {...props} />,
                             code: (props) => <code className="bg-white/10 px-2 py-1 text-xs font-mono text-white/90" {...props} />,
                             a: ({ href, children, ...props }) => {
-                                const isInternal = href?.startsWith('/') || href?.includes(window.location.host);
+                                const isInternal = href?.startsWith('/') || href?.startsWith('https://catalogue.gallery/');
                                 if (isInternal) {
                                     return <Link to={href || '#'} className="text-white underline decoration-white/30 underline-offset-4 hover:decoration-white transition-all font-bold" {...props}>{children}</Link>;
                                 }

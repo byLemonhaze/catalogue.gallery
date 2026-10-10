@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { PublicPageContext } from '../lib/publicPageData';
+import { useContext, useState, useEffect } from 'react';
 import { client } from '../sanity/client';
 import type { SanityImageObject } from '../types/sanity';
 
@@ -57,11 +58,12 @@ function fetchArtists(): Promise<Artist[]> {
     return pending;
 }
 export function useArtists(enabled = true) {
-    const [artists, setArtists] = useState<Artist[]>(artistCache || []);
-    const [loading, setLoading] = useState(!artistCache);
+    const initial = useContext(PublicPageContext);
+    const [artists, setArtists] = useState<Artist[]>(initial?.artists || artistCache || []);
+    const [loading, setLoading] = useState(!initial && !artistCache);
     const [error, setError] = useState<string | null>(null);
     useEffect(() => {
-        if (!enabled) return;
+        if (!enabled || initial) return;
         let cancelled = false;
         fetchArtists().then(data => {
             if (cancelled) return;
@@ -71,6 +73,6 @@ export function useArtists(enabled = true) {
             if (!cancelled) setError('Could not load artist data from Sanity.');
         }).finally(() => { if (!cancelled) setLoading(false); });
         return () => { cancelled = true; };
-    }, [enabled]);
+    }, [enabled, initial]);
     return { artists, loading: enabled && loading, error };
 }

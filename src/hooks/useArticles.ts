@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react'
+import { publicationDate } from '../lib/publicationDate';
+import { PublicPageContext } from '../lib/publicPageData';
+import { useContext, useEffect, useState } from 'react'
 import { client } from '../sanity/client'
 import type { ArticleRecord } from '../types/article'
 
@@ -7,6 +9,7 @@ type SanityPost = {
     title?: string
     author?: string
     displayDate?: string
+    updatedAt?: string
     publishedAt?: string
     type?: string
     excerpt?: string
@@ -81,6 +84,8 @@ function mapSanityArticle(post: SanityPost): ArticleRecord | null {
         id,
         title,
         author: post.author?.trim() || 'CATALOGUE',
+        publishedAt: publicationDate(post.publishedAt, post.displayDate),
+        updatedAt: post.updatedAt,
         date: post.displayDate?.trim() || formatDateFromIso(post.publishedAt) || '',
         type: post.type?.trim() || 'Article',
         excerpt,
@@ -100,6 +105,7 @@ async function fetchSanityArticles(): Promise<ArticleRecord[]> {
             author,
             displayDate,
             publishedAt,
+            "updatedAt": _updatedAt,
             type,
             excerpt,
             "hasContent": defined(content) && content != "",
@@ -128,14 +134,15 @@ async function loadArticles() {
     return pending;
 }
 export function useArticles(enabled = true) {
-    const [articles, setArticles] = useState<ArticleRecord[]>(articleCache || []);
-    const [loading, setLoading] = useState(!articleCache);
+    const initial = useContext(PublicPageContext);
+    const [articles, setArticles] = useState<ArticleRecord[]>(initial?.articles || articleCache || []);
+    const [loading, setLoading] = useState(!initial && !articleCache);
     useEffect(() => {
-        if (!enabled) return;
+        if (!enabled || initial) return;
         let cancelled = false;
         void loadArticles().then(data => { if (!cancelled) setArticles(data); })
             .finally(() => { if (!cancelled) setLoading(false); });
         return () => { cancelled = true; };
-    }, [enabled]);
+    }, [enabled, initial]);
     return { articles, loading: enabled && loading };
 }

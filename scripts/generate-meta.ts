@@ -1,3 +1,4 @@
+import { publicPageData, renderPublicDocument } from '../functions/_lib/renderPublic';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -98,27 +99,32 @@ async function generateSplitProfileImage(
 
 async function generate() {
     const template = fs.readFileSync(TEMPLATE_PATH, 'utf8');
-    const { profiles, articles } = await publicInventory(process.env);
+    const { profiles, articles } = await publicInventory(process.env, true);
+    fs.writeFileSync(path.join(DIST_DIR, 'app-shell.html'), template);
+    const publicData = await publicPageData(process.env);
     if (!profiles.length || !articles.length) throw new Error('Refusing to build an empty public content inventory');
     const entries = [...staticPages.filter(page => !page.noindex), ...profiles.map(profile => ({ path: profileMeta(profile).path, updatedAt: profile.updatedAt })), ...articles.map(article => ({ path: articleMeta(article).path, updatedAt: article.updatedAt }))];
     // Validate uniqueness before writing anything. Failure must stop the deployment.
     const sitemap = sitemapXml(entries);
-    function writePage(meta: PageMeta, transform?: (html: string) => string) {
+    async function writePage(meta: PageMeta, transform?: (html: string) => string | Promise<string>) {
         const segments = meta.path.split('/').filter(Boolean);
         if (segments.some(segment => !/^[a-zA-Z0-9_%.-]+$/.test(segment) || ['.', '..'].includes(segment))) throw new Error(`Unsafe output path: ${meta.path}`);
         const directory = path.join(DIST_DIR, ...segments);
         fs.mkdirSync(directory, { recursive: true });
         const html = applyPageMeta(template, meta);
-        fs.writeFileSync(path.join(directory, 'index.html'), transform ? transform(html) : html);
+        fs.writeFileSync(path.join(directory, 'index.html'), transform ? await transform(html) : html);
     }
-    for (const page of staticPages) writePage(page);
-    for (const article of articles) writePage(articleMeta(article));
+    for (const page of staticPages) await writePage(page, page.noindex ? undefined : html => renderPublicDocument(html, page.path, publicData));
+    for (const article of articles) {
+        const data = { ...publicData, articles: publicData.articles.map(item => item.id === article.id ? { ...item, content: article.content || '' } : item) };
+        await writePage(articleMeta(article), html => renderPublicDocument(html, articleMeta(article).path, data));
+    }
     async function writeProfile(profile: (typeof profiles)[number]) {
         // Keep the existing branded share-card assets; image failures must not remove a page.
         let image = profile.thumbnailUrl;
         try { image = await generateSplitProfileImage({ id: profile.id, route: profile.type, thumbnailUrl: profile.thumbnailUrl || `${SITE_ORIGIN}/logo.png` }); }
         catch (error) { console.warn(`Using original thumbnail for ${profile.id}:`, error); }
-        writePage(profileMeta({ ...profile, image }), html => profileBootstrapHtml(html, { ...profile, seoImageUrl: image }));
+        await writePage(profileMeta({ ...profile, image }), html => profileBootstrapHtml(html, { ...profile, seoImageUrl: image }));
     }
     const queue = [...profiles];
     await Promise.all(Array.from({ length: 4 }, async () => {
@@ -131,4 +137,6 @@ async function generate() {
     fs.writeFileSync(path.join(DIST_DIR, 'seo-manifest.json'), JSON.stringify({ profiles: profiles.length, articles: articles.length, paths: entries.map(entry => entry.path) }, null, 2));
     console.log(`Generated SEO pages for ${profiles.length} profiles, ${articles.length} articles and ${staticPages.length} static routes.`);
 }
-generate().catch(error => { console.error(error); process.exitCode = 1; });
+// The browser-compatible React bundle retains scheduler message ports in Node.
+// All generation work is awaited before explicitly closing this build-only process.
+generate().then(() => process.exit(0), error => { console.error(error); process.exit(1); });
