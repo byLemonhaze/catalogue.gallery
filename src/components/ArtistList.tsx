@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { useArtists } from '../hooks/useArtists';
 import type { Artist } from '../hooks/useArtists';
 import { urlFor } from '../sanity/image';
@@ -49,9 +48,7 @@ export const ArtistList: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-black text-white selection:bg-white/20">
-            <Helmet>
-                <title>Directory | CATALOGUE</title>
-            </Helmet>
+
 
             <div className="pt-28 md:pt-24 px-6 max-w-4xl mx-auto pb-32">
 

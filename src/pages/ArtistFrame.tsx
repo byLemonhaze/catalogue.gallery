@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+import { urlFor } from '../sanity/image';
+import { Seo } from '../components/Seo';
+import { missingMeta, profileMeta } from '../lib/seo';
 import { useArtists } from '../hooks/useArtists';
 import { readProfileBootstrap, externalOnlyProfiles } from '../lib/profileBootstrap';
 import { SquareLoader } from '../components/SquareLoader';
@@ -34,7 +36,8 @@ const getPositionClasses = (desktop: string, mobile: string) => {
 
 export function ArtistFrame() {
     const { id = '' } = useParams<{ id: string }>();
-    return <ArtistUniverse key={id} id={id} />;
+    const location = useLocation();
+    return <ArtistUniverse key={`${location.pathname.startsWith('/gallery/') ? 'gallery' : 'artist'}:${id}`} id={id} />;
 }
 type ExitHandler = (event: React.MouseEvent<HTMLAnchorElement>) => void;
 
@@ -92,12 +95,13 @@ function resolveWebsiteUrl(value: string) {
     }
 }
 
-function UnavailableWebsite({ name, hasWebsite }: { name: string; hasWebsite: boolean }) {
+function UnavailableWebsite({ name, website }: { name: string; website: string }) {
     return <div className="h-full flex items-center justify-center px-6">
         <div className="max-w-lg text-center">
             <p className="editorial-kicker">{name}</p>
-            <h1 className="text-3xl md:text-4xl mt-5 mb-6">{hasWebsite ? 'This website cannot be displayed here.' : 'A new address is on its way.'}</h1>
-            <p className="text-sm leading-relaxed text-white/60">{hasWebsite ? 'This artist’s website currently prevents viewing inside CATALOGUE. Exit to continue exploring the directory.' : 'This profile does not currently have a valid website address.'}</p>
+            <h1 className="text-3xl md:text-4xl mt-5 mb-6">{website ? 'This website cannot be displayed here.' : 'A new address is on its way.'}</h1>
+            <p className="text-sm leading-relaxed text-white/60">{website ? 'This artist’s website currently prevents viewing inside CATALOGUE. Open their website directly to explore the work.' : 'This profile does not currently have a valid website address.'}</p>
+            {website && <a href={website} target="_blank" rel="noopener noreferrer" className="editorial-link mt-6">Open official website ↗</a>}
         </div>
     </div>;
 }
@@ -126,17 +130,17 @@ function ArtistUniverse({ id }: { id: string }) {
     const route = location.pathname.startsWith('/gallery/') ? 'gallery' : 'artist';
     const [bootstrap] = useState(() => readProfileBootstrap(id, route));
     const { artists, loading, error } = useArtists();
-    const artist = artists.find(item => item.id === id) || ((loading || error) ? bootstrap : null);
+    const artist = artists.find(item => item.id === id && (item.type || 'artist') === route) || ((loading || error) ? bootstrap : null);
     const handleExit = useArtistExit();
-    if (!artist) return <ProfileLookupState loading={loading} error={error} onExit={handleExit} />;
+    if (!artist) return <>{!loading && !error && <Seo meta={missingMeta(location.pathname)} />}<ProfileLookupState loading={loading} error={error} onExit={handleExit} /></>;
 
     const website = resolveWebsiteUrl(artist.websiteUrl);
     const canEmbed = website && !externalOnlyProfiles.has(id) && !website.startsWith('http:');
     return <div className="fixed inset-0 z-[100] bg-black">
-        <Helmet><title>{artist.name} | CATALOGUE</title></Helmet>
+        <Seo meta={profileMeta({ ...artist, type: route, image: bootstrap?.seoImageUrl || (typeof artist.thumbnail === 'string' ? artist.thumbnail : artist.thumbnail ? urlFor(artist.thumbnail).url() : undefined) })} />
         <nav aria-label="Artist website controls" className={`fixed z-[120] flex flex-wrap justify-center gap-2 max-w-[calc(100%-2rem)] ${getPositionClasses(artist.desktopExitPosition || 'top-right', artist.mobileExitPosition || 'bottom-center')}`}>
             <Link to="/" onClick={handleExit} aria-label="Exit Artist Universe" className="min-h-11 px-4 py-3 bg-[#101010] border border-white/25 text-[10px] font-semibold tracking-wider uppercase text-white flex items-center justify-center">Exit ✕</Link>
         </nav>
-        {canEmbed ? <EmbeddedWebsite key={website} website={website} name={artist.name} /> : <UnavailableWebsite name={artist.name} hasWebsite={Boolean(website)} />}
+        {canEmbed ? <EmbeddedWebsite key={website} website={website} name={artist.name} /> : <UnavailableWebsite name={artist.name} website={website} />}
     </div>;
 }

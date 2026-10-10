@@ -5,26 +5,13 @@ import { useParams, Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { useArtists } from '../hooks/useArtists';
 import { processArticleContent } from '../utils/linkUtils';
-import { Helmet } from 'react-helmet-async';
+import { Seo } from './Seo';
+import { articleMeta, missingMeta } from '../lib/seo';
 import type { ArticleRecord } from '../types/article';
 
 interface ArticleViewProps {
     articles: ArticleRecord[];
     loading?: boolean;
-}
-
-function resolveSiteOrigin() {
-    if (typeof window !== 'undefined' && window.location?.origin) {
-        return window.location.origin.replace(/\/+$/, '');
-    }
-    return 'https://catalogue.gallery';
-}
-
-function toAbsoluteImageUrl(url: string | undefined) {
-    const siteOrigin = resolveSiteOrigin();
-    if (!url) return `${siteOrigin}/logo.png`;
-    if (/^https?:\/\//i.test(url)) return url;
-    return `${siteOrigin}${url.startsWith('/') ? url : `/${url}`}`;
 }
 
 export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = false }) => {
@@ -52,7 +39,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
         return (
             <div className="min-h-screen flex items-center justify-center bg-black text-white">
                 <div className="text-center">
-                    <h1 className="text-4xl font-bold mb-4">404</h1>
+                    <Seo meta={missingMeta(`/blog/${id}/`)} /><h1 className="text-4xl font-bold mb-4">404</h1>
                     <p className="text-white/50 mb-8">Article not found.</p>
                     <Link to="/blog" className="px-6 py-3 bg-[#0d0d0d] border border-white/10 hover:bg-[#121212] transition-colors">
                         Explore Content Lab
@@ -62,21 +49,10 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
         );
     }
 
-    const socialImage = toAbsoluteImageUrl(article.thumbnailUrl);
 
     return (
         <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black font-sans">
-            <Helmet>
-                <title>{`${article.title} | CATALOGUE`}</title>
-                <meta name="description" content={article.excerpt} />
-                <meta property="og:title" content={article.title} />
-                <meta property="og:description" content={article.excerpt} />
-                <meta property="og:url" content={window.location.href} />
-                <meta property="og:image" content={socialImage} />
-                <meta name="twitter:title" content={article.title} />
-                <meta name="twitter:description" content={article.excerpt} />
-                <meta name="twitter:image" content={socialImage} />
-            </Helmet>
+            <Seo meta={articleMeta(article)} />
 
             {/* Article Content */}
             <article className="pt-28 md:pt-24 pb-32 px-6 max-w-4xl mx-auto">

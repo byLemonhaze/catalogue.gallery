@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { SquareLoader } from '../components/SquareLoader';
 import { generateDraftWithByok, type ContentLabArtistSeed, type ContentLabDraftType } from '../lib/contentLab/byok';
@@ -808,7 +807,7 @@ export function ContentLab() {
 
     return (
         <div className="min-h-screen bg-black text-white selection:bg-white/20">
-            <Helmet><title>Content Lab | CATALOGUE</title></Helmet>
+
 
             <div className="max-w-3xl mx-auto px-6 pt-20 pb-32">
 

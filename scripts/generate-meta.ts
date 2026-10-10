@@ -1,265 +1,16 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { articles as legacyArticles } from '../src/data/articles';
+import { applyPageMeta, staticPages, profileMeta, articleMeta, missingMeta, profileBootstrapHtml, sitemapXml, SITE_ORIGIN, type PageMeta } from '../src/lib/seo';
+import { publicInventory } from '../functions/_lib/publicContent';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = path.resolve(__dirname, '../dist');
 const TEMPLATE_PATH = path.join(DIST_DIR, 'index.html');
 const PROFILE_OG_DIR = path.join(DIST_DIR, 'og', 'profiles');
 const PUBLIC_DIR = path.resolve(__dirname, '../public');
 const LOGO_PATH = path.join(PUBLIC_DIR, 'logo.png');
-
-function resolveSiteOrigin() {
-    const raw = (
-        process.env.PUBLIC_BASE_URL ||
-        process.env.CF_PAGES_URL ||
-        process.env.VITE_PUBLIC_BASE_URL ||
-        'https://catalogue.gallery'
-    ).trim();
-
-    const withProtocol = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
-    return withProtocol.replace(/\/+$/, '');
-}
-
-const SITE_ORIGIN = resolveSiteOrigin();
-
-type MetaArticle = {
-    id: string;
-    title: string;
-    excerpt: string;
-    thumbnailUrl: string;
-};
-
-type MetaProfile = {
-    id: string;
-    route: 'artist' | 'gallery';
-    websiteUrl?: string;
-    desktopExitPosition?: string;
-    mobileExitPosition?: string;
-    name: string;
-    subtitle: string;
-    thumbnailUrl: string;
-};
-
-function normalizeImageUrl(input: string | undefined) {
-    if (!input) return `${SITE_ORIGIN}/logo.png`;
-    if (/^https?:\/\//i.test(input)) return input;
-    return `${SITE_ORIGIN}${input.startsWith('/') ? input : `/${input}`}`;
-}
-
-function toLegacyMetaArticles(): MetaArticle[] {
-    return legacyArticles.map((article) => ({
-        id: article.id,
-        title: article.title,
-        excerpt: article.excerpt,
-        thumbnailUrl: normalizeImageUrl(article.thumbnail || '/logo.png'),
-    }));
-}
-
-async function fetchSanityMetaArticles(): Promise<MetaArticle[]> {
-    const projectId = process.env.SANITY_PROJECT_ID || process.env.VITE_SANITY_PROJECT_ID || 'ebj9kqfo';
-    const dataset = process.env.SANITY_DATASET || process.env.VITE_SANITY_DATASET || 'production';
-    const apiVersion = 'v2024-01-01';
-
-    const query = `*[_type == "post" && defined(slug.current)]
-      | order(coalesce(publishedAt, _createdAt) desc) {
-        "id": slug.current,
-        title,
-        excerpt,
-        "featuredArtistThumbnailAssetUrl": featuredArtist->thumbnail.asset->url,
-        thumbnailPath,
-        "thumbnailAssetUrl": thumbnail.asset->url
-      }`;
-
-    const url = new URL(`https://${projectId}.api.sanity.io/${apiVersion}/data/query/${dataset}`);
-    url.searchParams.set('query', query);
-
-    const response = await fetch(url.toString(), {
-        headers: { Accept: 'application/json' },
-    });
-
-    if (!response.ok) {
-        throw new Error(`Sanity query failed (${response.status})`);
-    }
-
-    const body = await response.json() as {
-        result?: Array<{
-            id?: string;
-            title?: string;
-            excerpt?: string;
-            featuredArtistThumbnailAssetUrl?: string;
-            thumbnailPath?: string;
-            thumbnailAssetUrl?: string;
-        }>;
-    };
-
-    const posts = body.result || [];
-
-    return posts
-        .filter((post) => Boolean(post.id && post.title && post.excerpt))
-        .map((post) => ({
-            id: post.id as string,
-            title: post.title as string,
-            excerpt: post.excerpt as string,
-            thumbnailUrl: normalizeImageUrl(
-                post.featuredArtistThumbnailAssetUrl || post.thumbnailAssetUrl || post.thumbnailPath || '/logo.png',
-            ),
-        }));
-}
-
-async function resolveMetaArticles() {
-    try {
-        const sanityArticles = await fetchSanityMetaArticles();
-        if (sanityArticles.length > 0) {
-            console.log(`Using ${sanityArticles.length} Sanity posts for social meta generation.`);
-            return sanityArticles;
-        }
-    } catch (error) {
-        console.warn('Sanity post fetch failed, falling back to legacy local article data.', error);
-    }
-
-    const fallback = toLegacyMetaArticles();
-    console.log(`Using ${fallback.length} legacy local posts for social meta generation.`);
-    return fallback;
-}
-
-async function fetchSanityMetaProfiles(): Promise<MetaProfile[]> {
-    const projectId = process.env.SANITY_PROJECT_ID || process.env.VITE_SANITY_PROJECT_ID || 'ebj9kqfo';
-    const dataset = process.env.SANITY_DATASET || process.env.VITE_SANITY_DATASET || 'production';
-    const apiVersion = 'v2024-01-01';
-
-    const query = `*[_type in ["artist", "gallery"] && defined(slug.current) && (status == "published" || !defined(status))]
-      | order(name asc) {
-        "id": slug.current,
-        "route": _type,
-        name,
-        subtitle, websiteUrl, desktopExitPosition, mobileExitPosition,
-        "thumbnailAssetUrl": thumbnail.asset->url
-      }`;
-
-    const url = new URL(`https://${projectId}.api.sanity.io/${apiVersion}/data/query/${dataset}`);
-    url.searchParams.set('query', query);
-
-    const response = await fetch(url.toString(), {
-        headers: { Accept: 'application/json' },
-    });
-
-    if (!response.ok) {
-        throw new Error(`Sanity query failed (${response.status})`);
-    }
-
-    const body = await response.json() as {
-        result?: Array<{
-            id?: string;
-            route?: string;
-            name?: string;
-            subtitle?: string;
-            websiteUrl?: string;
-            desktopExitPosition?: string;
-            mobileExitPosition?: string;
-            thumbnailAssetUrl?: string;
-        }>;
-    };
-
-    const profiles = body.result || [];
-
-    return profiles
-        .filter((profile) => Boolean(profile.id && profile.name && (profile.route === 'artist' || profile.route === 'gallery')))
-        .map((profile) => ({
-            id: profile.id as string,
-            route: profile.route as 'artist' | 'gallery',
-            name: profile.name as string,
-            subtitle: (profile.subtitle || '').trim(),
-            websiteUrl: profile.websiteUrl,
-            desktopExitPosition: profile.desktopExitPosition,
-            mobileExitPosition: profile.mobileExitPosition,
-            thumbnailUrl: normalizeImageUrl(profile.thumbnailAssetUrl || '/logo.png'),
-        }));
-}
-
-async function resolveMetaProfiles(): Promise<MetaProfile[]> {
-    try {
-        const sanityProfiles = await fetchSanityMetaProfiles();
-        if (sanityProfiles.length > 0) {
-            console.log(`Using ${sanityProfiles.length} Sanity profiles for social meta generation.`);
-            return sanityProfiles;
-        }
-    } catch (error) {
-        console.warn('Sanity profile fetch failed, skipping artist/gallery social page generation.', error);
-    }
-
-    return [];
-}
-
-function escapeRegExp(input: string) {
-    return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function upsertMetaTag(
-    html: string,
-    attr: 'name' | 'property',
-    key: string,
-    value: string,
-) {
-    const safeValue = value.replace(/"/g, '&quot;');
-    const escapedKey = escapeRegExp(key);
-    const targetRegex = new RegExp(`<meta\\s+${attr}="${escapedKey}"\\s+content="[^"]*"\\s*/?>`, 'i');
-    const alternateAttr = attr === 'name' ? 'property' : 'name';
-    const alternateRegex = new RegExp(`<meta\\s+${alternateAttr}="${escapedKey}"\\s+content="[^"]*"\\s*/?>`, 'i');
-
-    if (targetRegex.test(html)) {
-        return html.replace(targetRegex, `<meta ${attr}="${key}" content="${safeValue}" />`);
-    }
-    if (alternateRegex.test(html)) {
-        return html.replace(alternateRegex, `<meta ${attr}="${key}" content="${safeValue}" />`);
-    }
-
-    return html.replace('</head>', `  <meta ${attr}="${key}" content="${safeValue}" />\n</head>`);
-}
-
-function applyMetaTemplate(
-    template: string,
-    meta: {
-        title: string;
-        description: string;
-        url: string;
-        imageUrl: string;
-    },
-) {
-    let content = template;
-
-    content = content.replace(/<title>.*?<\/title>/, `<title>${meta.title.replace(/"/g, '&quot;')} | CATALOGUE</title>`);
-    content = upsertMetaTag(content, 'name', 'description', meta.description);
-
-    content = upsertMetaTag(content, 'property', 'og:type', 'website');
-    content = upsertMetaTag(content, 'property', 'og:title', meta.title);
-    content = upsertMetaTag(content, 'property', 'og:description', meta.description);
-    content = upsertMetaTag(content, 'property', 'og:url', meta.url);
-    content = upsertMetaTag(content, 'property', 'og:image', meta.imageUrl);
-
-    content = upsertMetaTag(content, 'name', 'twitter:card', 'summary_large_image');
-    content = upsertMetaTag(content, 'name', 'twitter:title', meta.title);
-    content = upsertMetaTag(content, 'name', 'twitter:description', meta.description);
-    content = upsertMetaTag(content, 'name', 'twitter:url', meta.url);
-    content = upsertMetaTag(content, 'name', 'twitter:image', meta.imageUrl);
-
-    return content;
-}
-
-function applyHomeMetaTemplate(template: string) {
-    const homeUrl = `${SITE_ORIGIN}/`;
-    const homeImage = `${SITE_ORIGIN}/logo.png`;
-    let content = template;
-    content = upsertMetaTag(content, 'property', 'og:url', homeUrl);
-    content = upsertMetaTag(content, 'property', 'og:image', homeImage);
-    content = upsertMetaTag(content, 'name', 'twitter:url', homeUrl);
-    content = upsertMetaTag(content, 'name', 'twitter:image', homeImage);
-    return content;
-}
-
+type MetaProfile = { id: string; route: string; thumbnailUrl: string };
 function resolveLocalImagePath(imageUrl: string): string | null {
     try {
         const parsed = new URL(imageUrl);
@@ -312,7 +63,7 @@ async function generateSplitProfileImage(
         rightSourceBuffer = fs.readFileSync(localPath);
     } else {
         try {
-            const response = await fetch(profile.thumbnailUrl);
+            const response = await fetch(profile.thumbnailUrl, { signal: AbortSignal.timeout(15000) });
             if (response.ok) {
                 const arrBuffer = await response.arrayBuffer();
                 rightSourceBuffer = Buffer.from(arrBuffer);
@@ -345,78 +96,39 @@ async function generateSplitProfileImage(
     return `${SITE_ORIGIN}/og/profiles/${outputFilename}`;
 }
 
-async function generateArticles(template: string) {
-    const articles = await resolveMetaArticles();
-
-    for (const article of articles) {
-        const articleDir = path.join(DIST_DIR, 'blog', article.id);
-        fs.mkdirSync(articleDir, { recursive: true });
-
-        const articleUrl = `${SITE_ORIGIN}/blog/${article.id}/`;
-        const content = applyMetaTemplate(template, {
-            title: article.title,
-            description: article.excerpt,
-            url: articleUrl,
-            imageUrl: article.thumbnailUrl,
-        });
-
-        fs.writeFileSync(path.join(articleDir, 'index.html'), content);
-        console.log(`Generated article meta: ${article.id}`);
-    }
-
-    console.log(`Generated static HTML for ${articles.length} articles.`);
-}
-
-async function generateProfiles(template: string) {
-    const profiles = await resolveMetaProfiles();
-    if (profiles.length === 0) return;
-
-    for (const profile of profiles) {
-        const profileDir = path.join(DIST_DIR, profile.route, profile.id);
-        fs.mkdirSync(profileDir, { recursive: true });
-
-        const profileUrl = `${SITE_ORIGIN}/${profile.route}/${profile.id}/`;
-        const imageUrl = await generateSplitProfileImage(profile);
-        const description = profile.subtitle
-            ? `${profile.subtitle} — view ${profile.name} on CATALOGUE.`
-            : `View ${profile.name} on CATALOGUE.`;
-        const content = applyMetaTemplate(template, {
-            title: profile.name,
-            description,
-            url: profileUrl,
-            imageUrl,
-        });
-
-        let html = content;
-        try {
-            const website = new URL(profile.websiteUrl || '');
-            if (website.protocol === 'https:') {
-                const bootstrap = JSON.stringify({ id: profile.id, type: profile.route, name: profile.name, subtitle: profile.subtitle, websiteUrl: website.href, desktopExitPosition: profile.desktopExitPosition, mobileExitPosition: profile.mobileExitPosition }).replace(/</g, '\\u003c');
-                html = html.replace('<head>', `<head>\n<link rel="preconnect" href="${website.origin.replace(/"/g, '&quot;')}">\n<script type="application/json" id="catalogue-profile">${bootstrap}</script>`);
-            }
-        } catch { /* Profiles without a valid HTTPS URL use the runtime lookup. */ }
-        fs.writeFileSync(path.join(profileDir, 'index.html'), html);
-        console.log(`Generated profile meta: ${profile.route}/${profile.id}`);
-    }
-
-    console.log(`Generated static HTML and OG images for ${profiles.length} profiles.`);
-}
-
 async function generate() {
-    if (!fs.existsSync(TEMPLATE_PATH)) {
-        console.error('dist/index.html not found. Run build first.');
-        process.exit(1);
+    const template = fs.readFileSync(TEMPLATE_PATH, 'utf8');
+    const { profiles, articles } = await publicInventory(process.env);
+    if (!profiles.length || !articles.length) throw new Error('Refusing to build an empty public content inventory');
+    const entries = [...staticPages.filter(page => !page.noindex), ...profiles.map(profile => ({ path: profileMeta(profile).path, updatedAt: profile.updatedAt })), ...articles.map(article => ({ path: articleMeta(article).path, updatedAt: article.updatedAt }))];
+    // Validate uniqueness before writing anything. Failure must stop the deployment.
+    const sitemap = sitemapXml(entries);
+    function writePage(meta: PageMeta, transform?: (html: string) => string) {
+        const segments = meta.path.split('/').filter(Boolean);
+        if (segments.some(segment => !/^[a-zA-Z0-9_%.-]+$/.test(segment) || ['.', '..'].includes(segment))) throw new Error(`Unsafe output path: ${meta.path}`);
+        const directory = path.join(DIST_DIR, ...segments);
+        fs.mkdirSync(directory, { recursive: true });
+        const html = applyPageMeta(template, meta);
+        fs.writeFileSync(path.join(directory, 'index.html'), transform ? transform(html) : html);
     }
-
-    const template = fs.readFileSync(TEMPLATE_PATH, 'utf-8');
-    const homeTemplate = applyHomeMetaTemplate(template);
-    fs.writeFileSync(TEMPLATE_PATH, homeTemplate);
-    console.log(`Updated home social meta for origin: ${SITE_ORIGIN}`);
-
-    // Use the normalized template for generated route pages too.
-    const resolvedTemplate = fs.readFileSync(TEMPLATE_PATH, 'utf-8');
-    await generateArticles(resolvedTemplate);
-    await generateProfiles(resolvedTemplate);
+    for (const page of staticPages) writePage(page);
+    for (const article of articles) writePage(articleMeta(article));
+    async function writeProfile(profile: (typeof profiles)[number]) {
+        // Keep the existing branded share-card assets; image failures must not remove a page.
+        let image = profile.thumbnailUrl;
+        try { image = await generateSplitProfileImage({ id: profile.id, route: profile.type, thumbnailUrl: profile.thumbnailUrl || `${SITE_ORIGIN}/logo.png` }); }
+        catch (error) { console.warn(`Using original thumbnail for ${profile.id}:`, error); }
+        writePage(profileMeta({ ...profile, image }), html => profileBootstrapHtml(html, { ...profile, seoImageUrl: image }));
+    }
+    const queue = [...profiles];
+    await Promise.all(Array.from({ length: 4 }, async () => {
+        let profile;
+        while ((profile = queue.shift())) await writeProfile(profile);
+    }));
+    fs.writeFileSync(path.join(DIST_DIR, 'sitemap.xml'), sitemap);
+    // A top-level 404 disables Cloudflare Pages' implicit successful SPA fallback.
+    fs.writeFileSync(path.join(DIST_DIR, '404.html'), applyPageMeta(template, missingMeta('/404/')));
+    fs.writeFileSync(path.join(DIST_DIR, 'seo-manifest.json'), JSON.stringify({ profiles: profiles.length, articles: articles.length, paths: entries.map(entry => entry.path) }, null, 2));
+    console.log(`Generated SEO pages for ${profiles.length} profiles, ${articles.length} articles and ${staticPages.length} static routes.`);
 }
-
-generate().catch(console.error);
+generate().catch(error => { console.error(error); process.exitCode = 1; });

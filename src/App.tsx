@@ -1,3 +1,6 @@
+import { Seo } from './components/Seo';
+import { staticPages, canonicalPath, missingMeta } from './lib/seo';
+import { Link } from 'react-router-dom';
 import { RouteRecoveryBoundary, loadArtistFrame, prefetchArtistFrame, recoverImport } from './lib/routeLoading';
 import { useState, useMemo, lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
@@ -71,6 +74,7 @@ const AppContent = () => {
 
   return (
     <div className="min-h-screen bg-black text-white font-display selection:bg-white/20">
+      <Seo meta={staticPages.find(page => page.path === canonicalPath(location.pathname)) || { ...staticPages[0], path: location.pathname }} />
       <Navigation
         onSearchOpen={() => setIsSearchOpen(true)}
         activeHomeSection={location.pathname === '/' ? homeSection : undefined}
@@ -122,6 +126,7 @@ const AppContent = () => {
           <Route path="/content-lab" element={<ContentLab />} />
           <Route path="/content-lab/admin" element={<Navigate to="/content-lab" replace />} />
           <Route path="/info" element={<InfoHub setIsLegalModalOpen={setIsLegalModalOpen} />} />
+          <Route path="*" element={<main className="min-h-screen px-6 pt-36 text-center"><Seo meta={missingMeta(location.pathname)} /><h1 className="text-4xl mb-5">Page not found</h1><p className="text-white/60 mb-6">This page may have moved or is no longer available.</p><Link className="editorial-link" to="/artists/">Explore the directory</Link></main>} />
         </Routes>
       </Suspense>
       </RouteRecoveryBoundary>

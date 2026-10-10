@@ -249,3 +249,7 @@ The following files are helpers only and are not routed as API endpoints:
 - `_draftParser.ts`
 - `_emailCipher.ts`
 - `_embedCheck.ts`
+
+## Public SEO routes
+
+`GET`/`HEAD /artist/:slug/`, `/gallery/:slug/`, and `/blog/:slug/` return metadata-enriched public HTML. Unknown records return 404; CMS failures return 503. Wrong-type profile aliases and missing trailing slashes redirect permanently. `GET /sitemap.xml` returns current published URLs. These are public content endpoints, not editorial write APIs. See [SEO delivery](./SEO.md) for cache and indexing policy.
