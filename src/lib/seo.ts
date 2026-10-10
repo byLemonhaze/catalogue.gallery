@@ -37,7 +37,7 @@ export function applyPageMeta(template: string, meta: PageMeta) {
         ['property', 'og:type', meta.type || 'website'], ['property', 'og:title', meta.title], ['property', 'og:description', meta.description], ['property', 'og:url', url], ['property', 'og:image', image],
         ['name', 'twitter:card', 'summary_large_image'], ['name', 'twitter:title', meta.title], ['name', 'twitter:description', meta.description], ['name', 'twitter:url', url], ['name', 'twitter:image', image],
     ];
-    // Helmet adopts these nodes on startup and removes/replaces them during navigation.
+    // Mark generated metadata so client navigation and diagnostics can identify it.
     const head = `<title data-rh="true">${escapeHtml(meta.title)}</title>\n<link data-rh="true" rel="canonical" href="${escapeHtml(url)}" />\n` + values.map(([attr, key, value]) => `<meta data-rh="true" ${attr}="${key}" content="${escapeHtml(value)}" />`).join('\n');
     return template.replace(/<title\b[^>]*>[\s\S]*?<\/title>/gi, '')
         .replace(/<meta\b[^>]*>/gi, tag => managed.has(attribute(tag, 'name') || attribute(tag, 'property') || '') ? '' : tag)

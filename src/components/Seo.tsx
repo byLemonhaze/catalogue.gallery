@@ -1,21 +1,17 @@
-import { Helmet } from 'react-helmet-async';
-import { absoluteImage, canonicalUrl, type PageMeta } from '../lib/seo';
+import { useLayoutEffect } from 'react';
+import { applyPageMeta, type PageMeta } from '../lib/seo';
 export function Seo({ meta }: { meta: PageMeta }) {
-    const url = canonicalUrl(meta.path); const image = absoluteImage(meta.image);
-    return <Helmet>
-        <title>{meta.title}</title>
-        <meta name="description" content={meta.description} />
-        <meta name="robots" content={meta.noindex ? 'noindex, follow' : 'index, follow'} />
-        <link rel="canonical" href={url} />
-        <meta property="og:type" content={meta.type || 'website'} />
-        <meta property="og:title" content={meta.title} />
-        <meta property="og:description" content={meta.description} />
-        <meta property="og:url" content={url} />
-        <meta property="og:image" content={image} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={meta.title} />
-        <meta name="twitter:description" content={meta.description} />
-        <meta name="twitter:url" content={url} />
-        <meta name="twitter:image" content={image} />
-    </Helmet>;
+    const html = applyPageMeta('<html><head></head></html>', meta);
+    // Update only after React commits the route. Render-time registrations can
+    // survive abandoned concurrent renders and retain a previous article's tags.
+    useLayoutEffect(() => {
+        const head = new DOMParser().parseFromString(html, 'text/html').head;
+        for (const node of Array.from(head.children)) {
+            const attribute = node.tagName === 'META' ? (node.hasAttribute('name') ? 'name' : 'property') : node.tagName === 'LINK' ? 'rel' : null;
+            const selector = attribute ? `${node.localName}[${attribute}="${node.getAttribute(attribute)}"]` : node.localName;
+            document.head.querySelectorAll(selector).forEach(existing => existing.remove());
+            document.head.appendChild(document.importNode(node, true));
+        }
+    }, [html]);
+    return null;
 }
