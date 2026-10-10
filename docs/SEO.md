@@ -26,15 +26,22 @@ Run `npm run verify` and `npm run build`. `dist/seo-manifest.json` records the f
 
 Checks cover safe escaping, metadata adoption and client-navigation cleanup, canonical normalization, sitemap validity/duplicates, new public records, removed records, CMS failures, wrong-type aliases, preview response headers, short public caching and blocked-embed fallback links. Also exercise direct artist entry, gallery entry, Exit, homepage return state and article navigation in a real browser.
 
-## Deployment work still requiring host configuration
+## Rendering, schema and delivery
 
-This change does not alter DNS, certificates or Cloudflare dashboard rules. Before release:
+Public homepage, directory, editorial index, articles, about and submission pages render the existing React UI on the server. The same public data is serialized safely into the document and used for hydration; article bodies are included on direct article requests. The server and browser share the artist order for a stable first paint. Fullscreen artist routes retain their existing lightweight bootstrap and immediate iframe/Exit flow.
 
-1. Repair TLS for `www.catalogue.gallery` and configure its permanent apex redirect.
-2. Redirect the production `artfinder.pages.dev` alias to the apex, and protect or apply noindex to all preview responses, including static pages. The dynamic-route noindex header alone does not cover every preview asset/page.
-3. Verify production deployment from this project's configured `production` branch. A GitHub merge alone does not deploy it (see DEPLOYMENT.md).
-4. Submit the sitemap in Search Console and inspect representative rendered URLs and Google-selected canonicals.
+`npm run build` creates both `dist` and the bundled edge renderer in `server-dist`, then generates static public documents. Both builds must finish before Wrangler bundles Functions. Server render errors fail generation rather than shipping a loading shell. The internal `app-shell.html` is read through the asset binding and returns 404 to public requests.
 
-## Follow-up scope
+The shared metadata serializer emits Organization, WebSite, WebPage, Article and BreadcrumbList JSON-LD as appropriate. Client navigation replaces only Catalogue's schema script. Publication dates use `publishedAt`, or an exact existing full `displayDate` when no timestamp exists. Unknown dates are omitted; creation timestamps are never substituted and CMS records are not rewritten. Byline links point to the existing about page.
 
-Full first-party content rendering, structured data, font/image performance work and editorial date normalization are separate follow-ups. Any change to visible artist context must preserve immediate embedded navigation and the Exit concept; it requires product agreement. Embedded-site performance is measured separately from what CATALOGUE controls.
+Fonts are self-hosted under `public/fonts` with their OFL licenses. Directory thumbnails use appropriately sized, compressed images and native lazy loading. Initial article HTML includes the complete body to prevent its delayed arrival shifting the layout.
+
+## Host controls
+
+The global Pages middleware permanently redirects `www.catalogue.gallery`, `artfinder.pages.dev` and `production.artfinder.pages.dev` to the production origin, retaining path and query. All other `*.pages.dev` responses receive `X-Robots-Tag: noindex, follow`, including static assets and errors. Middleware therefore runs for all routes; monitor Pages Functions request/CPU usage after release. Public HTML is cached by deployed shell revision for five minutes.
+
+The www hostname must be attached to the existing Pages project and its proxied CNAME must target `artfinder.pages.dev`. This is separate from the apex and mail records. Verify certificate activation and actual redirects after changing DNS.
+
+## Search verification
+
+Submit `https://catalogue.gallery/sitemap.xml` in the owner's verified Search Console property, then inspect representative artist and article URLs. Code validation and Lighthouse cannot establish Google's indexing, selected canonical, traffic or ranking changes. These require account access and subsequent Google recrawling. Artist-owned website performance and content are outside Catalogue's control.

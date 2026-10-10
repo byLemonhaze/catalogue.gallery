@@ -7,7 +7,7 @@ export function Seo({ meta }: { meta: PageMeta }) {
     useLayoutEffect(() => {
         const head = new DOMParser().parseFromString(html, 'text/html').head;
         for (const node of Array.from(head.children)) {
-            const attribute = node.tagName === 'META' ? (node.hasAttribute('name') ? 'name' : 'property') : node.tagName === 'LINK' ? 'rel' : null;
+            const attribute = node.tagName === 'SCRIPT' ? 'id' : node.tagName === 'META' ? (node.hasAttribute('name') ? 'name' : 'property') : node.tagName === 'LINK' ? 'rel' : null;
             const selector = attribute ? `${node.localName}[${attribute}="${node.getAttribute(attribute)}"]` : node.localName;
             document.head.querySelectorAll(selector).forEach(existing => existing.remove());
             document.head.appendChild(document.importNode(node, true));

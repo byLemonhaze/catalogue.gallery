@@ -1,8 +1,9 @@
+import { PublicPageContext } from './lib/publicPageData';
 import { Seo } from './components/Seo';
 import { staticPages, canonicalPath, missingMeta } from './lib/seo';
 import { Link } from 'react-router-dom';
 import { RouteRecoveryBoundary, loadArtistFrame, prefetchArtistFrame, recoverImport } from './lib/routeLoading';
-import { useState, useMemo, lazy, Suspense, useEffect } from 'react';
+import { useContext, useState, useMemo, lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { useArtists } from './hooks/useArtists';
 import { useArticles } from './hooks/useArticles';
@@ -32,7 +33,8 @@ function shuffleArray<T>(items: T[]) {
   return clone;
 }
 
-const AppContent = () => {
+export const AppContent = () => {
+  const publicData = useContext(PublicPageContext);
   const location = useLocation();
   const isArtistPage = location.pathname.startsWith('/artist/') || location.pathname.startsWith('/gallery/');
   const staticMeta = staticPages.find(page => page.path === canonicalPath(location.pathname));
@@ -60,9 +62,9 @@ const AppContent = () => {
 
   // Randomized once per artist payload so refreshes feel alive without reshuffling on each render.
   const randomizedArtists = useMemo(() => {
-    if (loading) return artists;
+    if (loading || publicData) return artists;
     return shuffleArray(artists);
-  }, [artists, loading]);
+  }, [artists, loading, publicData]);
 
   const filteredArtists = randomizedArtists.filter(artist =>
     artist.name.toLowerCase().includes(search.toLowerCase())

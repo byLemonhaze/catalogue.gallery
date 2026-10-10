@@ -118,7 +118,7 @@ export function HomeExperience({
     if (routeState?.returnFromUniverse && typeof routeState.slideIndex === 'number') {
       return routeState.slideIndex;
     }
-    const saved = sessionStorage.getItem('carouselIndex');
+    const saved = typeof document !== 'undefined' && typeof sessionStorage !== 'undefined' && !document.getElementById('catalogue-public-data') ? sessionStorage.getItem('carouselIndex') : null;
     return saved ? parseInt(saved, 10) : 0;
   });
 
@@ -388,10 +388,10 @@ export function HomeExperience({
                 <span className="select-none font-mono text-[11px] tracking-[0.15em] text-white/35">
                   {String(carouselIndex + 1).padStart(2, '0')} / {String(artists.length).padStart(2, '0')}
                 </span>
-                <p className="max-w-md text-[10px] font-mono uppercase tracking-[0.2em] text-white/35">
+                <h1 className="max-w-md text-[10px] font-mono font-normal uppercase tracking-[0.2em] text-white/35">
                   <span className="block">A directory of digital artists</span>
                   <span className="mt-1 block">unfiltered, self-curated, independent</span>
-                </p>
+                </h1>
                 <Link
                   to="/info"
                   className="border-b border-white/15 pb-px text-[10px] font-bold uppercase tracking-[0.22em] text-white/55 transition-colors duration-300 hover:border-white/50 hover:text-white"

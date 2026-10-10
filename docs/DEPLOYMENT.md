@@ -164,3 +164,7 @@ These are operational repo settings and are intentionally not represented as cod
 ## SEO verification
 
 See [SEO delivery](./SEO.md) for route generation, inventory checks, runtime metadata, HTTP errors, cache freshness and domain/preview configuration. Validate with Pages Functions before production deployment; Vite preview alone cannot verify server statuses.
+
+### Server-rendered public release
+
+The frontend build also creates `server-dist/entry-server.js`, which Pages Functions import. Run the complete `npm run build` before deployment; do not deploy only `dist` copied without the renderer and functions tree. Verify raw homepage/directory/article HTML, browser hydration, host redirects and preview noindex headers in addition to the existing HTTP checks. See SEO.md for the public bootstrap, date and schema behavior.

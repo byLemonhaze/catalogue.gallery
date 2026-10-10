@@ -4,6 +4,8 @@ export interface ArticleRecord {
     id: string
     title: string
     author: string
+    publishedAt?: string
+    updatedAt?: string
     date: string
     type: ArticleKind | string
     excerpt: string

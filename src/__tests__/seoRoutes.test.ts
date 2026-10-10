@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { afterEach, expect, it, vi } from 'vitest';
+vi.mock('../../functions/_lib/renderPublic', () => ({ publicPageData: async () => ({}), renderPublicDocument: async (html: string) => html }));
 import { onRequestGet as article } from '../../functions/blog/[slug]';
 import { onRequestGet as artist } from '../../functions/artist/[slug]';
 import { onRequestGet as gallery } from '../../functions/gallery/[slug]';

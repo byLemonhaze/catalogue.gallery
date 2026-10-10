@@ -85,8 +85,9 @@ export const ArtistList: React.FC = () => {
                                     <div className="w-10 h-10 shrink-0 overflow-hidden bg-white/5">
                                         {artist.thumbnail ? (
                                             <img
-                                                src={artist.isSanity && artist.thumbnail ? urlFor(artist.thumbnail).width(80).url() : (typeof artist.thumbnail === 'string' ? artist.thumbnail : undefined)}
+                                                src={artist.isSanity && artist.thumbnail ? urlFor(artist.thumbnail).width(80).height(80).fit('crop').auto('format').quality(65).url() : (typeof artist.thumbnail === 'string' ? artist.thumbnail : undefined)}
                                                 alt={artist.name}
+                                                loading="lazy" decoding="async" width={40} height={40}
                                                 className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity duration-300"
                                             />
                                         ) : (
@@ -129,8 +130,9 @@ export const ArtistList: React.FC = () => {
                                 <div className="w-12 h-12 shrink-0 overflow-hidden bg-white/5">
                                     {gallery.thumbnail ? (
                                         <img
-                                            src={gallery.isSanity && gallery.thumbnail ? urlFor(gallery.thumbnail).width(100).url() : (typeof gallery.thumbnail === 'string' ? gallery.thumbnail : undefined)}
+                                            src={gallery.isSanity && gallery.thumbnail ? urlFor(gallery.thumbnail).width(96).height(96).fit('crop').auto('format').quality(65).url() : (typeof gallery.thumbnail === 'string' ? gallery.thumbnail : undefined)}
                                             alt={gallery.name}
+                                            loading="lazy" decoding="async" width={48} height={48}
                                             className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity duration-300"
                                         />
                                     ) : (

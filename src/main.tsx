@@ -1,5 +1,6 @@
+import { PublicPageContext, readPublicPageData } from './lib/publicPageData'
 import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { createRoot, hydrateRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { HelmetProvider } from 'react-helmet-async'
@@ -8,10 +9,15 @@ import { initCloudflareWebAnalytics, initObservability } from './utils/observabi
 initObservability()
 initCloudflareWebAnalytics()
 
-createRoot(document.getElementById('root')!).render(
+const publicData = readPublicPageData();
+const app = (
   <StrictMode>
     <HelmetProvider>
-      <App />
+      <PublicPageContext.Provider value={publicData}><App /></PublicPageContext.Provider>
     </HelmetProvider>
-  </StrictMode>,
+  </StrictMode>
 )
+
+const root = document.getElementById('root')!;
+if (publicData && root.hasChildNodes()) hydrateRoot(root, app);
+else createRoot(root).render(app);

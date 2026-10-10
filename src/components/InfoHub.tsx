@@ -17,7 +17,7 @@ export function InfoHub({ setIsLegalModalOpen }: InfoHubProps) {
 
                     <section className="pt-0 pb-10 md:py-14 space-y-4">
                         <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#c7c7c7]">About</p>
-                        <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-white leading-none">CATALOGUE</h2>
+                        <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-white leading-none">CATALOGUE</h1>
                         <p className="text-[#d1d1d1] text-base leading-7 max-w-2xl">
                             An independent publication and directory for digital art. Read the stories, meet the artists, and explore the work through their own websites. Across mediums, platforms, and chains.
                         </p>
