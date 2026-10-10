@@ -8,6 +8,7 @@ The project now uses [Semantic Versioning](https://semver.org/) for public relea
 
 ### Changed
 
+- Fix stale article metadata after returning home by updating the head only for committed routes; preserve server metadata while dynamic routes load.
 - Added complete public-page metadata, canonical URLs, robots.txt and a live sitemap; new profiles receive metadata without rebuilding, removed records return real 404 responses, and temporary CMS failures return 503.
 - Unified React metadata ownership to prevent stale article tags after navigation, made SEO inventory failures stop the build, and added a direct official-site fallback for blocked embeds while retaining fullscreen artist navigation and Exit.
 

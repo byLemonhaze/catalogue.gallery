@@ -35,6 +35,7 @@ function shuffleArray<T>(items: T[]) {
 const AppContent = () => {
   const location = useLocation();
   const isArtistPage = location.pathname.startsWith('/artist/') || location.pathname.startsWith('/gallery/');
+  const staticMeta = staticPages.find(page => page.path === canonicalPath(location.pathname));
 
   const { artists, loading, error: artistsError } = useArtists(!isArtistPage);
   const { articles, loading: articlesLoading } = useArticles(!isArtistPage);
@@ -74,7 +75,7 @@ const AppContent = () => {
 
   return (
     <div className="min-h-screen bg-black text-white font-display selection:bg-white/20">
-      <Seo meta={staticPages.find(page => page.path === canonicalPath(location.pathname)) || { ...staticPages[0], path: location.pathname }} />
+      {staticMeta && <Seo meta={staticMeta} />}
       <Navigation
         onSearchOpen={() => setIsSearchOpen(true)}
         activeHomeSection={location.pathname === '/' ? homeSection : undefined}
