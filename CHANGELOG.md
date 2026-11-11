@@ -6,6 +6,10 @@ The project now uses [Semantic Versioning](https://semver.org/) for public relea
 
 ## [Unreleased]
 
+### Added
+
+- Optional artist profile-modal fields in Sanity (`portrait` with alt, credit, and source URL; `shortBio`; `bioSourceUrl`). Existing `subtitle` is reused as the discipline line. The modal is not in production yet; this is a schema and documentation change only.
+
 ### Changed
 
 - Server-render public Catalogue pages and full articles with shared hydration data; add structured data and normalize recorded publication dates without editing artist-owned websites.

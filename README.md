@@ -20,6 +20,7 @@ Catalogue.gallery is a discovery platform designed around the idea that artists 
 - Quality and verification policy: [`docs/QUALITY.md`](./docs/QUALITY.md)
 - Deployment runbook: [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)
 - Product roadmap notes: [`docs/ROADMAP.md`](./docs/ROADMAP.md)
+- Artist profile modal fields: [`docs/artist-profile-fields.md`](./docs/artist-profile-fields.md)
 
 ## Security
 
