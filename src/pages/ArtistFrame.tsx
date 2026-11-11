@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { urlFor } from '../sanity/image';
 import { Seo } from '../components/Seo';
@@ -6,7 +6,6 @@ import { missingMeta, profileMeta } from '../lib/seo';
 import { useArtists } from '../hooks/useArtists';
 import { readProfileBootstrap, externalOnlyProfiles } from '../lib/profileBootstrap';
 import { SquareLoader } from '../components/SquareLoader';
-import { buildHomeNavigationState } from '../lib/homeMemory';
 
 // Helper to resolve positioning classes
 const getPositionClasses = (desktop: string, mobile: string) => {
@@ -46,27 +45,9 @@ function useArtistExit(): ExitHandler {
     const location = useLocation();
     return event => {
         if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-        const state = location.state as { from?: string; slideIndex?: number; homeSection?: 'directory'; homeScrollTop?: number; directoryPage?: number } | null;
-        if (state?.from === 'home' && typeof state.slideIndex === 'number') {
-            event.preventDefault();
-            navigate('/', { state: { returnFromUniverse: true, slideIndex: state.slideIndex } });
-            return;
-        }
-        if (state?.from === 'directory-section') {
-            event.preventDefault();
-            navigate('/', { state: { homeSection: 'directory', homeScrollTop: state.homeScrollTop, directoryPage: state.directoryPage } });
-            return;
-        }
-        if (state?.from === 'directory') {
-            event.preventDefault();
-            navigate(-1);
-            return;
-        }
-        const home = buildHomeNavigationState();
-        if (home) {
-            event.preventDefault();
-            navigate('/', { state: home });
-        }
+        const state = location.state as { from?: string } | null;
+        if (state?.from === 'profile') { event.preventDefault(); navigate(-1); }
+
     };
 }
 
@@ -132,14 +113,16 @@ function ArtistUniverse({ id }: { id: string }) {
     const { artists, loading, error } = useArtists();
     const artist = artists.find(item => item.id === id && (item.type || 'artist') === route) || ((loading || error) ? bootstrap : null);
     const handleExit = useArtistExit();
+    const exitLink = useRef<HTMLAnchorElement>(null);
+    useEffect(() => { if (artist) exitLink.current?.focus(); }, [artist]);
     if (!artist) return <>{!loading && !error && <Seo meta={missingMeta(location.pathname)} />}<ProfileLookupState loading={loading} error={error} onExit={handleExit} /></>;
 
     const website = resolveWebsiteUrl(artist.websiteUrl);
     const canEmbed = website && !externalOnlyProfiles.has(id) && !website.startsWith('http:');
     return <div className="fixed inset-0 z-[100] bg-black">
-        <Seo meta={profileMeta({ ...artist, type: route, image: bootstrap?.seoImageUrl || (typeof artist.thumbnail === 'string' ? artist.thumbnail : artist.thumbnail ? urlFor(artist.thumbnail).url() : undefined) })} />
+        <Seo meta={{...profileMeta({ ...artist, type: route, image: bootstrap?.seoImageUrl || (typeof artist.thumbnail === 'string' ? artist.thumbnail : artist.thumbnail ? urlFor(artist.thumbnail).url() : undefined) }), noindex: true}} />
         <nav aria-label="Artist website controls" className={`fixed z-[120] flex flex-wrap justify-center gap-2 max-w-[calc(100%-2rem)] ${getPositionClasses(artist.desktopExitPosition || 'top-right', artist.mobileExitPosition || 'bottom-center')}`}>
-            <Link to="/" onClick={handleExit} aria-label="Exit Artist Universe" className="min-h-11 px-4 py-3 bg-[#101010] border border-white/25 text-[10px] font-semibold tracking-wider uppercase text-white flex items-center justify-center">Exit ✕</Link>
+            <Link ref={exitLink} to={`/${route}/${encodeURIComponent(id)}/`} onClick={handleExit} aria-label="Exit Artist Universe" className="min-h-11 px-4 py-3 bg-[#101010] border border-white/25 text-[10px] font-semibold tracking-wider uppercase text-white flex items-center justify-center">Exit ✕</Link>
         </nav>
         {canEmbed ? <EmbeddedWebsite key={website} website={website} name={artist.name} /> : <UnavailableWebsite name={artist.name} website={website} />}
     </div>;

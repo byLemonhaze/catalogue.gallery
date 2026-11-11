@@ -34,7 +34,7 @@ export function ApplicationThumbnailField({ name, subtitle, type, previewUrl, er
                         <>
                             <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
-                            <div className="absolute bottom-0 inset-x-0 p-5 pointer-events-none">
+                            <div className="application-preview-caption absolute bottom-0 inset-x-0 p-5 pointer-events-none">
                                 <p className="text-base font-bold text-white tracking-tight">{name || 'Your Name'}</p>
                                 <p className="text-xs text-[#c7c7c7] mt-0.5">{subtitle || 'Your tagline'}</p>
                             </div>

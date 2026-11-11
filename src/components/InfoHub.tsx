@@ -7,7 +7,7 @@ interface InfoHubProps {
 
 export function InfoHub({ setIsLegalModalOpen }: InfoHubProps) {
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-white/20">
+        <div id="main-content" className="about-page min-h-screen bg-black text-white selection:bg-white/20">
 
 
             <div className="pt-28 md:pt-24 p-6 max-w-5xl mx-auto min-h-screen animate-fade-in relative pb-32">
@@ -64,7 +64,7 @@ export function InfoHub({ setIsLegalModalOpen }: InfoHubProps) {
                 <CatalogueFooterLinks
                     onOpenPolicy={() => setIsLegalModalOpen(true)}
                     variant="info"
-                    containerClassName="fixed bottom-20 md:bottom-8 right-6 z-50 flex flex-col items-end gap-1"
+                    containerClassName="mt-10 flex flex-col items-end gap-1"
                 />
             </div>
         </div>

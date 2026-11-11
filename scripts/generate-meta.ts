@@ -124,7 +124,7 @@ async function generate() {
         let image = profile.thumbnailUrl;
         try { image = await generateSplitProfileImage({ id: profile.id, route: profile.type, thumbnailUrl: profile.thumbnailUrl || `${SITE_ORIGIN}/logo.png` }); }
         catch (error) { console.warn(`Using original thumbnail for ${profile.id}:`, error); }
-        await writePage(profileMeta({ ...profile, image }), html => profileBootstrapHtml(html, { ...profile, seoImageUrl: image }));
+        await writePage(profileMeta({ ...profile, image }), async html => renderPublicDocument(profileBootstrapHtml(html, { ...profile, seoImageUrl: image }), profileMeta(profile).path, publicData));
     }
     const queue = [...profiles];
     await Promise.all(Array.from({ length: 4 }, async () => {

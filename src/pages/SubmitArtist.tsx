@@ -8,7 +8,7 @@ export function SubmitArtist() {
     const { formData, setFormData, previewUrl, imageError, fieldErrors, fileInput, embedCheck, isSubmitting, status, submitDisabled, handleFileChange, handleSubmit } = useApplicationForm();
 
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-white/20 overflow-y-auto overflow-x-hidden">
+        <div id="main-content" className="application-page min-h-screen bg-black text-white selection:bg-white/20 overflow-y-auto overflow-x-hidden">
 
 
             <div className="max-w-5xl mx-auto w-full px-6 lg:px-12 pt-28 md:pt-32 pb-24 animate-fade-in">

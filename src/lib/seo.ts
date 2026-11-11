@@ -1,6 +1,6 @@
 import { publicationDate } from './publicationDate';
 export const SITE_ORIGIN = 'https://catalogue.gallery';
-export type PageMeta = { title: string; description: string; path: string; image?: string; type?: 'website' | 'article'; noindex?: boolean; article?: { title: string; author?: string; publishedAt?: string; updatedAt?: string } };
+export type PageMeta = { title: string; description: string; path: string; image?: string; profile?: {name: string; type: string; websiteUrl?: string}; type?: 'website' | 'article'; noindex?: boolean; article?: { title: string; author?: string; publishedAt?: string; updatedAt?: string } };
 export function canonicalPath(path: string) {
     const pathname = path.split(/[?#]/)[0].replace(/\/+$/, '');
     return pathname ? `${pathname}/` : '/';
@@ -19,8 +19,8 @@ export const staticPages: PageMeta[] = [
     { path: '/content-lab/', title: 'Content Lab Editor | CATALOGUE', description: 'The CATALOGUE editorial workspace.', noindex: true },
     { path: '/content-lab/admin/', title: 'Content Lab Editor | CATALOGUE', description: 'The CATALOGUE editorial workspace.', noindex: true },
 ];
-export function profileMeta(profile: { id: string; type: string; name: string; subtitle?: string; image?: string }): PageMeta {
-    return { path: `/${profile.type}/${encodeURIComponent(profile.id)}/`, title: `${profile.name} | CATALOGUE`, description: profile.subtitle?.trim() ? `${profile.subtitle.trim()} — view ${profile.name} on CATALOGUE.` : `View ${profile.name} on CATALOGUE.`, image: profile.image };
+export function profileMeta(profile: { id: string; type: string; name: string; subtitle?: string; shortBio?: string; websiteUrl?: string; image?: string }): PageMeta {
+    return { path: `/${profile.type}/${encodeURIComponent(profile.id)}/`, title: `${profile.name} | CATALOGUE`, profile: {name: profile.name, type: profile.type, websiteUrl: profile.websiteUrl}, description: profile.shortBio?.trim() || (profile.subtitle?.trim() ? `${profile.subtitle.trim()} — view ${profile.name} on CATALOGUE.` : `View ${profile.name} on CATALOGUE.`), image: profile.image };
 }
 export function articleMeta(article: { id: string; title: string; excerpt: string; thumbnailUrl?: string; author?: string; publishedAt?: string; displayDate?: string; updatedAt?: string }): PageMeta {
     return { path: `/blog/${encodeURIComponent(article.id)}/`, title: `${article.title} | CATALOGUE`, description: article.excerpt, type: 'article', image: article.thumbnailUrl, article: { title: article.title, author: article.author, publishedAt: publicationDate(article.publishedAt, article.displayDate), updatedAt: article.updatedAt } };
@@ -72,6 +72,12 @@ export function pageSchema(meta: PageMeta) {
     const graph: Record<string, unknown>[] = [organization, { '@type': 'WebSite', '@id': `${SITE_ORIGIN}/#website`, name: 'CATALOGUE', url: SITE_ORIGIN, publisher: { '@id': organization['@id'] } }];
     if (!meta.noindex) {
         graph.push({ '@type': 'WebPage', '@id': `${url}#page`, url, name: meta.title, description: meta.description, isPartOf: { '@id': `${SITE_ORIGIN}/#website` } });
+        if (meta.profile) {
+            const entity = { '@type': meta.profile.type === 'gallery' ? 'Organization' : 'Person', '@id': `${url}#profile`, name: meta.profile.name, description: meta.description, ...(meta.profile.websiteUrl && /^https?:\/\//.test(meta.profile.websiteUrl) ? { url: meta.profile.websiteUrl } : {}), ...(meta.image ? { image: absoluteImage(meta.image) } : {}) };
+            graph.push(entity);
+            const page = graph.find(item => item['@id'] === `${url}#page`);
+            if (page) page.mainEntity = { '@id': entity['@id'] };
+        }
         if (meta.article) {
             const author = meta.article.author || 'CATALOGUE';
             graph.push({ '@type': 'Article', '@id': `${url}#article`, mainEntityOfPage: { '@id': `${url}#page` }, headline: meta.article.title, description: meta.description, image: [absoluteImage(meta.image)], author: /catalogue/i.test(author) ? { '@id': organization['@id'] } : { '@type': 'Person', name: author }, publisher: { '@id': organization['@id'] }, ...(meta.article.publishedAt ? { datePublished: meta.article.publishedAt } : {}), ...(meta.article.updatedAt ? { dateModified: meta.article.updatedAt } : {}) });

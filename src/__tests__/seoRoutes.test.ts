@@ -86,3 +86,13 @@ it('reuses public page cache across tracking parameters without caching missing 
     await cachedPublicResponse(new Request('https://catalogue.gallery/artist/new/'), render, cacheEnv);
     expect(render).toHaveBeenCalledTimes(2);
 });
+it('serves world deep links with a profile canonical, noindex, and the iframe bootstrap', async () => {
+    const { onRequestGet: world } = await import('../../functions/artist/[slug]/world');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ result: [profile] })));
+    const response = await world(context('/artist/new-artist/world/', 'new-artist'));
+    const html = await response.text();
+    expect(response.status).toBe(200);
+    expect(html).toContain('https://catalogue.gallery/artist/new-artist/');
+    expect(html).toContain('noindex, follow');
+    expect(html).toContain('id="catalogue-profile"');
+});

@@ -1,7 +1,8 @@
+import { publicPageData, renderPublicDocument } from './renderPublic';
 import { profileMeta, profileBootstrapHtml } from '../../src/lib/seo';
 import { profileFilter, profileProjection, queryPublic, validProfile, type PublicProfile } from './publicContent';
 import { pageResponse, missingResponse, unavailableResponse, slashRedirect, type PageEnv } from './seoResponse';
-export async function profilePage(request: Request, env: PageEnv, slug: string, type: 'artist' | 'gallery') {
+export async function profilePage(request: Request, env: PageEnv, slug: string, type: 'artist' | 'gallery', world = false) {
     try {
         const profiles = await queryPublic<PublicProfile[]>(`*[${profileFilter} && coalesce(slug.current, _id) == $slug] ${profileProjection}`, env, { slug });
         if (!Array.isArray(profiles) || !profiles.every(validProfile)) throw new Error('Invalid public profile');
@@ -19,7 +20,9 @@ export async function profilePage(request: Request, env: PageEnv, slug: string, 
         const imagePath = `/og/profiles/${profile.type}-${encodeURIComponent(profile.id)}.png`;
         const imageResponse = await env.ASSETS.fetch(new Request(new URL(imagePath, request.url), { method: 'HEAD' }));
         if (imageResponse.ok && imageResponse.headers.get('Content-Type')?.startsWith('image/')) image = imagePath;
-        const meta = profileMeta({ ...profile, image });
-        return pageResponse(request, env, meta, 200, html => profileBootstrapHtml(html, { ...profile, seoImageUrl: image }));
+        const meta = { ...profileMeta({ ...profile, image }), ...(world ? { noindex: true } : {}) };
+        if (world) return pageResponse(request, env, meta, 200, html => profileBootstrapHtml(html, { ...profile, seoImageUrl: image }));
+        const data = await publicPageData(env);
+        return pageResponse(request, env, meta, 200, html => renderPublicDocument(profileBootstrapHtml(html, { ...profile, seoImageUrl: image }), meta.path, data));
     } catch { return unavailableResponse(request, env); }
 }

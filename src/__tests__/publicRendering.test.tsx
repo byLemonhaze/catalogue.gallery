@@ -20,7 +20,7 @@ it('renders directory links and complete editorial text before JavaScript runs',
 it('renders homepage discovery without accessing browser storage', async () => {
     const html = await renderPublicPage('/', data);
     expect(html).toContain('href="/artist/test-artist/"');
-    expect(html).toContain('A directory of digital artists');
+    expect(html).toContain('Independent worlds');
     expect(html).not.toContain('hidden id="S:');
 });
 it('uses recorded dates without substituting creation dates or fabricating missing dates', () => {
@@ -30,4 +30,12 @@ it('uses recorded dates without substituting creation dates or fabricating missi
     expect(publicationDate()).toBeUndefined();
     const graph = pageSchema(articleMeta({ id: 'a', title: 'A', excerpt: 'B', displayDate: 'September 27, 2026', author: 'CATALOGUE' }))['@graph'];
     expect(graph.find(item => item['@type'] === 'Article')?.datePublished).toBe('2026-09-27');
+});
+it('renders the public profile biography and entry link without mounting an iframe', async () => {
+    const profileData = {...data, artists: data.artists.map(artist => ({...artist, shortBio: 'Approved public artist biography.'}))};
+    const html = await renderPublicPage('/artist/test-artist/', profileData);
+    expect(html).toContain('Approved public artist biography.');
+    expect(html).toContain('href="/artist/test-artist/world/"');
+    expect(html).not.toContain('<iframe');
+    expect(html).toContain('<h1');
 });

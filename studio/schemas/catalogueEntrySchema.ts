@@ -53,6 +53,13 @@ function buildSharedFields({ subtitleDescription, contentBioDescription }: Catal
             description: subtitleDescription,
         },
         {
+            name: 'shortBio',
+            title: 'Public short biography',
+            type: 'text',
+            rows: 5,
+            description: 'Reviewed public biography shown on the profile. Keep this distinct from internal Content Lab research. Leave empty until approved.',
+        },
+        {
             name: 'websiteUrl',
             title: 'Website URL',
             type: 'url',

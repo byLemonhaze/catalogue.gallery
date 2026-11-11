@@ -51,7 +51,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
 
 
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black font-sans">
+        <div id="main-content" className="reader-page min-h-screen bg-black text-white selection:bg-white selection:text-black font-sans">
             <Seo meta={articleMeta(article)} />
 
             {/* Article Content */}

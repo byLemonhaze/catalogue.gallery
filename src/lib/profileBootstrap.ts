@@ -4,7 +4,7 @@ export function parseProfileBootstrap(value: unknown, id: string, route: string)
     const profile = value as Record<string, unknown>;
     if (profile.id !== id || profile.type !== route || typeof profile.name !== 'string' || typeof profile.websiteUrl !== 'string') return null;
     try { if (new URL(profile.websiteUrl).protocol !== 'https:') return null; } catch { return null; }
-    return { id, name: profile.name, subtitle: typeof profile.subtitle === 'string' ? profile.subtitle : '', websiteUrl: profile.websiteUrl,
+    return { id, shortBio: typeof profile.shortBio === 'string' ? profile.shortBio : undefined, name: profile.name, subtitle: typeof profile.subtitle === 'string' ? profile.subtitle : '', websiteUrl: profile.websiteUrl,
         seoImageUrl: typeof profile.seoImageUrl === 'string' ? profile.seoImageUrl : undefined,
         thumbnail: typeof profile.thumbnailUrl === 'string' ? profile.thumbnailUrl : null, type: route === 'gallery' ? 'gallery' : 'artist',
         desktopExitPosition: ['top-right', 'top-left', 'top-center', 'bottom-right', 'bottom-left'].includes(String(profile.desktopExitPosition)) ? profile.desktopExitPosition as Artist['desktopExitPosition'] : undefined,
