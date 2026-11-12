@@ -17,7 +17,7 @@ export async function profilePage(request: Request, env: PageEnv, slug: string, 
         const redirect = slashRedirect(request); if (redirect) return redirect;
         // Existing branded images remain usable; newly published profiles use their CMS thumbnail.
         let image = profile.thumbnailUrl;
-        const imagePath = `/og/profiles/${profile.type}-${encodeURIComponent(profile.id)}.png`;
+        const imagePath = `/og/profiles/constellation/${profile.type}-${encodeURIComponent(profile.id)}.png`;
         const imageResponse = await env.ASSETS.fetch(new Request(new URL(imagePath, request.url), { method: 'HEAD' }));
         if (imageResponse.ok && imageResponse.headers.get('Content-Type')?.startsWith('image/')) image = imagePath;
         const meta = { ...profileMeta({ ...profile, image }), ...(world ? { noindex: true } : {}) };

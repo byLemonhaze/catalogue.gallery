@@ -11,7 +11,7 @@ Catalogue.gallery is a discovery platform designed around the idea that artists 
 - Public API endpoints: Cloudflare Pages Functions (`/functions/api`)
 - Email delivery: Resend
 - Inbox/reply workflow: `apply@catalogue.gallery` Reply-To (CF Email Routing → ProtonMail)
-- Editorial/blog content: Sanity `post` documents (served at `/blog/:slug`)
+- Stories: Sanity `post` documents (served at `/stories/:slug/`; legacy `/blog/` links redirect)
 
 ## Engineering Docs
 
@@ -22,6 +22,19 @@ Catalogue.gallery is a discovery platform designed around the idea that artists 
 - Redesign session trajectory, decisions and evidence: [`docs/SESSION-TRAJECTORY-2026-11-11.md`](./docs/SESSION-TRAJECTORY-2026-11-11.md)
 - Mobile polish, before/after captures and device checks: [`docs/MOBILE-POLISH-2026-11-12.md`](./docs/MOBILE-POLISH-2026-11-12.md)
 - Product roadmap notes: [`docs/ROADMAP.md`](./docs/ROADMAP.md)
+
+## Dispatch design and session records
+
+The homepage uses the approved Counterpoint Dispatch treatment: one vertical masthead, a neutral counter and lilac word reveals on the existing dark surface. Reduced motion keeps the full edition readable.
+
+- [12 November session report and release checkpoint](docs/SESSION-REPORT-2026-11-12.md)
+- [Twelve design studies and decision notebook](docs/DISPATCH-DESIGN-STUDIES-2026-11-12.md)
+- [Dispatch publishing contract](docs/DISPATCH-PUBLISHING.md)
+- [Constellation logo masters and exports](docs/BRAND-CONSTELLATION.md)
+- [Site-wide motion, Stories migration and sharing checks](docs/NAVIGATION-AND-SHARING-2026-11-12.md)
+- [Stories/Constellation release preparation](docs/STORIES-CONSTELLATION-RELEASE.md)
+
+For local review, start Vite and open `/design/dispatch/` (01–06) or `/design/dispatch-02/` (07–12). These entries are preserved for design history and are excluded from the production application build.
 
 ## Security
 

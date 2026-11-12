@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { SiteLink as Link } from './SiteLink';
 import type { Artist } from '../hooks/useArtists';
 import type { ArticleRecord } from '../types/article';
 import { profileImage } from '../lib/profilePresentation';
@@ -37,10 +37,10 @@ export function GlobalSearch({ search, setSearch, filteredArtists, filteredArtic
     return <dialog ref={dialog} className="search-dialog" aria-labelledby="search-title" onCancel={event => { event.preventDefault(); onClose(); }}>
         <div className="search-heading"><h2 id="search-title">Search</h2><button onClick={onClose} aria-label="Close search">×</button></div>
         <label><span className="sr-only">Search artists, galleries, stories and DISPATCH</span><input ref={input} type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Name, story, topic or edition date"/></label>
-        <p className="search-summary" role="status">{query ? `${profiles.length} ${profiles.length === 1 ? 'profile' : 'profiles'} · ${filteredArticles.length} ${filteredArticles.length === 1 ? 'story' : 'stories'} · ${filteredEditions.length} ${filteredEditions.length === 1 ? 'edition' : 'editions'}` : 'Artists, galleries, Content Lab stories and daily DISPATCH editions.'}</p>
+        <p className="search-summary" role="status">{query ? `${profiles.length} ${profiles.length === 1 ? 'profile' : 'profiles'} · ${filteredArticles.length} ${filteredArticles.length === 1 ? 'story' : 'stories'} · ${filteredEditions.length} ${filteredEditions.length === 1 ? 'edition' : 'editions'}` : 'Artists, galleries, stories and daily DISPATCH editions.'}</p>
         {query && <>
             {!!profiles.length && <section aria-label="Artists and galleries"><span className="eyebrow">Artists & spaces</span>{profiles.slice(0, 12).map(artist => <ProfileLink artist={artist} key={artist.id} onClick={onClose} className="search-result">{profileImage(artist, 100) && <img src={profileImage(artist, 100)} alt=""/>}<span>{artist.name}{' '}<small>{artist.subtitle}</small></span></ProfileLink>)}</section>}
-            {!!filteredArticles.length && <section aria-label="Content Lab stories"><span className="eyebrow">Content Lab</span>{filteredArticles.slice(0, 8).map(article => <Link className="search-result" key={article.id} to={`/blog/${article.id}/`} onClick={onClose}>{article.title}</Link>)}</section>}
+            {!!filteredArticles.length && <section aria-label="stories"><span className="eyebrow">Stories</span>{filteredArticles.slice(0, 8).map(article => <Link className="search-result" key={article.id} to={`/stories/${article.id}/`} onClick={onClose}>{article.title}</Link>)}</section>}
             {!!filteredEditions.length && <section aria-label="DISPATCH editions"><span className="eyebrow">DISPATCH</span>{filteredEditions.slice(0, 8).map(post => <Link className="search-result" key={post.id} to={`/dispatch/${post.slug}/`} onClick={onClose}><span>{post.title}{' '}<small>{post.summary}</small></span></Link>)}</section>}
             {!profiles.length && !filteredArticles.length && !filteredEditions.length && <p className="search-empty">No matches. Try another name, topic or edition date.</p>}
         </>}

@@ -8,6 +8,15 @@ The project now uses [Semantic Versioning](https://semver.org/) for public relea
 
 ### Changed
 
+- Adopt the selected Constellation logo across vector masters, X exports, favicon/device icons and default social cards.
+- Rename public editorial surfaces and URLs to Stories, permanently redirect legacy `/blog/` URLs, consolidate About at `/about/`, and send publisher bylines home.
+- Extend editorial navigation with page/story reveals and the Dispatch aperture, preserving artist portal motion and reduced-motion behavior.
+- Audit every generated share preview during the full build, clear stale optional metadata on navigation, and add production redirect/asset/metadata smoke checks.
+
+- Replace the homepage Dispatch bulletin with the approved Counterpoint design: neutral dark surface, one vertical title, grey counter and lilac word reveals, with focus/hover hold and a complete reduced-motion fallback.
+- Remove repeated Dispatch labels, the animated-mode static index, and the second “independent” in the homepage introduction.
+- Preserve twelve development-only Dispatch studies, browser evidence and the [12 November session report](docs/SESSION-REPORT-2026-11-12.md); document protected-main deployment and alignment checks.
+
 - Server-render public Catalogue pages and full articles with shared hydration data; add structured data and normalize recorded publication dates without editing artist-owned websites.
 - Consolidate production host aliases, noindex every preview response, self-host fonts and lazy-load compressed directory thumbnails.
 

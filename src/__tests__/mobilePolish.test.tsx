@@ -32,7 +32,7 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 it.each([
     ['Ada Artist', 'Ada Artist Generative art', '/artist/ada/', true],
     ['Independent Space', 'Independent Space Curated gallery', '/gallery/space/', true],
-    ['studio visit', 'A studio visit', '/blog/studio-visit/', false],
+    ['studio visit', 'A studio visit', '/stories/studio-visit/', false],
     ['2026-11-11', /DISPATCH.*Nov 11/, '/dispatch/2026-11-11/', false],
 ] as const)('searches %s through the keyboard shortcut and opens the correct surface', async (query, name, route, profile) => {
     setup();
@@ -62,7 +62,7 @@ it('shows a quiet zero-results state and treats whitespace as an empty query', (
     expect(screen.getByText('No matches. Try another name, topic or edition date.')).toBeInTheDocument();
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: '   ' } });
     expect(screen.queryByRole('region', { name: 'DISPATCH editions' })).not.toBeInTheDocument();
-    expect(screen.getByText('Artists, galleries, Content Lab stories and daily DISPATCH editions.')).toBeInTheDocument();
+    expect(screen.getByText('Artists, galleries, stories and daily DISPATCH editions.')).toBeInTheDocument();
 });
 it('resets directory query and type together from an empty result', async () => {
     setup('/artists/');

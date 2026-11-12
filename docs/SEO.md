@@ -2,7 +2,7 @@
 
 ## Product boundary
 
-CATALOGUE navigates visitors into an artist-owned website inside the existing fullscreen iframe. Exit returns to CATALOGUE and preserves the existing exploration/return behavior. These repairs add no profile landing page, biography panel or extra step before the iframe. Artist websites are third-party content and are not edited by this repository.
+CATALOGUE navigates visitors into an artist-owned website inside the existing fullscreen iframe. Exit returns to CATALOGUE and preserves the existing exploration/return behavior. The current Windows experience opens an artist profile before entering the world; the profile can reveal a site preview before entry. Artist websites are third-party content and are not edited by this repository.
 
 For known blocked embeds (currently Burst, FAR and Nullish), and other deliberately non-embedded valid URLs, the fallback includes a direct official-website link beside the existing Exit flow. Normal working embeds retain Exit as their only control.
 
@@ -32,7 +32,7 @@ Public homepage, directory, editorial index, articles, about and submission page
 
 `npm run build` creates both `dist` and the bundled edge renderer in `server-dist`, then generates static public documents. Both builds must finish before Wrangler bundles Functions. Server render errors fail generation rather than shipping a loading shell. The internal `app-shell.html` is read through the asset binding and returns 404 to public requests.
 
-The shared metadata serializer emits Organization, WebSite, WebPage, Article and BreadcrumbList JSON-LD as appropriate. Client navigation replaces only Catalogue's schema script. Publication dates use `publishedAt`, or an exact existing full `displayDate` when no timestamp exists. Unknown dates are omitted; creation timestamps are never substituted and CMS records are not rewritten. Byline links point to the existing about page.
+The shared metadata serializer emits Organization, WebSite, WebPage, Article and BreadcrumbList JSON-LD as appropriate. Client navigation replaces only Catalogue's schema script. Publication dates use `publishedAt`, or an exact existing full `displayDate` when no timestamp exists. Unknown dates are omitted; creation timestamps are never substituted and CMS records are not rewritten. The CATALOGUE publisher byline links to the homepage. About is served at `/about/`, with `/info/` permanently redirected.
 
 Fonts are self-hosted under `public/fonts` with their OFL licenses. Directory thumbnails use appropriately sized, compressed images and native lazy loading. Initial article HTML includes the complete body to prevent its delayed arrival shifting the layout.
 
@@ -45,3 +45,11 @@ The www hostname must be attached to the existing Pages project and its proxied 
 ## Search verification
 
 Submit `https://catalogue.gallery/sitemap.xml` in the owner's verified Search Console property, then inspect representative artist and article URLs. Code validation and Lighthouse cannot establish Google's indexing, selected canonical, traffic or ranking changes. These require account access and subsequent Google recrawling. Artist-owned website performance and content are outside Catalogue's control.
+
+## Stories migration and sharing audit (2026-11-12)
+
+Public editorial routes are `/stories/` and `/stories/:slug/`. Every old `/blog/` route permanently redirects to the corresponding Stories URL, preserving slug and query. Browser navigation also retains hash anchors. Navigation, search, related links, structured data, generated documents and the sitemap use the new routes. Stored editorial types/history are not migrated. The private Content Lab remains at its existing noindex URL.
+
+Default previews use the 1200 × 630 Constellation card. Article/Dispatch imagery stays specific to its content. Build-time profile composites use `/og/profiles/constellation/`. OG and Twitter tags include matching absolute image URLs and descriptive alt text. Optional dimensions/publication dates are removed when the active route no longer supplies them.
+
+The full `npm run build` now ends with `npm run audit:shares`. It checks every route listed in `dist/seo-manifest.json`, tag uniqueness, canonical/share identity, and decodability of each local preview image. `npm run audit:shares -- --remote` additionally checks remote image responses. The audit writes `dist/share-preview-audit.json`. It does not establish how X or another social network caches or displays a link; verify that after deploying the complete build. Do not deploy a build created with `--ignore-scripts`.

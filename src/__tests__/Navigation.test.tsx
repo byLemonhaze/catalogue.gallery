@@ -45,7 +45,7 @@ it('keeps the home link named and usable before, after and without the signature
 it('keeps all five navigation actions and search available with the signature', () => {
     const open = vi.fn();
     render(<MemoryRouter><Navigation onSearchOpen={open} /></MemoryRouter>);
-    for (const [name, href] of [['Directory', '/artists/'], ['Content Lab', '/blog/'], ['Dispatch', '/dispatch/'], ['Apply', '/submit/']]) {
+    for (const [name, href] of [['Directory', '/artists/'], ['Stories', '/stories/'], ['Dispatch', '/dispatch/'], ['Apply', '/submit/']]) {
         expect(screen.getByRole('link', { name })).toHaveAttribute('href', href);
     }
     fireEvent.click(screen.getByRole('button', { name: 'Search artists and stories' }));

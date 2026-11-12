@@ -4,6 +4,10 @@ Branch: `feat/windows-redesign`. Local review: http://127.0.0.1:5174/ (the user�
 
 These are chronological notes; earlier status statements describe their own review stage. The full build and branch push were subsequently completed and PR #52 opened. See the [session trajectory and release ledger](SESSION-TRAJECTORY-2026-11-11.md) for the consolidated decisions, final direction and evidence. No production deployment had been observed at that checkpoint.
 
+## Latest Dispatch direction — 12 November 2026
+
+The owner approved Counterpoint after twelve local studies. The current homepage has one vertical Dispatch title, a neutral large counter and lilac word reveals on the site background. Earlier collage, liquid, grey bulletin and blue-reel descriptions below are historical stages. The supporting introduction now starts “A publication and directory for digital art.” See [the full session report](SESSION-REPORT-2026-11-12.md) for the final implementation, run results and release status.
+
 ## Motion and interaction
 
 The carousel uses one native WebGL canvas containing subdivided image planes. A velocity-driven vertex shader bends the actual image perimeter and pixels; cursor interaction adds a local ripple, bounded parallax and shifting light, with restrained RGB separation near moving edges. This is a custom interpretation of the observed Unseen Projects motion, not a claim to use Unseen’s source or identical rendering pipeline. The existing Windows size/position interpolation is retained.

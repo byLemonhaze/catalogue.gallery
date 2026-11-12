@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { SiteLink as Link } from './SiteLink';
 import { useMotionPreference } from '../hooks/useMotionPreference';
 import { createProfileVortex } from '../lib/profileVortex';
 

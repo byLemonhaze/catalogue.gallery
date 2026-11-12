@@ -34,6 +34,12 @@ This document is the high-level engineering map for `catalogue.gallery`:
 
 See [Windows implementation and verification](./WINDOWS-REDESIGN.md) for the biography contract and release review.
 
+### Homepage Dispatch presentation
+
+`DispatchSection` selects the latest edition through `useDispatches`, retaining the published Sanity/bundled-archive merge rules. `DispatchSignal` presents Counterpoint: one vertical heading, a neutral counter and lilac word reveals. CSS reserves headline space; no shader or additional rendering dependency is used. Visibility and reduced-motion preferences govern progress, hover/focus holds the completed current story, and all headlines are available in the accessible link description. Reduced motion shows the complete static edition. All editions and Read the edition preserve the existing archive/detail routes.
+
+The independent HTML entries under `design/` and modules in `src/design/` are development studies, not application routes or production build entries. See [session report](SESSION-REPORT-2026-11-12.md) for their purpose and validation.
+
 ### 2) Submission Flow (`POST /api/submit`)
 
 1. Visitor submits form data (`name`, `subtitle`, `websiteUrl`, `email`, etc.).
@@ -108,3 +114,7 @@ See [Windows implementation and verification](./WINDOWS-REDESIGN.md) for the bio
 - All webhook requests must pass shared-secret validation.
 - Content Lab endpoints are private and must require password header auth.
 - `/content-lab` should stay password-gated because it exposes draft-management and publishing controls.
+
+## Public navigation and Stories follow-up (2026-11-12)
+
+`SiteLink`, `pageOpening` and `RouteTransitionReady` coordinate native view transitions after route content commits, with a bounded wait and reduced-motion fallback. Profile/world links retain their portal behavior. Public editorial routes are `/stories/` and `/stories/:slug/`; `/blog/` is a permanent compatibility redirect. `/about/` replaces `/info/` with the same compatibility behavior. Both the Pages middleware and local React routing implement aliases. The private `/content-lab/` workspace is unchanged. See `NAVIGATION-AND-SHARING-2026-11-12.md` and `SEO.md` for sharing and release checks.

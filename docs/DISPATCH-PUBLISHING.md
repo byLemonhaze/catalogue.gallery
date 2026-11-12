@@ -41,6 +41,6 @@ This repository implements the schema and display, plus draft backfill tooling. 
 
 - `/dispatch/`: searchable archive, newest editorial date first.
 - `/dispatch/YYYY-MM-DD/`: full edition, all media, source links when supplied, artist/story references and adjacent issues.
-- Landing sidebar: latest published edition with internal link.
+- Landing sidebar: latest published edition in the Counterpoint transcript, with a single vertical title, neutral counter/background and lilac word reveals. Reduced motion shows all headlines statically. Read the edition opens the issue; All editions opens the archive. Presentation history and approval: [12 November report](SESSION-REPORT-2026-11-12.md).
 - Dedicated public Pages Function for detail HTML, server-rendered text, canonical, Article schema, cover OG/Twitter image; published edition URLs included in the sitemap and static generation.
 - No new dispatch is inserted into Content Lab queries or feeds.

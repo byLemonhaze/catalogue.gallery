@@ -9,10 +9,11 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "verify": "node node_modules/eslint/bin/eslint.js . && node node_modules/typescript/bin/tsc -b --noEmit && node node_modules/vitest/vitest.mjs run",
-    "postbuild": "npx -y tsx scripts/generate-meta.ts",
+    "postbuild": "npx -y tsx scripts/generate-meta.ts && npm run audit:shares",
     "migrate:articles": "npx -y tsx scripts/migrate-articles.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "audit:shares": "node scripts/audit-share-previews.mjs"
   },
   "dependencies": {
     "@sanity/client": "^7.14.1",

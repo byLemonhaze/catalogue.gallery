@@ -1,6 +1,7 @@
 import { ProfileName } from '../components/ProfileName';
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { SiteLink as Link } from '../components/SiteLink';
 import { useArtists } from '../hooks/useArtists';
 import { readProfileBootstrap, externalOnlyProfiles } from '../lib/profileBootstrap';
 import { officialWebsite, profileImage, profilePath } from '../lib/profilePresentation';
