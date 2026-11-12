@@ -2,7 +2,24 @@
 
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/byLemonhaze/catalogue.gallery/badge)](https://securityscorecards.dev/viewer/?uri=github.com/byLemonhaze/catalogue.gallery) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12104/badge)](https://www.bestpractices.dev/projects/12104)
 
-Catalogue.gallery is a discovery platform designed around the idea that artists should own their digital environments. Instead of hosting artwork, the platform acts as a navigation layer that lets viewers explore each artist's personal website directly through an embedded browsing interface. This creates a fluid discovery experience while preserving the uniqueness of each artist's creative world. The result is a system where curation and independence coexist, turning the platform into a portal for navigating distributed digital art ecosystems.
+**Digital art. Independent worlds.**
+
+CATALOGUE is a publication and discovery platform that takes visitors into artists’ and galleries’ own websites. Discover a practice through the moving Windows carousel, open a profile, then enter the artist’s world. Read longer editorial work in **Stories** and follow the daily news through **Dispatch**.
+
+[Explore Catalogue](https://catalogue.gallery) · [Browse the directory](https://catalogue.gallery/artists/) · [Read Stories](https://catalogue.gallery/stories/) · [Daily Dispatch](https://catalogue.gallery/dispatch/)
+
+## Catalogue 0.2
+
+The second-generation experience brings together the Windows WebGL carousel, a dark-only visual system, the Constellation identity, editorial page transitions and a mobile-ready directory. Artist-owned websites remain at the centre of discovery.
+
+- **Discover:** touch, wheel and keyboard browsing; directory search, sorting, Shuffle and grid/list views.
+- **Enter:** profile previews reveal the artist’s website before entry; a compact movable exit keeps Catalogue within reach.
+- **Read:** Stories and daily Dispatch editions, with the Counterpoint live transcript on the homepage.
+- **Share:** server-rendered public pages, canonical URLs, permanent legacy redirects and audited social previews.
+
+[0.2 release notes](docs/releases/v0.2.0.md) · [Latest published release](https://github.com/byLemonhaze/catalogue.gallery/releases/latest) · [Changelog](CHANGELOG.md)
+
+![Stories in the Catalogue dark visual system](docs/review/navigation-sharing/stories-desktop.png)
 
 ## Stack
 
@@ -53,7 +70,8 @@ Repository documentation, issues, and pull request discussions are maintained in
 ## Releases and Versioning
 
 - Public releases are published on [GitHub Releases](https://github.com/byLemonhaze/catalogue.gallery/releases).
-- Starting with `v0.1.0`, the project uses [Semantic Versioning](https://semver.org/) for repository releases.
+- Repository releases use [Semantic Versioning](https://semver.org/). `v0.2.0` marks the second-generation product; the historical `v0.1.x` releases remain unchanged.
+- A GitHub Release is a tagged source milestone, separate from a Cloudflare deployment. See the [release procedure](docs/RELEASING.md) for keeping both aligned.
 - Human-readable release notes are tracked in [`CHANGELOG.md`](./CHANGELOG.md).
 
 ## Local Development
