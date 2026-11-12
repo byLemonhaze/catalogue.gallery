@@ -1,9 +1,33 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
+import { hydrateRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { Navigation } from '../components/Navigation';
 
 afterEach(cleanup);
+
+it.each([300, 0])('handles an image completed before hydration (naturalWidth=%s)', async (naturalWidth) => {
+    const view = <MemoryRouter><Navigation /></MemoryRouter>;
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(view);
+    document.body.append(container);
+    const image = container.querySelector('img')!;
+    Object.defineProperties(image, {
+        complete: { value: true },
+        naturalWidth: { value: naturalWidth },
+    });
+    expect(container.querySelector('.catalogue-signature')).toHaveAttribute('data-loaded', 'false');
+    const root = await act(async () => hydrateRoot(container, view));
+    try {
+        // No load event is dispatched: it already happened before React started.
+        expect(container.querySelector('.catalogue-signature')).toHaveAttribute('data-loaded', String(naturalWidth > 0));
+        expect(screen.getByRole('link', { name: 'CATALOGUE.gallery' })).toHaveAttribute('href', '/');
+    } finally {
+        await act(async () => root.unmount());
+        container.remove();
+    }
+});
 
 it('keeps the home link named and usable before, after and without the signature asset', () => {
     render(<MemoryRouter><Navigation /></MemoryRouter>);
