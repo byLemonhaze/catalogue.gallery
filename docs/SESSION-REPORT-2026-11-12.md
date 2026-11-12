@@ -116,3 +116,13 @@ The owner approved completing checks/documentation and committing, pushing, merg
 GitHub fetch/API failed DNS resolution in the agent shell. A fresh full build compiled the client and SSR successfully but failed postbuild while resolving tsx (`ENOTFOUND registry.npmjs.org`). This does not constitute a complete build, and no production upload was attempted with it. See [release checkpoint and remaining evidence](STORIES-CONSTELLATION-RELEASE.md). No claim of GitHub/main/production alignment is made at this checkpoint.
 
 Final local verification before commit: lint, TypeScript and **225 tests across 33 files passed**. Release shell syntax and production-check script syntax passed. The full network-backed build remains blocked as recorded above.
+
+## PR #57 validation and CodeFactor follow-up
+
+The owner ran the complete release build in a network-enabled terminal. SEO generation succeeded for 320 profiles, 146 articles and 8 static routes. The share audit covered 502 pages and 321 local images; all 174 remote images were checked with zero failures (latest supplied audit: 2026-11-12T06:56:24.738Z).
+
+Commit `0069d9a` was pushed to `feat/stories-constellation`; [PR #57](https://github.com/byLemonhaze/catalogue.gallery/pull/57) is open. GitHub's required **Lint, type check, test, build** job passed. CodeFactor reported two `no-duplicate-selectors` findings in `src/design/dispatch-studies.css`: `button` and `.poster-ghost`. Consolidated each selector's declarations without changing their effective styling. No check was bypassed.
+
+The release script stopped at the failed quality check before merging or deploying. The corrected head must be pushed and pass checks; then the same release script resumes the protected-main merge, full build, deployment and alignment checks. Production alignment remains unverified.
+
+Follow-up validation: lint, TypeScript and all 225 tests in 33 files passed. A PostCSS comparison confirmed unchanged effective declarations and no duplicate selectors within the same stylesheet context. Remote CodeFactor validation of the fix is pending push.
