@@ -70,3 +70,22 @@ it('still navigates if the browser refuses to start a transition', () => {
     expect(navigate).toHaveBeenCalledOnce();
     expect(document.documentElement.dataset.dispatchOpening).toBeUndefined();
 });
+
+it('alternates page/story axes while Dispatch and reduced-motion visits do not consume a direction', async () => {
+    const {openPage,pageTransitionReady} = await import('../lib/pageOpening');
+    async function visit(path: string) {
+        const native = nativeTransition();
+        openPage(source,path,vi.fn(),false);
+        const axis = document.documentElement.dataset.openingAxis;
+        const update = native.update(); pageTransitionReady(path); await update; await native.finish();
+        expect(document.documentElement.dataset.openingAxis).toBeUndefined();
+        return axis;
+    }
+    const first = await visit('/artists/');
+    expect(['horizontal','vertical']).toContain(first);
+    expect(await visit('/dispatch/day/')).toBeUndefined();
+    openPage(source,'/about/',vi.fn(),true);
+    const second = await visit('/stories/example/');
+    expect(second).toBe(first === 'horizontal' ? 'vertical' : 'horizontal');
+    expect(await visit('/stories/')).toBe(first);
+});

@@ -181,3 +181,7 @@ The frontend build also creates `server-dist/entry-server.js`, which Pages Funct
 6. Fetch origin again and compare local main, origin/main and the deployment commit. If another change reached main during the release, alignment has not been achieved: build/deploy the new reviewed main or coordinate the concurrent release.
 
 Record the PR URL, merge SHA, deployment ID/URL, successful production status and live smoke checks in the PR release comment. This preserves the post-deployment evidence without creating another source commit that immediately makes the deployed SHA stale. Do not report full alignment until those facts are observed.
+
+## Approved motion polish release (12 November 2026)
+
+Run `bash scripts/release-motion-polish.sh` from a clean checkout of `feat/motion-interaction-polish` (or main when resuming after its merge). The command checks the exact pushed commit, uses a protected PR merge, rebuilds on main, runs share and production smoke audits, and verifies `/release.json` against local and freshly fetched GitHub main. It stops on failed checks, divergence, dirty files or a production mismatch. See the [pass record](MOTION-INTERACTION-PASS-2026-11-12.md) and [PR description](MOTION-INTERACTION-PR.md). This command requires the owner's network-enabled GitHub/Cloudflare CLI session; it does not bypass branch protection or create a new version tag.

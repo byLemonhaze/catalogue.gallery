@@ -24,6 +24,8 @@ Use the current guides for operation and maintenance. Dated session records pres
 
 ## Session history and release evidence
 
+Owner-approved motion pass: [motion and interaction pass](MOTION-INTERACTION-PASS-2026-11-12.md), covering attached captions, alternating transitions, preview readiness, drag comparisons and fresh discovery order. Publication proceeds through the recorded protected-main release command; see its verification evidence and limitations.
+
 | Record | Scope |
 |---|---|
 | [11 November trajectory](SESSION-TRAJECTORY-2026-11-11.md) / [Windows implementation](WINDOWS-REDESIGN.md) | Initial directions, Windows selection, motion and dark system |

@@ -53,6 +53,21 @@ html[data-page-opening=page]::view-transition-new(root) {
 html[data-page-opening=story]::view-transition-new(root) {
     animation: catalogue-story-open 560ms cubic-bezier(.22,.8,.2,1) both; mix-blend-mode: normal;
 }
+/* Direction means expansion axis: sideways, then up/down. Dispatch keeps its slit. */
+html[data-page-opening=page][data-opening-axis=vertical]::view-transition-new(root) {
+    animation-name: catalogue-page-open-vertical;
+}
+html[data-page-opening=story][data-opening-axis=horizontal]::view-transition-new(root) {
+    animation-name: catalogue-story-open-horizontal;
+}
+@keyframes catalogue-page-open-vertical {
+    from { clip-path: polygon(0 47%,100% 49%,100% 53%,0 51%); opacity: .6; }
+    to { clip-path: polygon(0 0,100% 0,100% 100%,0 100%); opacity: 1; }
+}
+@keyframes catalogue-story-open-horizontal {
+    from { clip-path: polygon(49% 0,51% 32%,46% 52%,50% 73%,48% 100%,51% 100%,53% 73%,49% 52%,54% 32%,52% 0); filter: blur(2px); }
+    to { clip-path: polygon(0 0,0 32%,0 52%,0 73%,0 100%,100% 100%,100% 73%,100% 52%,100% 32%,100% 0); filter: blur(0); }
+}
 @keyframes catalogue-page-open {
     from { clip-path: polygon(47% 0,51% 0,53% 100%,49% 100%); opacity: .6; }
     to { clip-path: polygon(0 0,100% 0,100% 100%,0 100%); opacity: 1; }

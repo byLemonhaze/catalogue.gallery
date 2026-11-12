@@ -1,3 +1,5 @@
+import { captionCovered } from './windowsMotion';
+import { captionPath, outlinePoints } from './captionMotion';
 /** One GPU surface for the carousel. DOM images remain the accessible/CORS fallback. */
 export type WarpMotion = { velocity: number; reduced: boolean };
 const vertex = `
@@ -109,6 +111,14 @@ export function createWindowWarp(canvas: HTMLCanvasElement, stage: HTMLElement, 
         gl.uniform1f(uniforms.uTime,time*.001);
         hover += ((pointerInside ? 1 : 0)-hover)*.08;
         const cards=Array.from(stage.querySelectorAll<HTMLElement>(selector)).sort((a,b)=>Number(a.style.zIndex)-Number(b.style.zIndex));
+        const shapes = cards.map(card => {
+            const image = card.querySelector('img');
+            const rect = (image || card).getBoundingClientRect();
+            const points = outlinePoints(rect.width, rect.height, motion.velocity,
+                {x:(pointer.x-rect.left)/Math.max(1,rect.width),y:(pointer.y-rect.top)/Math.max(1,rect.height)},hover,time*.001);
+            const xs=points.map(p=>p.x),ys=points.map(p=>p.y);
+            return {card,points,rect:{left:rect.left+Math.min(...xs),right:rect.left+Math.max(...xs),top:rect.top+Math.min(...ys),bottom:rect.top+Math.max(...ys)},depth:Number(card.style.zIndex)};
+        });
         for (const card of cards) {
             const img=card.querySelector('img'); if (!img) continue;
             const src=img.currentSrc || img.src;
@@ -145,6 +155,22 @@ export function createWindowWarp(canvas: HTMLCanvasElement, stage: HTMLElement, 
             gl.uniform1f(uniforms.uOpacity,Number(card.style.opacity));
             gl.uniform1f(uniforms.uFrame,card.dataset.framed==='true'?1:0);
             gl.drawArrays(gl.TRIANGLES,0,mesh.length/2);
+            const shape = shapes.find(item => item.card === card)!;
+            card.querySelector('.window-hit-surface path')?.setAttribute('d', shape.points.map((p,i)=>`${i?'L':'M'} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(' ')+' Z');
+            const caption = card.querySelector<HTMLElement>('.world-caption');
+            const path = caption?.querySelector<SVGPathElement>('.caption-baseline');
+            const text = caption?.querySelector<SVGTextElement>('text');
+            if (path && text) {
+                path.setAttribute('d', captionPath(rect.width, rect.height, motion.velocity,
+                    { x: (pointer.x-rect.left)/rect.width, y: (pointer.y-rect.top)/rect.height }, hover, time*.001));
+                // Fit long captions without splitting surnames; the full name remains in the link label.
+                text.removeAttribute('textLength');
+                if (text.getComputedTextLength() > rect.width - 16) {
+                    text.setAttribute('textLength', String(Math.max(1, rect.width-16)));
+                    text.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+                }
+                caption!.dataset.covered = String(captionCovered(text.getBoundingClientRect(), Number(card.style.zIndex), shapes));
+            }
         }
         // Bound GPU memory when browsing hundreds of artists.
         for(const [src,entry] of textures) if(time-entry.touched>12000) { gl.deleteTexture(entry.texture);textures.delete(src); }

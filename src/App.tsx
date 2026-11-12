@@ -1,9 +1,9 @@
-import { PublicPageContext } from './lib/publicPageData';
+import { useDiscovery } from './hooks/useDiscovery';
 import { Seo } from './components/Seo';
 import { staticPages, canonicalPath, missingMeta } from './lib/seo';
 import { SiteLink as Link } from './components/SiteLink';
 import { RouteRecoveryBoundary, loadArtistFrame, prefetchArtistFrame, recoverImport } from './lib/routeLoading';
-import { useContext, useState, useMemo, lazy, Suspense, useEffect } from 'react';
+import { useState, lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { useArtists } from './hooks/useArtists';
 import { useArticles } from './hooks/useArticles';
@@ -35,17 +35,7 @@ const ArtistFrame = lazy(() => recoverImport(loadArtistFrame));
 const SubmitArtist = lazy(() => recoverImport(() => import('./pages/SubmitArtist').then(m => ({ default: m.SubmitArtist }))));
 const ContentLab = lazy(() => recoverImport(() => import('./pages/ContentLab').then(m => ({ default: m.ContentLab }))));
 
-function shuffleArray<T>(items: T[]) {
-  const clone = [...items];
-  for (let i = clone.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [clone[i], clone[j]] = [clone[j], clone[i]];
-  }
-  return clone;
-}
-
 export const AppContent = () => {
-  const publicData = useContext(PublicPageContext);
   const location = useLocation();
   const backgroundLocation = (location.state as { backgroundLocation?: Location } | null)?.backgroundLocation;
   const routeLocation = backgroundLocation || location;
@@ -74,11 +64,8 @@ export const AppContent = () => {
     return () => window.removeEventListener('keydown', handleKey);
   }, [isArtistPage]);
 
-  // Randomized once per artist payload so refreshes feel alive without reshuffling on each render.
-  const randomizedArtists = useMemo(() => {
-    if (loading || publicData) return artists;
-    return shuffleArray(artists);
-  }, [artists, loading, publicData]);
+  const discovery = useDiscovery(artists);
+  const randomizedArtists = discovery.artists;
 
   const filteredArtists = randomizedArtists.filter(artist =>
     artist.type !== 'collector' && `${artist.name} ${artist.subtitle}`.toLowerCase().includes(search.trim().toLowerCase())
@@ -125,6 +112,7 @@ export const AppContent = () => {
             element={
               <HomeExperience
                 artists={randomizedArtists}
+                discovery={discovery}
                 loading={loading}
                 artistsError={artistsError}
                 articles={articles}

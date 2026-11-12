@@ -2,6 +2,7 @@ import { flushSync } from 'react-dom';
 
 let awaitingIssue: { path: string; ready: () => void } | null = null;
 let opening = false;
+let nextAxis: 'horizontal' | 'vertical' = 'horizontal';
 
 /** Resolve only when the lazy issue route has actually committed, never on a loader. */
 const cleanPath = (path: string) => path.replace(/\/+$/, '') || '/';
@@ -30,6 +31,10 @@ export function openPage(source: HTMLElement, path: string, navigate: () => void
     root.style.setProperty('--dispatch-slit-left', `${Math.max(0, rect.left)}px`);
     root.style.setProperty('--dispatch-slit-right', `${Math.max(0, innerWidth - rect.right)}px`);
     root.dataset.pageOpening = kind;
+    if (kind !== 'dispatch') {
+        root.dataset.openingAxis = nextAxis;
+        nextAxis = nextAxis === 'horizontal' ? 'vertical' : 'horizontal';
+    }
     if (kind === 'dispatch') root.dataset.dispatchOpening = 'true';
     const date = kind === 'dispatch' ? source.querySelector('time') : null;
     if (date) date.style.viewTransitionName = 'dispatch-date';
@@ -40,6 +45,7 @@ export function openPage(source: HTMLElement, path: string, navigate: () => void
         opening = false;
         delete root.dataset.dispatchOpening;
         delete root.dataset.pageOpening;
+        delete root.dataset.openingAxis;
         if (date) date.style.removeProperty('view-transition-name');
         ['top', 'bottom', 'left', 'right'].forEach(side => root.style.removeProperty(`--dispatch-slit-${side}`));
     };

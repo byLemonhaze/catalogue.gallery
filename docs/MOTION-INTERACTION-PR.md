@@ -1,0 +1,7 @@
+The carousel previously kept rigid captions beside deforming artwork, the revised scrubber stepped too abruptly, and artist websites could flash before the profile cover was ready. Captions now follow the image edge, scrubbing moves continuously with velocity-driven deformation and a gentle nearest-artist settle, and profile previews wait for the cover and rendering layer.
+
+Ordinary page and Story reveals alternate horizontal/vertical directions, while Dispatch retains its aperture. A fresh document receives a new discovery order; in-app returns preserve the order, selection and pause state. Existing artist-first navigation, reduced-motion fallbacks, touch scroll intent and accessible link names remain intact. Drag comparison controls are development-only.
+
+The branch also includes the previously prepared platform visual-tour documentation commit, plus the approved brief, implementation trajectory, test results, known limits and a protected-main deployment command.
+
+Validation: ESLint, TypeScript and 245 tests across 36 files passed. Client/SSR compilation passed. Complete SEO postbuild and external audits could not run in the agent environment because npm/GitHub DNS resolution failed; the release command requires them to pass before pushing and again before deploying main. Owner reviewed the local interaction and approved publication. No new browser recordings or physical-device performance certification are claimed. The existing bundle-size warning remains.
