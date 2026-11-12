@@ -1,5 +1,7 @@
 # Dispatch opening prototype
 
+> **Historical checkpoint.** This record preserves the decisions, terminology, screenshots and verification status at that stage. Pending/local-only release statements and old commands are not current deployment instructions. Use the [documentation index](README.md), [current publishing guide](EDITORIAL-PUBLISHING.md) and [reconciled audit](DOCUMENTATION-AUDIT-2026-11-12.md) for current context.
+
 12 November 2026, America/Toronto. Local review only; no commit, push or deployment authorized for this new prototype.
 
 ## Direction

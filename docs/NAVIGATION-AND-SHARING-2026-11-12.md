@@ -1,5 +1,7 @@
 # Navigation, Stories and sharing — 2026-11-12
 
+> **Historical checkpoint.** This record preserves the decisions, terminology, screenshots and verification status at that stage. Pending/local-only release statements and old commands are not current deployment instructions. Use the [documentation index](README.md), [current publishing guide](EDITORIAL-PUBLISHING.md) and [reconciled audit](DOCUMENTATION-AUDIT-2026-11-12.md) for current context.
+
 ## Scope and decisions
 
 This local follow-up extends the approved visual language; it does not change discovery, artist content or Dispatch history.

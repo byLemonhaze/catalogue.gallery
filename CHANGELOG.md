@@ -6,7 +6,7 @@ The project now uses [Semantic Versioning](https://semver.org/) for public relea
 
 ## [Unreleased]
 
-No changes recorded after the 0.2 release candidate.
+- Reconcile current documentation around external Grok bots → Sanity publishing, distinguish the retained legacy editor, clarify cache/date/retraction behavior, and add a visual README gallery plus indexed session history. Documentation only; no runtime or bot configuration changes.
 
 ## [0.2.0] - 2026-11-12
 

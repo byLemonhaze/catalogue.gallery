@@ -1,5 +1,7 @@
 # CATALOGUE redesign: session trajectory and release record
 
+> **Historical checkpoint.** This record preserves the decisions, terminology, screenshots and verification status at that stage. Pending/local-only release statements and old commands are not current deployment instructions. Use the [documentation index](README.md), [current publishing guide](EDITORIAL-PUBLISHING.md) and [reconciled audit](DOCUMENTATION-AUDIT-2026-11-12.md) for current context.
+
 Session: 11 November 2026, Montréal time, continuing into 12 November UTC. Owner and creative direction: Frédérick Nathaniel St-Louis / Lemonhaze. Implementation: Codex, directed through iterative local browser review.
 
 This is the retrospective record requested by the owner before release. It reconstructs decisions, experiments, corrections, implementation and verification from the conversation, repository history, existing review notes and saved screenshots. It is **not a verbatim chat export or a continuous screen recording**: no continuous video was recorded, and the original ten-mockup set is not preserved among the linked review captures. Early concept stages below are conversation-derived; implementation and verification claims are grounded in the repository and review record. Exact times are not inferred for individual feedback rounds.

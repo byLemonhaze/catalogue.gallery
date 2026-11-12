@@ -1,5 +1,7 @@
 # Stories + Constellation release — 2026-11-12
 
+> **Historical checkpoint.** This record preserves the decisions, terminology, screenshots and verification status at that stage. Pending/local-only release statements and old commands are not current deployment instructions. Use the [documentation index](README.md), [current publishing guide](EDITORIAL-PUBLISHING.md) and [reconciled audit](DOCUMENTATION-AUDIT-2026-11-12.md) for current context.
+
 ## Authorized scope
 
 The owner approved completing remaining checks, documentation, commit, push, protected-main merge and production deployment. This includes the local Constellation identity, Dispatch/page/story transitions, Stories migration, About/byline fixes and sharing checks. It does not authorize bypassing required CI or deploying an incomplete build.

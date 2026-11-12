@@ -1,5 +1,7 @@
 ## What
 
+> **Historical checkpoint.** This record preserves the decisions, terminology, screenshots and verification status at that stage. Pending/local-only release statements and old commands are not current deployment instructions. Use the [documentation index](README.md), [current publishing guide](EDITORIAL-PUBLISHING.md) and [reconciled audit](DOCUMENTATION-AUDIT-2026-11-12.md) for current context.
+
 Improve Windows on 390 × 844 and 360 × 800 screens: safe-area-aware content and world controls, readable navigation, single-column DISPATCH cards, more directory spacing, clearer carousel controls and DISPATCH results in global search. Dark-only styling, existing fonts, WebGL discovery and profile-before-world flow are preserved.
 
 ## Why

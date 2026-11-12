@@ -1,6 +1,6 @@
 # DISPATCH on CATALOGUE
 
-Local implementation for review, 11 November 2026. No production writes, deployment, X posts or bot configuration changes have been performed.
+Current display and publication contract, reconciled 12 November 2026. The archive provenance below records the original 11 November recovery. The owner uses external Grok bots and Sanity; this repository implements the reading surfaces and schema, not the bot scheduler. See [Editorial publishing](EDITORIAL-PUBLISHING.md) for current delivery, timing and verification boundaries.
 
 ## Archive provenance
 
@@ -22,20 +22,20 @@ After review, with the existing private write credential supplied through the en
 
 Before publishing historical drafts, review text/media and enrich Sources from the existing bot's records. Once all backfilled editions are published and validated, remove the bundled archive fallback in a separate reviewed change, so Sanity unpublishing controls removal completely. Until then, removing a Sanity record restores the verified historical fallback. To retract an edition during transition, remove its bundled entry as well.
 
-## Future publication contract: site first, X second
+## Publication contract: site first, X second
 
-This updates the existing DISPATCH bot, not a second scheduler. The existing 7:03 AM ET hunt and human approval gate stay in place.
+This is the required contract for the existing external DISPATCH bot, not a second scheduler. The initial brief referred to a 7:03 AM ET hunt; the actual current schedule/timezone and approval automation are outside this repository and remain unverified. Preserve the owner approval gate; do not infer scheduler configuration from this document.
 
 1. Bot prepares the full edition, 5–8 numbered stories, verified handles, Sources for each item, a 1200px cover and three credited highlight plates attached to the correct stories. Store original media and text in the existing art-recap/catalogue-plates archive.
 2. Bot creates/updates `drafts.dispatch-YYYY-MM-DD` in Sanity. Do not write the non-draft ID. Do not use the Content Lab publish endpoint. Set the slug and issueDate to the editorial date, and preserve the exact approved content.
 3. Present the four images, full text, Sources and proposed time to Frédérick. Wait for his explicit approval. Changes after approval require renewed approval.
 4. At the approved time, publish the Sanity document. The frontend reads only published content with a publication timestamp at or before now. Historical dates remain historical; new issue publication time is the actual release.
-5. Verify `https://catalogue.gallery/dispatch/YYYY-MM-DD/`: HTTP 200; correct canonical; visible approved text and all media; matching OG/Twitter image; edition listed in `/dispatch/` and sitemap. Retry through the existing public cache window; never treat the SPA shell or an old page as success. Respect the existing three-minute post-publication wait.
+5. Verify `https://catalogue.gallery/dispatch/YYYY-MM-DD/`: HTTP 200; correct canonical; visible approved text and all media; matching OG/Twitter image; edition listed in `/dispatch/` and sitemap. Retry through the existing public cache window; never treat the SPA shell or an old page as success. Allow the full five-minute public HTML cache window plus request latency, then investigate persistent failures. A fixed three-minute wait is insufficient to prove freshness. Verify the homepage latest-edition link as well; existing open tabs need a reload.
 6. Only after those checks, publish the already-approved X text/media once. Record the returned X URL in `xPostUrl` on the published Sanity document and in the bot's persistent publication ledger. Failed site checks block X. Failed X submission does not unpublish the site; check the account/ledger before retrying to prevent duplicates.
 
 Required ledger key: `dispatch:YYYY-MM-DD`, with approved content revision/hash, approved time, Sanity document/revision, site verification time, X post ID/status. Never infer approval from a published document alone. Before a retry, verify that the approved content revision still matches.
 
-This repository implements the schema and display, plus draft backfill tooling. The external Grokbot routines and their persistent ledger are outside this workspace and have **not** been modified. Apply this contract to the existing DISPATCH routine before enabling site-first publication.
+This repository implements the schema and display, plus draft backfill tooling. The external Grokbot routines and their persistent ledger are outside this workspace and have **not** been modified. Verify the existing routine against this contract and record an approved end-to-end publication before claiming that its next scheduled run is guaranteed.
 
 ## Routes and SEO
 
@@ -43,4 +43,5 @@ This repository implements the schema and display, plus draft backfill tooling. 
 - `/dispatch/YYYY-MM-DD/`: full edition, all media, source links when supplied, artist/story references and adjacent issues.
 - Landing sidebar: latest published edition in the Counterpoint transcript, with a single vertical title, neutral counter/background and lilac word reveals. Reduced motion shows all headlines statically. Read the edition opens the issue; All editions opens the archive. Presentation history and approval: [12 November report](SESSION-REPORT-2026-11-12.md).
 - Dedicated public Pages Function for detail HTML, server-rendered text, canonical, Article schema, cover OG/Twitter image; published edition URLs included in the sitemap and static generation.
-- No new dispatch is inserted into Content Lab queries or feeds.
+- Dispatch editions stay separate from the Stories `post` feed; cross-references may connect them.
+- Ordinary new published editions are served without redeploying. Existing hydrated tabs do not automatically refresh. See [freshness and failures](EDITORIAL-PUBLISHING.md#does-new-content-need-a-deployment).

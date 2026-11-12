@@ -1,5 +1,7 @@
 # A quieter, movable exit from artist worlds
 
+> **Historical checkpoint.** This record preserves the decisions, terminology, screenshots and verification status at that stage. Pending/local-only release statements and old commands are not current deployment instructions. Use the [documentation index](README.md), [current publishing guide](EDITORIAL-PUBLISHING.md) and [reconciled audit](DOCUMENTATION-AUDIT-2026-11-12.md) for current context.
+
 The former top-right Catalogue/Exit world block could cover navigation inside
 artist-owned websites, including Lemonhaze's menu. Replace it with one compact
 Exit world link and a small grip. It is 140 × 44 CSS pixels on desktop and

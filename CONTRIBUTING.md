@@ -6,7 +6,7 @@ Thanks for contributing to `catalogue.gallery`.
 
 1. Install dependencies:
    - `npm install`
-   - `cd studio && npm install`
+   - `(cd studio && npm install)`
 2. Configure env:
    - `cp .env.example .env.local`
 3. Run app:
@@ -36,7 +36,8 @@ PRs to `main` are protected by required CI checks.
 
 - Prefer TypeScript-safe changes over `any`.
 - Keep API contracts explicit and documented in `docs/API.md`.
-- Update docs when behavior or operational setup changes.
+- Update docs when behavior or operational setup changes. Start from [the documentation index](docs/README.md); reconcile existing guidance instead of only appending a contradictory section. Label dated design records and proposals, and separate observed evidence from unverified external configuration.
+- Preserve original session evidence. Use real screenshots/recordings with dates and captions; do not present an old interface or synthetic animation as current production evidence.
 - Treat lint failures, type errors, and other verification warnings as merge blockers unless a PR explains a deliberate exception.
 
 ## Releases

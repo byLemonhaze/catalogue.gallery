@@ -1,5 +1,7 @@
 ## What
 
+> **Historical checkpoint.** This record preserves the decisions, terminology, screenshots and verification status at that stage. Pending/local-only release statements and old commands are not current deployment instructions. Use the [documentation index](README.md), [current publishing guide](EDITORIAL-PUBLISHING.md) and [reconciled audit](DOCUMENTATION-AUDIT-2026-11-12.md) for current context.
+
 Replace the homepage's repeated grey Dispatch bulletin with the approved Counterpoint treatment: one vertical title, neutral counter and background, lilac word reveals, and a compact read-edition link. Remove the duplicate static index during animation and the repeated “independent” in the supporting introduction.
 
 ## Why

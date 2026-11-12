@@ -5,7 +5,7 @@ All endpoints are served from Cloudflare Pages Functions under `/api/*`.
 ## Conventions
 
 - JSON responses include `content-type: application/json` unless noted.
-- Content Lab endpoints require header `x-content-lab-password: <CONTENT_LAB_PASSWORD>`.
+- Retained legacy `/api/content-*` contracts and authentication are documented separately in [Legacy Content Lab](legacy/CONTENT-LAB.md). They are not the current editorial workflow.
 - Errors are returned as `{ "error": "<message>" }` unless noted.
 
 ## Endpoint Summary
@@ -17,14 +17,6 @@ All endpoints are served from Cloudflare Pages Functions under `/api/*`.
 | `/api/check-embed` | `GET` | Public | Check website embedding permissions for catalogue.gallery |
 | `/api/submit` | `POST` | Public | Submit artist/gallery application |
 | `/api/webhook` | `POST` | `WEBHOOK_SHARED_SECRET` header/bearer | Process Sanity review events and send emails |
-| `/api/content-artists` | `GET` | Content Lab password | List published artists/galleries for Content Lab picker |
-| `/api/content-drafts` | `GET` | Content Lab password | List drafts (optionally filtered by status) |
-| `/api/content-drafts` | `POST` | Content Lab password | Create a draft or update draft status/metadata |
-| `/api/content-drafts` | `DELETE` | Content Lab password | Delete draft by id |
-| `/api/content-generate` | `POST` | Content Lab password | Generate one or more drafts via Grok |
-| `/api/content-scrape` | `POST` | Content Lab password | Scrape artist site + summarize into Sanity `contentBio` |
-| `/api/content-publish` | `POST` | Content Lab password | Publish a draft to Sanity `post` + mark D1 state |
-| `/api/content-upload-image` | `POST` | Content Lab password | Upload raw image bytes to Sanity assets |
 
 ## Endpoint Details
 
@@ -118,138 +110,21 @@ All endpoints are served from Cloudflare Pages Functions under `/api/*`.
   - `400` missing contact/email
   - `500` missing secrets/config or email provider failure
 
-### `GET /api/content-artists`
-
-- Header: `x-content-lab-password`
-- Returns: `{ "artists": [{ "_id", "name", "subtitle", "_type" }, ...] }`
-- Notes:
-  - On Sanity read failures, returns `200` with empty list instead of hard error.
-
-### `GET /api/content-drafts`
-
-- Header: `x-content-lab-password`
-- Query params:
-  - `status` (optional): `pending` | `published` | `dismissed`
-- Returns: `{ "drafts": [...] }`
-- Errors:
-  - `401` unauthorized
-
-### `POST /api/content-drafts`
-
-- Header: `x-content-lab-password`
-- JSON body:
-  - Create mode:
-    - `operation: "create"`
-    - `type` (required): `article` | `blog` | `wildcard`
-    - `title`, `excerpt`, `content` (required)
-    - `tags` (optional string array)
-    - `source_artist_id`, `source_artist_name` (optional)
-  - Update mode:
-    - `id` (required)
-    - `status` (optional)
-    - `deploy_target` (optional)
-    - `revision_note` (optional)
-    - `sanity_doc_id` (optional)
-    - `published_at` (optional)
-- Returns:
-  - create: `{ "ok": true, "draft": {...} }`
-  - update: `{ "ok": true }`
-- Errors:
-  - `401` unauthorized
-  - `400` missing `id` or required create fields
-
-### `DELETE /api/content-drafts`
-
-- Header: `x-content-lab-password`
-- Query params:
-  - `id` (required)
-- Returns: `{ "ok": true }`
-- Errors:
-  - `401` unauthorized
-  - `400` missing `id`
-
-### `POST /api/content-generate`
-
-- Header: `x-content-lab-password`
-- JSON body (all optional):
-  - `artistId`
-  - `artistName`
-  - `artistSubtitle`
-  - `type` (`article` | `blog` | `wildcard`)
-- Behavior:
-  - If `type` omitted, generates all three content types.
-  - Inserts successful drafts into `content_drafts` table.
-- Success: `200` with:
-  - `{ "ok": true, "created": number, "attempted": number, "failures": [...] }`
-- Errors:
-  - `401` unauthorized
-  - `500` missing `GROK_API_KEY`
-
-Notes:
-- The private `/content-lab` UI also supports a BYOK mode where the browser calls xAI directly with a user-supplied key and then saves the generated draft through `POST /api/content-drafts`.
-
-### `POST /api/content-scrape`
-
-- Header: `x-content-lab-password`
-- JSON body:
-  - `artistId` (required)
-- Behavior:
-  - Reads artist from Sanity
-  - Scrapes website root + `/about`
-  - Summarizes via Claude Haiku
-  - Writes `contentBio` back to Sanity
-- Success: `200` with `{ "ok": true, "bio": "...", "artistName": "..." }`
-- Common errors:
-  - `400` missing `artistId` / missing website URL
-  - `401` unauthorized
-  - `404` artist not found
-  - `422` scrape returned insufficient content
-  - `500` missing `SANITY_WRITE_TOKEN`
-  - `502` upstream Sanity/Claude failures
-
-### `POST /api/content-publish`
-
-- Header: `x-content-lab-password`
-- JSON body:
-  - `id` (required)
-  - `deploy_target` (required)
-  - `title`, `excerpt`, `content`, `tags` (expected content payload)
-  - `source_artist_id` (optional)
-  - `thumbnailAssetId` (optional)
-- Behavior:
-  - Creates/replaces Sanity `post`
-  - Updates D1 draft state to `published`
-- Success: `200` with:
-  - `{ "ok": true, "sanity_doc_id": "...", "slug": "...", "type": "...", "note": "..." }`
-- Errors:
-  - `401` unauthorized
-  - `400` missing required fields
-  - `500` missing `SANITY_WRITE_TOKEN`
-  - `502` Sanity mutation failure
-
-### `POST /api/content-upload-image`
-
-- Header: `x-content-lab-password`
-- Request body:
-  - raw image bytes (`Content-Type: image/*`)
-- Success: `200` with `{ "ok": true, "assetId": "image-..." }`
-- Errors:
-  - `401` unauthorized
-  - `400` invalid content type or empty body
-  - `500` missing `SANITY_WRITE_TOKEN`
-  - `502` Sanity upload failure
-
 ## Internal Modules (Not HTTP Endpoints)
 
 The following files are helpers only and are not routed as API endpoints:
 
 - `_contactStore.ts`
-- `_contentBank.ts`
-- `_contentPrompts.ts`
-- `_draftParser.ts`
+- `_contentBank.ts` (legacy editor)
+- `_contentPrompts.ts` (legacy editor)
+- `_draftParser.ts` (legacy editor)
 - `_emailCipher.ts`
 - `_embedCheck.ts`
 
 ## Public SEO routes
 
-`GET`/`HEAD /artist/:slug/`, `/gallery/:slug/`, and `/blog/:slug/` return metadata-enriched public HTML. Unknown records return 404; CMS failures return 503. Wrong-type profile aliases and missing trailing slashes redirect permanently. `GET /sitemap.xml` returns current published URLs. These are public content endpoints, not editorial write APIs. See [SEO delivery](./SEO.md) for cache and indexing policy.
+`GET`/`HEAD /artist/:slug/`, `/gallery/:slug/`, `/stories/:slug/` and `/dispatch/:date/` return server-rendered public HTML with content-specific metadata. Unknown records return 404; failures in required CMS reads return 503. Wrong-type profile aliases and missing trailing slashes redirect permanently. `GET /sitemap.xml` returns current published URLs.
+
+`/blog/` and `/blog/:slug/` permanently redirect to `/stories/` and `/stories/:slug/`; `/info/` redirects to `/about/`. Public indexes and the homepage also use request-time rendering. See [SEO delivery](SEO.md) for caching, preview hosts and fallback behavior.
+
+These are public reading surfaces. Current external Grok bots publish directly to Sanity using their own protected credentials; no new site editorial write API is required. The bot implementation is outside this repository. See [Editorial publishing](EDITORIAL-PUBLISHING.md).

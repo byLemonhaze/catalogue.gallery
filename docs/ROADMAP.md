@@ -46,3 +46,13 @@ Goal:
 - Require anti-abuse controls (captcha/turnstile).
 - Keep append-only audit log for moderation decisions.
 - Never auto-approve without verifiable ownership evidence.
+
+## Operational follow-ups from the November documentation audit
+
+These are open follow-ups, not claims that external bot behavior is absent:
+
+- Verify and privately document the actual external Grok bot schedule, approval gate, retry ledger and one approved site-first Dispatch/X run.
+- Decide whether to retire the retained private Content Lab UI/API/manual workflow and exclusive model credentials in a separate code change. Inventory is in [Legacy Content Lab](legacy/CONTENT-LAB.md).
+- Finish validated historical Dispatch backfill before considering removal of the bundled archive fallback; preserve provenance and explicit retraction behavior.
+- Capture a current short motion recording of the Windows carousel, profile reveal, world entry/exit and Counterpoint transcript for GitHub. Existing PNG evidence cannot convey those interactions.
+- Refresh portfolio captures after visual changes; verify real-device toolbar/gesture behavior separately from viewport screenshots.
