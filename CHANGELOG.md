@@ -6,6 +6,21 @@ The project now uses [Semantic Versioning](https://semver.org/) for public relea
 
 ## [Unreleased]
 
+No changes recorded after the 0.2 release candidate.
+
+## [0.2.0] - 2026-11-12
+
+Second-generation Catalogue: Windows discovery, dark-only art direction, Stories, daily Dispatch and the Constellation identity. This consolidates the work since `v0.1.7`; see [the complete release notes](docs/releases/v0.2.0.md). Publication status is recorded on GitHub Releases, not inferred from this changelog.
+
+### Added
+
+- Immersive WebGL Windows carousel with velocity-driven image deformation, touch drag, wheel/keyboard navigation, position feedback and pause/resume.
+- Profile-before-world flow with automatic website reveal, image-to-world entry and a compact repositionable exit control.
+- Dark-only Syne / Sora / IBM Plex Mono system with the handwritten `.gallery` signature.
+- Mobile safe-area handling, clearer header navigation, roomier Dispatch/directory layouts and thumb-friendly world controls.
+- Directory sorting, Shuffle, grid/list views and unified search across artists, galleries, Stories and Dispatch.
+- Daily Dispatch archive and edition surfaces with historical media preserved.
+
 ### Changed
 
 - Adopt the selected Constellation logo across vector masters, X exports, favicon/device icons and default social cards.

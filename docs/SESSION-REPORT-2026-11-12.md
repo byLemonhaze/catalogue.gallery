@@ -126,3 +126,16 @@ Commit `0069d9a` was pushed to `feat/stories-constellation`; [PR #57](https://gi
 The release script stopped at the failed quality check before merging or deploying. The corrected head must be pushed and pass checks; then the same release script resumes the protected-main merge, full build, deployment and alignment checks. Production alignment remains unverified.
 
 Follow-up validation: lint, TypeScript and all 225 tests in 33 files passed. A PostCSS comparison confirmed unchanged effective declarations and no duplicate selectors within the same stylesheet context. Remote CodeFactor validation of the fix is pending push.
+
+
+## Follow-up: restore public release tracking
+
+The owner noted that GitHub Releases still showed v0.1.7 from March despite the merged redesign. Confirmed that published release in the authenticated GitHub UI and observed local main at `95c93df` (PR #57 merged). This observation establishes the merged source, not the Cloudflare deployment status.
+
+Initially considered a 2.0 milestone; the owner explicitly chose **v0.2.0** as the next version. Prepared `chore/release-0.2.0` with matching application/lock versions, a product-led README, consolidated changelog and detailed release notes. The independent Studio version and historical tags remain unchanged.
+
+Added a guarded publication command that merges through the protected branch, verifies/deploys the resulting main, and only then tags and publishes GitHub Releases. It waits for CI and CodeFactor to register on the exact pushed SHA, addressing the stale-check race encountered during PR #57. No force merge or security bypass is used.
+
+Validation: lint, TypeScript and all 225 tests in 33 files passed; shell syntax passed. An isolated command-stub simulation verified successful ordering and that CI failure, API failure, absent check registration, deployment failure and production smoke failure all stop before creating a version tag or release. These simulations do not replace real remote CI or a production deployment.
+
+The preparation is not itself a published release. Run `bash scripts/release-0.2.0.sh` from a network-enabled terminal; see [the release procedure](RELEASING.md). Source release notes are in [v0.2.0](releases/v0.2.0.md).
