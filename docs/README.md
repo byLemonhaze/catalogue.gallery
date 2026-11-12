@@ -40,6 +40,8 @@ Prepared PR bodies (`*-PR.md`, `releases/v0.2.0-pr.md`) are historical text, not
 
 ## Visual evidence
 
+Start with the [full platform visual tour](presentation/README.md): twelve desktop/mobile captures covering discovery, profiles, Stories, Dispatch, directory/search, world fallback, About and Apply, paired with implementation and regression-test references. The [project README](../README.md#experience-in-pictures) presents the shorter portfolio overview.
+
 - [Stories desktop](review/navigation-sharing/stories-desktop.png) and [390 px mobile](review/navigation-sharing/stories-390.png): post-rename public UI.
 - [Windows + Counterpoint](review/dispatch-studies-02/home-counterpoint.png): approved design checkpoint before the public navigation rename.
 - [Automatic profile reveal](review/typography-polish/profile-auto-reveal-desktop.png): earlier portal checkpoint, also before the rename.

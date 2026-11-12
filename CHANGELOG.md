@@ -6,6 +6,7 @@ The project now uses [Semantic Versioning](https://semver.org/) for public relea
 
 ## [Unreleased]
 
+- Expand the README into a visual platform overview and add a twelve-screen tour covering discovery, profile previews, Stories, Dispatch, directory/search, world fallback, About and Apply. Reuse unmodified review captures with explicit provenance and code/test references; no runtime changes.
 - Reconcile current documentation around external Grok bots → Sanity publishing, distinguish the retained legacy editor, clarify cache/date/retraction behavior, and add a visual README gallery plus indexed session history. Documentation only; no runtime or bot configuration changes.
 
 ## [0.2.0] - 2026-11-12
