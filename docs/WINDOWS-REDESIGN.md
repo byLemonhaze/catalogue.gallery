@@ -1,6 +1,8 @@
 # Windows redesign — review revision, 11 November 2026
 
-Branch: `feat/windows-redesign`. Local review: http://127.0.0.1:5174/ (the user’s running Vite server). No deployment or remote push performed.
+Branch: `feat/windows-redesign`. Local review: http://127.0.0.1:5174/ (the user’s running Vite server).
+
+These are chronological notes; earlier status statements describe their own review stage. The full build and branch push were subsequently completed and PR #52 opened. See the [session trajectory and release ledger](SESSION-TRAJECTORY-2026-11-11.md) for the consolidated decisions, final direction and evidence. No production deployment had been observed at that checkpoint.
 
 ## Motion and interaction
 
