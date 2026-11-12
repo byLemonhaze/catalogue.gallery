@@ -1,0 +1,31 @@
+/* Only the small link receives pointer input; the artist website stays usable. */
+.world-shell .world-controls {
+  position:fixed;z-index:120;width:auto;
+  top:calc(12px + env(safe-area-inset-top, 0px));
+  right:calc(12px + env(safe-area-inset-right, 0px));
+  bottom:calc(12px + env(safe-area-inset-bottom, 0px));
+  left:calc(12px + env(safe-area-inset-left, 0px));
+  pointer-events:none;
+}
+.world-shell .world-exit {
+  --exit-x:0%;--exit-y:100%;
+  position:absolute;left:var(--exit-x);top:var(--exit-y);
+  transform:translate(calc(-1 * var(--exit-x)),calc(-1 * var(--exit-y)));
+  display:inline-flex;align-items:center;gap:12px;min-height:44px;
+  padding:0 14px;width:max-content;max-width:100%;box-sizing:border-box;
+  background:#131315f2;color:#f3f1ed;border:1px solid #5e5e65;
+  box-shadow:0 2px 8px #0002;border-radius:2px;
+  font:400 11px/1.4 'IBM Plex Mono',monospace;white-space:nowrap;
+  text-decoration:none;pointer-events:auto;touch-action:none;user-select:none;
+  cursor:grab;transition:background .18s,border-color .18s;
+}
+.world-shell .world-exit:hover,.world-shell .world-exit:focus-visible {
+  background:#1c1c20;border-color:#f3f1ed;box-shadow:0 2px 8px #0002;
+}
+.world-shell .world-exit[data-dragging="true"] {cursor:grabbing;transition:none}
+.world-exit-grip {opacity:.55;flex:none}
+.world-exit:hover .world-exit-grip {opacity:1}
+@media(max-width:760px) {
+  .world-shell .world-exit {--exit-x:50%;min-height:48px}
+}
+@media(prefers-reduced-motion:reduce) {.world-shell .world-exit {transition:none}}
