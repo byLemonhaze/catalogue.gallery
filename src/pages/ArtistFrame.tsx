@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { urlFor } from '../sanity/image';
 import { Seo } from '../components/Seo';
@@ -6,32 +6,7 @@ import { missingMeta, profileMeta } from '../lib/seo';
 import { useArtists } from '../hooks/useArtists';
 import { readProfileBootstrap, externalOnlyProfiles } from '../lib/profileBootstrap';
 import { SquareLoader } from '../components/SquareLoader';
-
-// Helper to resolve positioning classes
-const getPositionClasses = (desktop: string, mobile: string) => {
-    let classes = '';
-
-    // Mobile
-    switch (mobile) {
-        case 'bottom-center': classes += 'bottom-12 left-1/2 -translate-x-1/2 '; break;
-        case 'top-center': classes += 'top-8 left-1/2 -translate-x-1/2 '; break;
-        case 'top-right': classes += 'top-8 right-6 '; break;
-        case 'top-left': classes += 'top-8 left-6 '; break;
-        default: classes += 'bottom-12 left-1/2 -translate-x-1/2 '; // Default
-    }
-
-    // Desktop (Overriding mobile with md:)
-    switch (desktop) {
-        case 'top-right': classes += 'md:bottom-auto md:left-auto md:top-8 md:right-8 md:translate-x-0'; break;
-        case 'top-left': classes += 'md:bottom-auto md:right-auto md:top-8 md:left-8 md:translate-x-0'; break;
-        case 'top-center': classes += 'md:bottom-auto md:right-auto md:left-1/2 md:top-8 md:-translate-x-1/2'; break;
-        case 'bottom-right': classes += 'md:top-auto md:left-auto md:bottom-8 md:right-8 md:translate-x-0'; break;
-        case 'bottom-left': classes += 'md:top-auto md:right-auto md:bottom-8 md:left-8 md:translate-x-0'; break;
-        default: classes += 'md:bottom-auto md:left-auto md:top-8 md:right-8 md:translate-x-0'; // Default
-    }
-
-    return classes;
-};
+import { WorldExitControl } from '../components/WorldExitControl';
 
 export function ArtistFrame() {
     const { id = '' } = useParams<{ id: string }>();
@@ -113,17 +88,13 @@ function ArtistUniverse({ id }: { id: string }) {
     const { artists, loading, error } = useArtists();
     const artist = artists.find(item => item.id === id && (item.type || 'artist') === route) || ((loading || error) ? bootstrap : null);
     const handleExit = useArtistExit();
-    const exitLink = useRef<HTMLAnchorElement>(null);
-    useEffect(() => { if (artist) exitLink.current?.focus(); }, [artist]);
     if (!artist) return <>{!loading && !error && <Seo meta={missingMeta(location.pathname)} />}<ProfileLookupState loading={loading} error={error} onExit={handleExit} /></>;
 
     const website = resolveWebsiteUrl(artist.websiteUrl);
     const canEmbed = website && !externalOnlyProfiles.has(id) && !website.startsWith('http:');
     return <div className="world-shell">
         <Seo meta={{...profileMeta({ ...artist, type: route, image: bootstrap?.seoImageUrl || (typeof artist.thumbnail === 'string' ? artist.thumbnail : artist.thumbnail ? urlFor(artist.thumbnail).url() : undefined) }), noindex: true}} />
-        <nav aria-label="Artist website controls" data-mobile-position={artist.mobileExitPosition || 'bottom-center'} className={`world-controls fixed z-[120] flex flex-wrap justify-center gap-2 max-w-[calc(100%-2rem)] ${getPositionClasses(artist.desktopExitPosition || 'top-right', artist.mobileExitPosition || 'bottom-center')}`}>
-            <Link ref={exitLink} to={`/${route}/${encodeURIComponent(id)}/`} onClick={handleExit} aria-label="Exit Artist Universe" className="world-exit"><span className="world-exit-brand">CATALOGUE</span><span className="world-exit-label">Exit world <span className="world-close-mark" aria-hidden="true"/></span></Link>
-        </nav>
+        <WorldExitControl to={`/${route}/${encodeURIComponent(id)}/`} onExit={handleExit} />
         {canEmbed ? <EmbeddedWebsite key={website} website={website} name={artist.name} /> : <UnavailableWebsite name={artist.name} website={website} />}
     </div>;
 }

@@ -117,11 +117,6 @@ html {
   .public-site .application-page button {min-height:48px}
   .world-shell {height:100dvh}
   .world-state {padding:calc(88px + var(--safe-top)) max(24px,var(--safe-right)) calc(128px + var(--safe-bottom)) max(24px,var(--safe-left))}
-  .world-controls[data-mobile-position="bottom-center"] {bottom:calc(20px + var(--safe-bottom))}
-  .world-controls[data-mobile-position^="top-"] {top:calc(16px + var(--safe-top))}
-  .world-controls[data-mobile-position="top-left"] {left:max(16px,var(--safe-left))}
-  .world-controls[data-mobile-position="top-right"] {right:max(16px,var(--safe-right))}
-  .world-exit {min-height:52px}
   .world-loading {bottom:calc(92px + var(--safe-bottom))}
   .world-action {min-height:56px}
   .world-text-link {min-height:44px;display:inline-flex;align-items:center}

@@ -43,7 +43,7 @@
 .public-site .rail-heading a,
 .public-site .dispatch-tools label,
 .public-site .dispatch-adjacent,
-.world-shell :is(.world-action, .world-text-link, .world-exit-label, .world-loading, .world-artist-label) {font-family:var(--catalogue-controls)}
+.world-shell :is(.world-action, .world-text-link, .world-loading, .world-artist-label) {font-family:var(--catalogue-controls)}
 .public-site :is(.editorial-meta > span:first-child, .editorial-lead-foot) {color:var(--muted)}
 .public-site :is(.editorial-kicker, .eyebrow) {font-weight:400;letter-spacing:.12em}
 .public-site .search-heading h2 {font-size:40px}
@@ -69,10 +69,10 @@
 .public-site ::selection {background:var(--ink);color:var(--paper)}
 .public-site :is(input:not([type="range"]),textarea,select) {border-color:var(--line);color:var(--ink)}
 .public-site :is(input,textarea)::placeholder {color:var(--muted);opacity:1}
-.public-site :is(.solid-link, .directory-shuffle), .world-action, .world-exit {
+.public-site :is(.solid-link, .directory-shuffle), .world-action {
   background:var(--catalogue-action);color:var(--catalogue-action-text)!important;
 }
-.public-site .solid-link:hover, .directory-shuffle:hover, .world-action:hover, .world-exit:hover,
+.public-site .solid-link:hover, .directory-shuffle:hover, .world-action:hover,
 .profile-layout:has(:is(.profile-surface:hover,.profile-surface:focus-visible,.solid-link:hover,.solid-link:focus-visible)) .solid-link {
   background:var(--catalogue-action);box-shadow:none;
 }
@@ -102,8 +102,6 @@
 .world-message-title {font-family:var(--catalogue-display)}
 .world-text-link {color:var(--ink);border-color:var(--ink)}
 .world-loading {background:var(--paper);color:var(--ink);border-color:var(--line)}
-.world-exit {border-color:var(--paper)}
-.world-exit-label {border-color:color-mix(in srgb,var(--catalogue-action-text) 30%,transparent)}
 @media(max-width:1000px) and (min-width:761px) {.catalogue-masthead{gap:16px;padding-inline:24px}.catalogue-masthead nav{gap:15px}}
 @media(max-width:760px) {
   .catalogue-masthead{gap:15px 12px}
