@@ -38,3 +38,15 @@ it('does not let an abandoned suspended article render change the committed page
     expect(document.querySelectorAll('meta[name="description"]')).toHaveLength(1);
     expect(document.querySelector('meta[property="og:type"]')?.getAttribute('content')).toBe('website');
 });
+
+it('removes stale optional image dimensions and publication metadata between route types', () => {
+    const {rerender} = render(<Seo meta={staticPages[0]}/>);
+    expect(document.querySelector('meta[property="og:image:width"]')?.getAttribute('content')).toBe('1200');
+    rerender(<Seo meta={articleMeta({id:'art', title:'Real artwork', excerpt:'Story',thumbnailUrl:'https://images.example/art.jpg',publishedAt:'2026-11-12T00:00:00Z'})}/>);
+    expect(document.querySelector('meta[property="og:image:width"]')).toBeNull();
+    expect(document.querySelector('meta[property="article:published_time"]')).not.toBeNull();
+    expect(document.querySelector('meta[property="og:image:alt"]')?.getAttribute('content')).toBe('Real artwork | CATALOGUE');
+    rerender(<Seo meta={staticPages[0]}/>);
+    expect(document.querySelector('meta[property="article:published_time"]')).toBeNull();
+    expect(document.querySelectorAll('meta[property="og:image:alt"]')).toHaveLength(1);
+});

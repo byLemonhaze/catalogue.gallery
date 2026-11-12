@@ -1,0 +1,22 @@
+{
+  "name": "CATALOGUE.gallery",
+  "short_name": "CATALOGUE",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#131315",
+  "theme_color": "#131315",
+  "icons": [
+    {
+      "src": "/brand/icon-constellation-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/icon-constellation-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

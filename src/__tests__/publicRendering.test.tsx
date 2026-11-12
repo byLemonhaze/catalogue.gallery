@@ -10,8 +10,11 @@ it('renders directory links and complete editorial text before JavaScript runs',
     expect(directory).toContain('href="/artist/test-artist/"');
     expect(directory).toContain('Test Artist');
     expect(directory).not.toContain('hidden id="S:');
-    const article = await renderPublicPage('/blog/test-story/', data);
+    const article = await renderPublicPage('/stories/test-story/', data);
     expect(article).toContain('The complete article body');
+    const byline = article.match(/<a\b(?=[^>]*rel="author")[^>]*>/)?.[0];
+    expect(byline).toContain('href="/"');
+    expect(article).not.toContain('href="/info/"');
     expect(article).toContain('href="/artist/test-artist/"');
     expect(article).not.toContain('Loading the story');
     expect(article).not.toContain('<script>');

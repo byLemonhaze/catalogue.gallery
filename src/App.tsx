@@ -1,7 +1,7 @@
 import { PublicPageContext } from './lib/publicPageData';
 import { Seo } from './components/Seo';
 import { staticPages, canonicalPath, missingMeta } from './lib/seo';
-import { Link } from 'react-router-dom';
+import { SiteLink as Link } from './components/SiteLink';
 import { RouteRecoveryBoundary, loadArtistFrame, prefetchArtistFrame, recoverImport } from './lib/routeLoading';
 import { useContext, useState, useMemo, lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
@@ -10,12 +10,19 @@ import { useArticles } from './hooks/useArticles';
 import { Navigation } from './components/Navigation';
 import { LegalModal } from './components/LegalModal';
 import { GlobalSearch } from './components/GlobalSearch';
+import { RouteTransitionReady } from './components/RouteTransitionReady';
 import { ScrollToTop } from './components/ScrollToTop';
 import { SquareLoader } from './components/SquareLoader';
 import { type HomeSectionKey } from './constants/homeSections';
 import { HomeExperience } from './pages/HomeExperience';
 import { ArtistProfile } from './pages/ArtistProfile';
 import type { Location } from 'react-router-dom';
+import {publicPath} from './lib/publicRoutes';
+
+function LegacyPublicRedirect() {
+  const location = useLocation();
+  return <Navigate replace to={publicPath(location.pathname) + location.search + location.hash} />;
+}
 
 // Lazy-loaded routes — only fetched when the user navigates to them
 const DispatchArchive = lazy(() => import('./pages/Dispatch').then(m => ({ default: m.DispatchArchive })));
@@ -110,7 +117,8 @@ export const AppContent = () => {
           <SquareLoader className="w-6 h-6" label="Loading page" strokeWidth={1.6} />
         </div>
       }>
-        <div inert={Boolean(backgroundLocation)} aria-hidden={backgroundLocation ? true : undefined}>
+        <div className="route-transition-surface" inert={Boolean(backgroundLocation)} aria-hidden={backgroundLocation ? true : undefined}>
+        <RouteTransitionReady />
         <Routes location={routeLocation}>
           <Route
             path="/"
@@ -132,15 +140,17 @@ export const AppContent = () => {
           <Route path="/gallery/:id/world" element={<ArtistFrame />} />
           <Route path="/submit" element={<SubmitArtist />} />
 
-          <Route path="/blog" element={<ArticleList filter="all" articles={articles} loading={articlesLoading} />} />
-          <Route path="/blog/:id" element={<ArticleView articles={articles} loading={articlesLoading} />} />
+          <Route path="/stories" element={<ArticleList filter="all" articles={articles} loading={articlesLoading} />} />
+          <Route path="/stories/:id" element={<ArticleView articles={articles} loading={articlesLoading} />} />
+          <Route path="/blog/*" element={<LegacyPublicRedirect />} />
+          <Route path="/info/*" element={<LegacyPublicRedirect />} />
 
           <Route path="/dispatch" element={<DispatchArchive />} />
           <Route path="/dispatch/:slug" element={<DispatchIssue />} />
           <Route path="/artists" element={<ArtistList />} />
           <Route path="/content-lab" element={<ContentLab />} />
           <Route path="/content-lab/admin" element={<Navigate to="/content-lab" replace />} />
-          <Route path="/info" element={<InfoHub setIsLegalModalOpen={setIsLegalModalOpen} />} />
+          <Route path="/about" element={<InfoHub setIsLegalModalOpen={setIsLegalModalOpen} />} />
           <Route path="*" element={<main className="route-state"><Seo meta={missingMeta(location.pathname)} /><h1 >Page not found</h1><p >This page may have moved or is no longer available.</p><Link className="text-link" to="/artists/">Explore the directory</Link></main>} />
         </Routes>
         </div>

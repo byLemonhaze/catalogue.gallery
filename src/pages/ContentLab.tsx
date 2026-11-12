@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { SiteLink as Link } from '../components/SiteLink';
 import { SquareLoader } from '../components/SquareLoader';
 import { generateDraftWithByok, type ContentLabArtistSeed, type ContentLabDraftType } from '../lib/contentLab/byok';
 
@@ -822,13 +822,13 @@ export function ContentLab() {
                             </p>
                             <div className="mt-5 flex flex-wrap gap-3">
                                 <Link
-                                    to="/blog"
+                                    to="/stories"
                                     className="inline-flex items-center justify-center border border-white/18 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.24em] text-white transition-colors duration-300 hover:border-white/45 hover:bg-white/5"
                                 >
                                     Open archive
                                 </Link>
                                 <Link
-                                    to="/info"
+                                    to="/about"
                                     className="inline-flex items-center justify-center border border-white/10 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.24em] text-white/55 transition-colors duration-300 hover:border-white/35 hover:text-white"
                                 >
                                     About Catalogue

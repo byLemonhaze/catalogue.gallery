@@ -1,0 +1,67 @@
+/* Dispatch: a horizontal signal opens from the clicked transcript into the issue. */
+html[data-dispatch-opening]::view-transition { pointer-events: none; }
+html[data-dispatch-opening]::view-transition-group(root) { animation: none; }
+html[data-dispatch-opening]::view-transition-image-pair(root) { isolation: isolate; }
+html[data-dispatch-opening]::view-transition-old(root) {
+    animation: dispatch-recede 540ms ease-out both;
+    mix-blend-mode: normal;
+}
+html[data-dispatch-opening]::view-transition-new(root) {
+    animation: dispatch-aperture 540ms cubic-bezier(.22,.8,.2,1) both;
+    mix-blend-mode: normal;
+}
+html[data-dispatch-opening] .dispatch-issue-date { view-transition-name: dispatch-date; }
+html[data-dispatch-opening]::view-transition-group(dispatch-date) {
+    animation-duration: 540ms;
+    animation-timing-function: cubic-bezier(.22,.8,.2,1);
+    z-index: 2;
+}
+html[data-dispatch-opening]::view-transition-old(dispatch-date),
+html[data-dispatch-opening]::view-transition-new(dispatch-date) { height: 100%; object-fit: contain; }
+@keyframes dispatch-aperture {
+    0% { clip-path: inset(var(--dispatch-slit-top) var(--dispatch-slit-right) var(--dispatch-slit-bottom) var(--dispatch-slit-left)); filter: brightness(1.25); }
+    24% { clip-path: inset(var(--dispatch-slit-top) 0 var(--dispatch-slit-bottom) 0); }
+    100% { clip-path: inset(0); filter: brightness(1); }
+}
+@keyframes dispatch-recede {
+    to { opacity: .28; filter: blur(2px); }
+}
+/* Normal navigation and reduced-motion users get a brief, displacement-free arrival. */
+.dispatch-issue[data-arrival=true] { animation: dispatch-arrival 140ms ease-out both; }
+html[data-dispatch-opening] .dispatch-issue[data-arrival=true] { animation: none; }
+@keyframes dispatch-arrival { from { opacity: .75; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+    html[data-dispatch-opening]::view-transition-old(root),
+    html[data-dispatch-opening]::view-transition-new(root) { animation: none; }
+}
+
+/* One editorial motion system. Existing artist dialogs/world tears stay independent. */
+html[data-page-opening]::view-transition { pointer-events: none; }
+html[data-page-opening] .catalogue-masthead { view-transition-name: catalogue-navigation; }
+html[data-page-opening]::view-transition-group(catalogue-navigation) { animation: none; z-index: 3; }
+html[data-page-opening]::view-transition-old(catalogue-navigation) { animation: none; opacity: 0; }
+html[data-page-opening]::view-transition-new(catalogue-navigation) { animation: none; }
+html[data-page-opening]::view-transition-group(root) { animation: none; }
+html[data-page-opening]::view-transition-image-pair(root) { isolation: isolate; }
+html[data-page-opening=page]::view-transition-old(root),
+html[data-page-opening=story]::view-transition-old(root) {
+    animation: dispatch-recede 480ms ease-out both; mix-blend-mode: normal;
+}
+html[data-page-opening=page]::view-transition-new(root) {
+    animation: catalogue-page-open 400ms cubic-bezier(.22,.8,.2,1) both; mix-blend-mode: normal;
+}
+html[data-page-opening=story]::view-transition-new(root) {
+    animation: catalogue-story-open 560ms cubic-bezier(.22,.8,.2,1) both; mix-blend-mode: normal;
+}
+@keyframes catalogue-page-open {
+    from { clip-path: polygon(47% 0,51% 0,53% 100%,49% 100%); opacity: .6; }
+    to { clip-path: polygon(0 0,100% 0,100% 100%,0 100%); opacity: 1; }
+}
+@keyframes catalogue-story-open {
+    from { clip-path: polygon(0 49%,32% 51%,52% 46%,73% 50%,100% 48%,100% 51%,73% 53%,52% 49%,32% 54%,0 52%); filter: blur(2px); }
+    to { clip-path: polygon(0 0,32% 0,52% 0,73% 0,100% 0,100% 100%,73% 100%,52% 100%,32% 100%,0 100%); filter: blur(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    html[data-page-opening]::view-transition-new(root),
+    html[data-page-opening]::view-transition-old(root) { animation: none; }
+}

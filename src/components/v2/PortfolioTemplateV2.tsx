@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { SiteLink as Link } from '../SiteLink';
 
 // Interfaces (duplicated to maintain independence as requested)
 interface TemplateItem {

@@ -1,5 +1,5 @@
 import { DispatchSignal } from './DispatchSignal';
-import { Link } from 'react-router-dom';
+import { SiteLink as Link } from './SiteLink';
 import { useDispatches } from '../hooks/useDispatches';
 export function DispatchSection() {
     const post = useDispatches()[0];

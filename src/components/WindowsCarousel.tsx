@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { SiteLink as Link } from './SiteLink';
 import type { Artist } from '../hooks/useArtists';
 import { captionCovered, relativePosition, naturalWindowGeometry, wrap } from '../lib/windowsMotion';
 import { profileImage, profileAspect } from '../lib/profilePresentation';

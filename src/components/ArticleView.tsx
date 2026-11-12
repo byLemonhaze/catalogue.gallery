@@ -1,7 +1,8 @@
 import { useArticleBody } from '../hooks/useArticleBody';
 import { EditorialCard } from './ContentLabSection';
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { SiteLink as Link } from './SiteLink';
 import ReactMarkdown from 'react-markdown';
 import { useArtists } from '../hooks/useArtists';
 import { processArticleContent } from '../utils/linkUtils';
@@ -39,10 +40,10 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
         return (
             <div className="route-state">
                 <div className="text-center">
-                    <Seo meta={missingMeta(`/blog/${id}/`)} /><h1 className="text-4xl font-bold mb-4">404</h1>
+                    <Seo meta={missingMeta(`/stories/${id}/`)} /><h1 className="text-4xl font-bold mb-4">404</h1>
                     <p className="text-white/50 mb-8">Article not found.</p>
-                    <Link to="/blog" className="px-6 py-3 bg-[#0d0d0d] border border-white/10 hover:bg-[#121212] transition-colors">
-                        Explore Content Lab
+                    <Link to="/stories" className="px-6 py-3 bg-[#0d0d0d] border border-white/10 hover:bg-[#121212] transition-colors">
+                        Explore Stories
                     </Link>
                 </div>
             </div>
@@ -59,7 +60,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
                 <header className="mb-16 text-center border-b border-white/10 pb-10">
                     <div className="inline-block mb-6">
                         <span className="px-3 py-1 border border-white/20 text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">
-                            {article.type}
+                            {article.type === 'Interview' ? 'Interview' : 'Story'}
                         </span>
                     </div>
                     <h1 className="text-3xl md:text-5xl font-semibold tracking-tight mb-7 leading-tight text-white max-w-3xl mx-auto">{article.title}</h1>
@@ -67,7 +68,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
                     <div className="flex items-center justify-center gap-4 flex-wrap text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] border-t border-white/10 pt-6 max-w-md mx-auto relative">
                         <time dateTime={article.publishedAt}>{article.date}</time>
                         <span>•</span>
-                        <Link to="/info/" rel="author" className="hover:text-white underline-offset-4 hover:underline">{article.author}</Link>
+                        <Link to="/" rel="author" className="hover:text-white underline-offset-4 hover:underline">{article.author}</Link>
                         <span>•</span>
                         <button
                             onClick={handleCopy}
@@ -124,7 +125,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
                 {/* Footer Section */}
                 <hr className="my-20 border-white/10" />
                 <div className="flex items-center justify-between">
-                    <Link to="/blog" className="text-[10px] font-bold uppercase tracking-widest text-white/30 hover:text-white transition-colors">
+                    <Link to="/stories" className="text-[10px] font-bold uppercase tracking-widest text-white/30 hover:text-white transition-colors">
                         All stories
                     </Link>
                     <Link to="/" className="text-[10px] font-bold uppercase tracking-widest text-white/30 hover:text-white transition-colors">

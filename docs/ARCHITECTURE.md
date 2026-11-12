@@ -114,3 +114,7 @@ The independent HTML entries under `design/` and modules in `src/design/` are de
 - All webhook requests must pass shared-secret validation.
 - Content Lab endpoints are private and must require password header auth.
 - `/content-lab` should stay password-gated because it exposes draft-management and publishing controls.
+
+## Public navigation and Stories follow-up (2026-11-12)
+
+`SiteLink`, `pageOpening` and `RouteTransitionReady` coordinate native view transitions after route content commits, with a bounded wait and reduced-motion fallback. Profile/world links retain their portal behavior. Public editorial routes are `/stories/` and `/stories/:slug/`; `/blog/` is a permanent compatibility redirect. `/about/` replaces `/info/` with the same compatibility behavior. Both the Pages middleware and local React routing implement aliases. The private `/content-lab/` workspace is unchanged. See `NAVIGATION-AND-SHARING-2026-11-12.md` and `SEO.md` for sharing and release checks.

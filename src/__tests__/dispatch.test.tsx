@@ -40,7 +40,7 @@ it('makes all four issue images independently available for expansion',()=>{
 it('uses dispatch breadcrumbs and the actual cover for sharing',()=>{
     const meta=dispatchMeta(archive[0]);expect(meta.image).toBe(archive[0].coverUrl);
     expect(JSON.stringify(pageSchema(meta))).toContain('https://catalogue.gallery/dispatch/');
-    expect(JSON.stringify(pageSchema(meta))).not.toContain('/blog/');
+    expect(JSON.stringify(pageSchema(meta))).not.toContain('/stories/');
 });
 it('rejects executable or unrelated outbound URLs',()=>{
     expect(dispatchLink('javascript:alert(1)')).toBeUndefined();

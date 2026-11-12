@@ -1,5 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { SiteLink as Link } from './SiteLink';
+import { openDispatchIssue } from '../lib/dispatchOpening';
 import type { DispatchPost } from '../lib/dispatch';
 import { useMotionPreference } from '../hooks/useMotionPreference';
 
@@ -7,6 +9,7 @@ const pad = (value: number) => String(value).padStart(2, '0');
 
 export function DispatchSignal({ post }: { post: DispatchPost }) {
     const [reduced] = useMotionPreference();
+    const navigate = useNavigate();
     const [held, setHeld] = useState(false);
     const [visible, setVisible] = useState(true);
     const [frame, setFrame] = useState({ index: 0, letters: 0 });
@@ -48,6 +51,11 @@ export function DispatchSignal({ post }: { post: DispatchPost }) {
     }, [reduced,held,visible,story.headline,stories.length,index]);
 
     return <Link ref={surface} to={`/dispatch/${post.slug}/`} className="dispatch-signal dispatch-counterpoint" data-still={reduced || held}
+        onClick={event => {
+            if (!post.slug || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.defaultPrevented) return;
+            event.preventDefault();
+            openDispatchIssue(event.currentTarget, post.slug, () => navigate(`/dispatch/${post.slug}/`, {state: {dispatchArrival: true}}), reduced);
+        }}
         aria-label={`Read the edition: ${post.dateDisplay || post.title}`} aria-describedby={bulletinId}
         onPointerEnter={event=>{if(event.pointerType!=='touch')setHeld(true);}} onPointerLeave={()=>setHeld(false)}
         onFocus={()=>setHeld(true)} onBlur={()=>setHeld(false)}>

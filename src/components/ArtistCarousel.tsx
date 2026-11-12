@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ArtistCard } from './ArtistCard';
-import { Link } from 'react-router-dom';
+import { SiteLink as Link } from './SiteLink';
 import { moveGesture, gestureStep, type Gesture } from '../lib/carouselGesture';
 import { urlFor } from '../sanity/image';
 import type { Artist } from '../hooks/useArtists';

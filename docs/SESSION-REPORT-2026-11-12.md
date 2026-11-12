@@ -82,3 +82,37 @@ The corresponding HTML entries are in `design/`, React/CSS in `src/design/`. The
 “Aligned” means clean local main equals a freshly fetched `origin/main`, Cloudflare's successful production deployment names that same commit, and the custom domain serves the expected assets and Counterpoint UI. A feature-branch upload, PR merge alone, or matching cached remote-tracking ref is insufficient. See [the deployment runbook](DEPLOYMENT.md#aligned-release-from-a-protected-main-branch).
 
 When network operations finish, append observed identifiers/check results to the PR or release record. Keep this preparation checkpoint accurate rather than marking unobserved actions as complete.
+
+## Follow-up: Dispatch arrival prototype
+
+After the Counterpoint release preparation, the owner requested a local demonstration of a less abrupt editorial page opening. A distinct horizontal aperture now connects the homepage transcript to its edition, with a shared date and reduced-motion fallback. This is a **new, uncommitted local review**, separate from the approved Counterpoint release. See [prototype notes, screenshots and 213-test verification](DISPATCH-OPENING-PROTOTYPE-2026-11-12.md). At that checkpoint only Dispatch was changed; the later site-wide follow-up is recorded below.
+
+## Follow-up: Constellation identity selected
+
+The owner settled on logo direction 09, Constellation, and requested an immediate square export for X plus matching site icons/social thumbnails. Delivered a 2048 px PNG and SVG, replaced legacy logo assets, added SVG/PNG/ICO and device icons, wired a new 1200 × 630 branded default social card, and updated profile share-card generation/lookup to a new Constellation URL directory. Article imagery and historical Dispatch plates remain intact. See [identity masters, reproduction instructions and release status](BRAND-CONSTELLATION.md). This follow-up remains local pending release.
+
+### Follow-up: Stories naming
+
+Renamed the public Content Lab label to **Stories** in navigation, homepage editorial sections, footer, search, article links, and structured-data breadcrumbs. The initial label-only change was subsequently expanded at the owner’s request: `/stories/` is canonical, with permanent redirects from `/blog/`. Editorial history and stored author names remain unchanged. The private Content Lab workspace remains an internal tool.
+
+## Follow-up: site-wide motion, sharing and legacy route cleanup
+
+Owner feedback: extend Dispatch-like motion to the rest of the site, ensure all shared links have correct previews, rename Content Lab to Stories, remove Blog from the public experience and prevent the publisher byline from opening the old `/info/` surface.
+
+Implemented a shared internal link transition with a restrained page reveal, a torn horizontal article opening and the existing Dispatch aperture. The header stays steady. Artist profile/world motion remains separate; modified clicks, external links, anchor jumps and reduced motion keep appropriate behavior. Slow route imports skip the snapshot rather than freezing navigation.
+
+Moved the public story index/articles to `/stories/`, with server-side 301 redirects and local compatibility redirects from `/blog/`. Slugs stay identical, including `experimental-television-center-owego-paik-abe`. `/info/` redirects to `/about/`. The CATALOGUE byline now goes home. Removed public Blog type labels while retaining Interview tags and original CMS records.
+
+Added consistent share metadata, route-change cleanup and a full-build share audit. Browser checks confirmed the supplied old article URL, query/hash preservation, the byline destination, About compatibility, Stories at 390 px without horizontal overflow, and no captured console errors. Screenshots and implementation/release limitations are in [navigation and sharing notes](NAVIGATION-AND-SHARING-2026-11-12.md).
+
+This is local work; no new commit, push, merge or deployment occurred in this follow-up. Production alignment and live social recrawling remain release checks.
+
+Validation completed: `npm run verify` passed lint, TypeScript and **224 tests in 33 files**. Client and SSR compilation passed with `npm run build --ignore-scripts`; the existing >500 kB client-chunk warning remains (612.48 kB minified / 178.95 kB gzip). This compilation intentionally excludes the network-backed SEO postbuild and is not a release artifact.
+
+## Release authorization and network boundary
+
+The owner approved completing checks/documentation and committing, pushing, merging and deploying this follow-up. Release preparation moved to `feat/stories-constellation`. During final review, fixed an alias-host redirect edge case so asset filenames do not gain a trailing slash; added regression coverage. Added a reproducible release handoff and production redirect/metadata/build-entry smoke check.
+
+GitHub fetch/API failed DNS resolution in the agent shell. A fresh full build compiled the client and SSR successfully but failed postbuild while resolving tsx (`ENOTFOUND registry.npmjs.org`). This does not constitute a complete build, and no production upload was attempted with it. See [release checkpoint and remaining evidence](STORIES-CONSTELLATION-RELEASE.md). No claim of GitHub/main/production alignment is made at this checkpoint.
+
+Final local verification before commit: lint, TypeScript and **225 tests across 33 files passed**. Release shell syntax and production-check script syntax passed. The full network-backed build remains blocked as recorded above.

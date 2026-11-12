@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyPageMeta, articleMeta, canonicalUrl, profileBootstrapHtml, sitemapXml, staticPages } from '../lib/seo';
+import { absoluteImage, applyPageMeta, articleMeta, canonicalUrl, profileBootstrapHtml, sitemapXml, staticPages } from '../lib/seo';
 const template = '<html><head><title>Old</title><meta name="description" content="old"><meta property="twitter:card" content="summary"><link rel="canonical" href="https://wrong.test/"><meta name="viewport" content="width=device-width"></head><body><div id="root"></div></body></html>';
 describe('SEO document generation', () => {
     it('replaces conflicting server tags with a single adoptable head and safely escapes content', () => {
@@ -22,6 +22,16 @@ describe('SEO document generation', () => {
         expect(next.querySelector('meta[property="twitter:card"]')).toBeNull();
         expect(next.querySelector('meta[name="description"]')?.getAttribute('data-rh')).toBe('true');
     });
+    it('uses the new branded share card and logo while preserving editorial imagery', () => {
+        const generic = new DOMParser().parseFromString(applyPageMeta(template, staticPages[0]), 'text/html');
+        expect(generic.querySelector('meta[property="og:image"]')?.getAttribute('content')).toBe('https://catalogue.gallery/brand/catalogue-social-constellation.png');
+        expect(generic.querySelector('meta[name="twitter:image"]')?.getAttribute('content')).toBe('https://catalogue.gallery/brand/catalogue-social-constellation.png');
+        const graph = JSON.parse(generic.querySelector('#catalogue-schema')!.textContent!)['@graph'];
+        expect(graph.find((item: Record<string, string>) => item['@type'] === 'Organization').logo).toBe('https://catalogue.gallery/brand/catalogue-constellation-512.png');
+        const article = articleMeta({id:'art',title:'An artwork',excerpt:'Story',thumbnailUrl:'https://images.example/art.jpg'});
+        const editorial = new DOMParser().parseFromString(applyPageMeta(template, article), 'text/html');
+        expect(editorial.querySelector('meta[property="og:image"]')?.getAttribute('content')).toBe('https://images.example/art.jpg');
+    });
     it('uses production canonicals without tracking parameters or fragments', () => {
         expect(canonicalUrl('/artist/test?utm_source=x#art')).toBe('https://catalogue.gallery/artist/test/');
         expect(canonicalUrl('/')).toBe('https://catalogue.gallery/');
@@ -40,4 +50,11 @@ describe('SEO document generation', () => {
         expect(doc.querySelectorAll('lastmod')).toHaveLength(1);
         expect(() => sitemapXml([{ path: '/a/' }, { path: '/a' }])).toThrow('Duplicate');
     });
+});
+
+it('normalizes share image URLs and replaces unusable or legacy placeholders', () => {
+    const fallback = 'https://catalogue.gallery/brand/catalogue-social-constellation.png';
+    for (const image of [undefined,'',' /logo.png ','/favicon.png','javascript:alert(1)','data:image/png;base64,abc','https://user:secret@example.com/x.png']) expect(absoluteImage(image)).toBe(fallback);
+    expect(absoluteImage('//cdn.example/art.jpg')).toBe('https://cdn.example/art.jpg');
+    expect(absoluteImage('/art.jpg')).toBe('https://catalogue.gallery/art.jpg');
 });

@@ -9,9 +9,9 @@ import { publicInventory } from '../functions/_lib/publicContent';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = path.resolve(__dirname, '../dist');
 const TEMPLATE_PATH = path.join(DIST_DIR, 'index.html');
-const PROFILE_OG_DIR = path.join(DIST_DIR, 'og', 'profiles');
+const PROFILE_OG_DIR = path.join(DIST_DIR, 'og', 'profiles', 'constellation');
 const PUBLIC_DIR = path.resolve(__dirname, '../public');
-const LOGO_PATH = path.join(PUBLIC_DIR, 'logo.png');
+const LOGO_PATH = path.join(PUBLIC_DIR, 'brand', 'catalogue-constellation-512.png');
 type MetaProfile = { id: string; route: string; thumbnailUrl: string };
 function resolveLocalImagePath(imageUrl: string): string | null {
     try {
@@ -36,7 +36,7 @@ async function generateSplitProfileImage(
     const sharpImport = await import('sharp').catch(() => null);
     if (!sharpImport?.default) {
         console.warn('Sharp is unavailable. Falling back to logo-only image for profile OG tags.');
-        return `${SITE_ORIGIN}/logo.png`;
+        return `${SITE_ORIGIN}/brand/catalogue-constellation-512.png`;
     }
     const sharp = sharpImport.default;
 
@@ -48,13 +48,13 @@ async function generateSplitProfileImage(
     const logoSource = fs.existsSync(logoPath)
         ? fs.readFileSync(logoPath)
         : await sharp({
-            create: { width: 500, height: 500, channels: 4, background: '#ffffff' },
+            create: { width: 500, height: 500, channels: 4, background: '#131315' },
         }).png().toBuffer();
 
     const leftPane = await sharp(logoSource)
         .resize(splitX, height, {
             fit: 'contain',
-            background: '#ffffff',
+            background: '#131315',
         })
         .png()
         .toBuffer();
@@ -81,11 +81,11 @@ async function generateSplitProfileImage(
         .toBuffer();
 
     const divider = await sharp({
-        create: { width: 2, height, channels: 4, background: '#e5e5e5' },
+        create: { width: 2, height, channels: 4, background: '#39393f' },
     }).png().toBuffer();
 
     await sharp({
-        create: { width, height, channels: 4, background: '#000000' },
+        create: { width, height, channels: 4, background: '#131315' },
     })
         .composite([
             { input: leftPane, left: 0, top: 0 },
@@ -95,7 +95,7 @@ async function generateSplitProfileImage(
         .png()
         .toFile(outputPath);
 
-    return `${SITE_ORIGIN}/og/profiles/${outputFilename}`;
+    return `${SITE_ORIGIN}/og/profiles/constellation/${outputFilename}`;
 }
 
 async function generate() {
@@ -124,7 +124,7 @@ async function generate() {
     async function writeProfile(profile: (typeof profiles)[number]) {
         // Keep the existing branded share-card assets; image failures must not remove a page.
         let image = profile.thumbnailUrl;
-        try { image = await generateSplitProfileImage({ id: profile.id, route: profile.type, thumbnailUrl: profile.thumbnailUrl || `${SITE_ORIGIN}/logo.png` }); }
+        try { image = await generateSplitProfileImage({ id: profile.id, route: profile.type, thumbnailUrl: profile.thumbnailUrl || `${SITE_ORIGIN}/brand/catalogue-constellation-512.png` }); }
         catch (error) { console.warn(`Using original thumbnail for ${profile.id}:`, error); }
         await writePage(profileMeta({ ...profile, image }), async html => renderPublicDocument(profileBootstrapHtml(html, { ...profile, seoImageUrl: image }), profileMeta(profile).path, publicData));
     }

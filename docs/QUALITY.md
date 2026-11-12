@@ -82,3 +82,7 @@ For matched performance measurements, retain the audit's six artists, throttle s
 ## Counterpoint Dispatch regression coverage
 
 The approved transcript is covered by reveal/advance/loop tests, correct issue linking, focus hold/resume, reduced motion and missing-item fallback. The 12 November checkpoint passed 209 tests across 30 files plus lint/typecheck. Desktop and 360 px browser review checked the neutral surface, counter spacing and horizontal overflow. The two development-only comparison pages are preserved with screenshots in [the session report](SESSION-REPORT-2026-11-12.md); they are excluded from production build entries.
+
+## Navigation and sharing follow-up (2026-11-12)
+
+New coverage exercises transition fallback/readiness/cleanup, ordinary and modified links, legacy-link normalization, Stories and About redirects, updated byline destination, optional metadata cleanup, and the build-time share audit's missing-image failure. Browser evidence for desktop and 390 px Stories is in `docs/review/navigation-sharing/`. Full network-backed SEO inventory and remote-image validation remain release-environment checks; client/SSR compilation alone is not a deployable build.

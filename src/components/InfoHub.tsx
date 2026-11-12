@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { SiteLink as Link } from './SiteLink';
 import { CatalogueFooterLinks } from './CatalogueFooterLinks';
 
 interface InfoHubProps {

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { afterEach, expect, it, vi } from 'vitest';
 vi.mock('../../functions/_lib/renderPublic', () => ({ publicPageData: async () => ({}), renderPublicDocument: async (html: string) => html }));
-import { onRequestGet as article } from '../../functions/blog/[slug]';
+import { onRequestGet as article } from '../../functions/stories/[slug]';
 import { onRequestGet as artist } from '../../functions/artist/[slug]';
 import { onRequestGet as gallery } from '../../functions/gallery/[slug]';
 import { onRequestGet as dispatch } from '../../functions/dispatch/[slug]';
@@ -27,7 +27,7 @@ it('serves newly published profiles with correct metadata and bootstrap without 
 });
 it('returns an actual noindex 404 when an article has been removed', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ result: null })));
-    const response = await article(context('/blog/removed/', 'removed'));
+    const response = await article(context('/stories/removed/', 'removed'));
     expect(response.status).toBe(404); expect(response.headers.get('X-Robots-Tag')).toContain('noindex');
     expect(await response.text()).toContain('<h1>Page Not Found');
 });
@@ -42,27 +42,27 @@ it('redirects wrong-type aliases to the correct profile while preserving trackin
 });
 it('distinguishes a CMS failure from a nonexistent article', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
-    const response = await article(context('/blog/new-story/', 'new-story'));
+    const response = await article(context('/stories/new-story/', 'new-story'));
     expect(response.status).toBe(503); expect(response.headers.get('Cache-Control')).toBe('no-store'); expect(response.headers.get('Retry-After')).toBe('60');
 });
 it('uses a published article and normalizes its slash URL', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ result: post })));
-    const redirect = await article(context('/blog/new-story', 'new-story')); expect(redirect.status).toBe(301);
+    const redirect = await article(context('/stories/new-story', 'new-story')); expect(redirect.status).toBe(301);
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ result: post })));
-    const response = await article(context('/blog/new-story/', 'new-story')); const html = await response.text();
+    const response = await article(context('/stories/new-story/', 'new-story')); const html = await response.text();
     expect(response.status).toBe(200); expect(html).toContain('content="article"'); expect(html).toContain('New story | CATALOGUE');
 });
 it('does not canonicalize preview pages to the preview host', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ result: post })));
-    const response = await article({ ...context('/blog/new-story/', 'new-story'), request: new Request('https://preview.pages.dev/blog/new-story/') });
+    const response = await article({ ...context('/stories/new-story/', 'new-story'), request: new Request('https://preview.pages.dev/stories/new-story/') });
     expect(response.headers.get('X-Robots-Tag')).toContain('noindex');
-    expect(await response.text()).toContain('href="https://catalogue.gallery/blog/new-story/"');
+    expect(await response.text()).toContain('href="https://catalogue.gallery/stories/new-story/"');
 });
 it('refreshes sitemap inventory and excludes the editorial workspace', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(Response.json({ result: [profile] })).mockResolvedValueOnce(Response.json({ result: [post] })).mockResolvedValueOnce(Response.json({ result: [] })));
     const response = await sitemap({ env }); const xml = await response.text();
     expect(response.status).toBe(200); expect(response.headers.get('Content-Type')).toContain('application/xml');
-    expect(xml).toContain('/artist/new-artist/'); expect(xml).toContain('/blog/new-story/'); expect(xml).not.toContain('content-lab'); expect(xml).toContain('/dispatch/2026-11-11/');
+    expect(xml).toContain('/artist/new-artist/'); expect(xml).toContain('/stories/new-story/'); expect(xml).not.toContain('content-lab'); expect(xml).toContain('/dispatch/2026-11-11/');
 });
 it('does not silently serve a truncated sitemap when the CMS is unavailable', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
