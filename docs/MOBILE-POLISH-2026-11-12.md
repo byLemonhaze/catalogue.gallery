@@ -1,5 +1,7 @@
 # Windows mobile polish — review record
 
+> **Historical checkpoint.** This record preserves the decisions, terminology, screenshots and verification status at that stage. Pending/local-only release statements and old commands are not current deployment instructions. Use the [documentation index](README.md), [current publishing guide](EDITORIAL-PUBLISHING.md) and [reconciled audit](DOCUMENTATION-AUDIT-2026-11-12.md) for current context.
+
 **Follow-up:** The owner has since approved the mobile experience. The original mobile build and push succeeded in their terminal and PR #53 was opened. Typography and automatic profile-preview work, updated screenshots, validation and outstanding limits are recorded in [the finishing-pass report](TYPOGRAPHY-AND-REVEAL-2026-11-12.md). The entries below preserve the original checkpoint.
 
 12 November 2026 UTC (11 November in Montréal). Branch: `feat/mobile-polish`, based on the merged Windows release `90c1f888be96597be7aadcddc729380d1c488f96`.

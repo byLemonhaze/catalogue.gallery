@@ -1,5 +1,7 @@
 # Windows redesign — review revision, 11 November 2026
 
+> **Historical checkpoint.** This record preserves the decisions, terminology, screenshots and verification status at that stage. Pending/local-only release statements and old commands are not current deployment instructions. Use the [documentation index](README.md), [current publishing guide](EDITORIAL-PUBLISHING.md) and [reconciled audit](DOCUMENTATION-AUDIT-2026-11-12.md) for current context.
+
 Branch: `feat/windows-redesign`. Local review: http://127.0.0.1:5174/ (the user’s running Vite server).
 
 These are chronological notes; earlier status statements describe their own review stage. The full build and branch push were subsequently completed and PR #52 opened. See the [session trajectory and release ledger](SESSION-TRAJECTORY-2026-11-11.md) for the consolidated decisions, final direction and evidence. No production deployment had been observed at that checkpoint.

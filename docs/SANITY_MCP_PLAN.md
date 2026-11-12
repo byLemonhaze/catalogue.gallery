@@ -1,5 +1,7 @@
 # Sanity MCP Plan
 
+> **Proposal, not deployed configuration.** This earlier MCP exploration does not describe the current external Grok bots → Sanity workflow. See [Editorial publishing](EDITORIAL-PUBLISHING.md) and [Architecture](ARCHITECTURE.md). Legacy editor integration suggestions below remain unimplemented proposals, not required setup.
+
 ## Goal
 
 Add Sanity-powered agent access to `catalogue.gallery` without weakening the current privacy and review workflow.
@@ -9,7 +11,7 @@ Add Sanity-powered agent access to `catalogue.gallery` without weakening the cur
 - Sanity project: `ebj9kqfo`
 - Dataset: `production`
 - Studio path: `catalogue.gallery/studio/`
-- Document types: `artist`, `gallery`, `collector`, `post`
+- Types considered by this original proposal: `artist`, `gallery`, `collector`, `post`. Current schemas also include `dispatch` and `homepageEditorial`; the proposal below has not been expanded into an implemented MCP integration.
 - Review actions live in Studio and currently drive approval/decline publish flows plus webhook-triggered emails
 
 ## Important Constraint

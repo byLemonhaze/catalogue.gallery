@@ -18,7 +18,7 @@ npm install
 npm run build
 ```
 
-The production build command is `npm run build`, which runs TypeScript compilation and the Vite build pipeline.
+The production build command is `npm run build`: TypeScript compilation, Vite client build, Vite SSR bundle, then the npm postbuild hook generates SEO pages and runs the local share audit. `npm run audit:shares -- --remote` additionally validates remote images. Network-dependent SEO failure means the complete build failed even if client/SSR compilation passed.
 
 ## Automated Test Suite
 
@@ -81,8 +81,12 @@ For matched performance measurements, retain the audit's six artists, throttle s
 
 ## Counterpoint Dispatch regression coverage
 
-The approved transcript is covered by reveal/advance/loop tests, correct issue linking, focus hold/resume, reduced motion and missing-item fallback. The 12 November checkpoint passed 209 tests across 30 files plus lint/typecheck. Desktop and 360 px browser review checked the neutral surface, counter spacing and horizontal overflow. The two development-only comparison pages are preserved with screenshots in [the session report](SESSION-REPORT-2026-11-12.md); they are excluded from production build entries.
+The approved transcript is covered by reveal/advance/loop tests, correct issue linking, focus hold/resume, reduced motion and missing-item fallback. The historical Counterpoint checkpoint on 12 November passed 209 tests across 30 files plus lint/typecheck; this is not the current suite total. Desktop and 360 px browser review checked the neutral surface, counter spacing and horizontal overflow. The two development-only comparison pages are preserved with screenshots in [the session report](SESSION-REPORT-2026-11-12.md); they are excluded from production build entries.
 
 ## Navigation and sharing follow-up (2026-11-12)
 
 New coverage exercises transition fallback/readiness/cleanup, ordinary and modified links, legacy-link normalization, Stories and About redirects, updated byline destination, optional metadata cleanup, and the build-time share audit's missing-image failure. Browser evidence for desktop and 390 px Stories is in `docs/review/navigation-sharing/`. Full network-backed SEO inventory and remote-image validation remain release-environment checks; client/SSR compilation alone is not a deployable build.
+
+## Documentation reconciliation checkpoint (2026-11-12)
+
+The documentation-only pass ran `npm run verify`: lint, typecheck and 225 tests across 33 files passed. Client and SSR compilation passed; the complete build stopped at npm DNS resolution in the SEO postbuild step. This is not a successful deployable build. The [audit record](DOCUMENTATION-AUDIT-2026-11-12.md) records link checks, source evidence and remaining external verification. Historical counts elsewhere describe their original checkpoints.

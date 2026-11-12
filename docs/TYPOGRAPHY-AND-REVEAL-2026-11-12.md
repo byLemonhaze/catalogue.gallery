@@ -1,5 +1,7 @@
 # Catalogue finishing pass — typography and automatic world invitation
 
+> **Historical checkpoint.** This record preserves the decisions, terminology, screenshots and verification status at that stage. Pending/local-only release statements and old commands are not current deployment instructions. Use the [documentation index](README.md), [current publishing guide](EDITORIAL-PUBLISHING.md) and [reconciled audit](DOCUMENTATION-AUDIT-2026-11-12.md) for current context.
+
 Branch: `feat/mobile-polish`. This follows the mobile pass in PR #53. The owner said “mobile is good now” and asked to finish the remaining items. That is recorded as owner acceptance, not a claim that the agent tested physical Safari devices.
 
 ## Completed

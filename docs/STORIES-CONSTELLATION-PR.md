@@ -1,5 +1,7 @@
 Stories now has a consistent public identity and URL structure. Internal navigation uses a shared motion system, and social previews use the selected Constellation identity while preserving article and Dispatch imagery.
 
+> **Historical checkpoint.** This record preserves the decisions, terminology, screenshots and verification status at that stage. Pending/local-only release statements and old commands are not current deployment instructions. Use the [documentation index](README.md), [current publishing guide](EDITORIAL-PUBLISHING.md) and [reconciled audit](DOCUMENTATION-AUDIT-2026-11-12.md) for current context.
+
 - Rename public Content Lab/Blog surfaces to Stories; move index and article canonicals to `/stories/` with permanent `/blog/` redirects preserving slugs and queries.
 - Canonicalize About at `/about/`, redirect `/info/`, and return the CATALOGUE publisher byline to the homepage.
 - Add page/story transitions alongside the Dispatch aperture, retaining existing artist portals, reduced motion, ordinary link behavior and bounded lazy-route waits.

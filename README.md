@@ -19,7 +19,21 @@ The second-generation experience brings together the Windows WebGL carousel, a d
 
 [0.2 release notes](docs/releases/v0.2.0.md) · [Latest published release](https://github.com/byLemonhaze/catalogue.gallery/releases/latest) · [Changelog](CHANGELOG.md)
 
-![Stories in the Catalogue dark visual system](docs/review/navigation-sharing/stories-desktop.png)
+## Experience in pictures
+
+**Stories — desktop.** The current public editorial naming and dark visual system.
+
+![Stories desktop page with Syne headings and dark editorial layout](docs/review/navigation-sharing/stories-desktop.png)
+
+**Windows + Counterpoint — design checkpoint, 12 November.** The approved carousel and transcript direction. This capture predates the navigation rename from Content Lab to Stories; it is retained as design evidence, not a claim about today's live content.
+
+![Windows artist carousel beside the lilac Counterpoint daily transcript](docs/review/dispatch-studies-02/home-counterpoint.png)
+
+**Stories — mobile, 390 px.** Real narrow-viewport capture from the navigation/sharing review.
+
+<img src="docs/review/navigation-sharing/stories-390.png" alt="Stories archive at a 390 pixel viewport" width="300" />
+
+These are actual review captures. Static images cannot demonstrate the warp, automatic profile reveal or page transitions: [try the live experience](https://catalogue.gallery), or inspect the [visual evidence index](docs/README.md#visual-evidence). A current motion recording remains a follow-up.
 
 ## Stack
 
@@ -31,6 +45,8 @@ The second-generation experience brings together the Windows WebGL carousel, a d
 - Stories: Sanity `post` documents (served at `/stories/:slug/`; legacy `/blog/` links redirect)
 
 ## Engineering Docs
+
+Start with the [documentation index](docs/README.md), [current publishing guide](docs/EDITORIAL-PUBLISHING.md) and [documentation audit](docs/DOCUMENTATION-AUDIT-2026-11-12.md). Current operations, historical design evidence and future proposals are separated there.
 
 - Architecture: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)
 - API contract: [`docs/API.md`](./docs/API.md)
@@ -78,19 +94,19 @@ Repository documentation, issues, and pull request discussions are maintained in
 
 1. Install dependencies:
    - `npm install`
-   - `cd studio && npm install`
+   - `(cd studio && npm install)`
 2. Create local env file:
    - `cp .env.example .env.local`
 3. Run app:
    - `npm run dev`
 4. Run Sanity Studio:
-   - `cd studio && npm run dev`
+   - `(cd studio && npm run dev)`
 
 ## Environment Variables
 
 Use `.env.local` for local secrets. Never commit `.env` or `.env.local`.
 
-Required app/server env vars:
+App/server configuration (see [deployment](docs/DEPLOYMENT.md) for environment-specific setup; these are separate from external bot credentials):
 
 - `VITE_SANITY_PROJECT_ID`
 - `VITE_SANITY_DATASET`
@@ -140,73 +156,20 @@ Cloudflare binding (not an env var):
    - `binding = "CONTACTS_DB"`
    - `database_name = "catalogue-private-contacts"`
    - `database_id = "<your-database-id>"`
-3. Apply schema:
+3. Apply both application/review migrations in order:
    - `npx wrangler d1 execute catalogue-private-contacts --remote --file=./migrations/001_submission_contacts.sql`
+   - `npx wrangler d1 execute catalogue-private-contacts --remote --file=./migrations/002_contact_notifications.sql`
 4. Deploy app again so Functions can use the binding.
 5. Migrate old encrypted emails from Sanity into D1 and remove legacy `email` fields:
    - `cd studio && npm run migrate:contacts:d1`
 
-## Editorial / Blog Flow
+## Editorial publishing
 
-1. Blog/interview/article entries live in Sanity as `post` documents.
-2. Keep slugs stable to preserve URLs: `/blog/:slug`.
-3. `npm run build` runs `postbuild`, which generates static meta pages in `dist/blog/<slug>/index.html`.
-4. Social OG/Twitter images are sourced from Sanity `post.thumbnail` (with legacy fallback).
-5. In-article entity linking still auto-links published names to profile routes.
+**External Grok bots → Sanity → Catalogue.** Stories uses Sanity `post` documents; daily Dispatch uses `dispatch` documents. Production Functions read published content at request time, so valid new editions and Stories appear without rebuilding the frontend. Allow for the five-minute public HTML cache and reload already-open tabs; the page does not continuously poll for editions.
 
-### Migrate Existing Local Articles to Sanity
+The bots run outside this repository. Their scheduler, approval records and X publication ledger are separate operational concerns. The website supplies schemas and display surfaces. See the [current publishing guide](docs/EDITORIAL-PUBLISHING.md) for required fields, approval and timing rules, and [Dispatch's site-first publication contract](docs/DISPATCH-PUBLISHING.md).
 
-Run once (idempotent by `createOrReplace` on `post-<slug>` ids):
-
-```bash
-npm run migrate:articles
-```
-
-This imports current local articles using the same slug ids, preserving existing `/blog/...` links.
-
-## Content Lab
-
-`/content-lab` is the password-protected editorial workspace for draft generation, review, and publishing.
-
-**Flow:**
-
-1. Select an artist from the directory (or generate for a random one)
-2. Optionally hit **Research** to scrape the artist's website and cache a factual bio in Sanity (`contentBio` field)
-3. Hit **Generate**:
-   - `Server key` uses the deployment's `GROK_API_KEY`
-   - `Bring your own key` keeps an xAI key in browser session storage only and calls xAI directly from the browser
-4. Review the draft, edit inline, then publish directly to Sanity
-
-**Content types:**
-
-| Type | Voice | Length |
-|------|-------|--------|
-| Article | Cultural criticism, third person, structured sections | 700–950 words |
-| Blog | Short editorial, first person, one strong observation | 250–380 words |
-| Wildcard | Deep-dive on a collection, concept, or moment | 450–700 words |
-
-**API endpoints** (`functions/api/`):
-
-| Route | Method | Purpose |
-|-------|--------|---------|
-| `/api/artists` | `GET` | Public, read-only directory feed for published profiles |
-| `/api/client-errors` | `POST` | Collects browser runtime errors into Cloudflare logs |
-| `/api/content-generate` | `POST` | Grok-4 with live web + X search → drafts → D1 |
-| `/api/content-scrape` | `POST` | Scrapes artist website → Claude Haiku summarizes → saves to Sanity `contentBio` |
-| `/api/content-publish` | `POST` | Publishes approved draft from D1 → Sanity `post` |
-| `/api/content-drafts` | `GET` | Lists drafts stored in D1 |
-| `/api/content-drafts` | `POST` | Creates or updates draft records in D1 |
-| `/api/content-drafts` | `DELETE` | Deletes a draft |
-| `/api/content-artists` | `GET` | Lists published artists/galleries for Content Lab picker |
-| `/api/content-upload-image` | `POST` | Uploads image assets to Sanity for draft publishing |
-
-Full endpoint details: [`docs/API.md`](./docs/API.md)
-
-**Additional env vars required:**
-
-- `GROK_API_KEY` — xAI API key (Grok-4, primary generation model)
-- `CLAUDE_API_KEY` — Anthropic API key (Claude Haiku, used for website summarization only)
-- `CONTENT_LAB_PASSWORD` — auth password for the private `/content-lab` route
+The old in-repository Content Lab editor and its model integrations remain in source but are **not the current publishing workflow**. Their routes, dependencies and migration tools are documented in the [legacy inventory](docs/legacy/CONTENT-LAB.md). Do not run the old article migration as a routine content refresh.
 
 ## Resend + apply@ Reply-To (Recommended)
 
@@ -238,19 +201,14 @@ npm run test:watch # Watch mode
 npm run verify    # Lint + typecheck + tests
 ```
 
-19 unit tests across 3 suites:
-- `linkUtils.ts` — entity linking, double-link prevention, sort-by-length correctness
-- `useArtists` hook — loading state, Sanity mapping, fetch error paths
-- `useArticles` hook — post mapping, legacy fallback, thumbnail normalization
+Coverage includes discovery gestures, profiles/world entry, directory/search, editorial data, navigation/redirects, application validation, embedding checks, metadata and sharing audits. Use the test runner's output for the current total; dated verification evidence is recorded in [Quality](docs/QUALITY.md) and session reports.
 
 Verification policy, static analysis, and the new-functionality test policy are documented in [`docs/QUALITY.md`](./docs/QUALITY.md).
 
 ## Useful Scripts
 
 - Build app: `npm run build`
-- Migrate local article archive to Sanity posts: `npm run migrate:articles`
-- Migrate old artists: `npx -y tsx scripts/migrate-artists.ts`
-- Purge artists: `npx -y tsx scripts/purge-artists.ts`
+- Audit generated share previews: `npm run audit:shares` (add `-- --remote` to check remote images)
 - Move legacy encrypted contacts into D1: `cd studio && npm run migrate:contacts:d1`
 
 ## CI + Branch Protection

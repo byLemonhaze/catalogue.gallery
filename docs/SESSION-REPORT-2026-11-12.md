@@ -1,5 +1,7 @@
 # Counterpoint Dispatch release and session record
 
+> **Historical checkpoint.** This record preserves the decisions, terminology, screenshots and verification status at that stage. Pending/local-only release statements and old commands are not current deployment instructions. Use the [documentation index](README.md), [current publishing guide](EDITORIAL-PUBLISHING.md) and [reconciled audit](DOCUMENTATION-AUDIT-2026-11-12.md) for current context.
+
 Date: 12 November 2026, America/Toronto. This report covers the late-night Dispatch work following the 11 November Windows/mobile session. Earlier evidence is linked below rather than rewritten as if every step happened today.
 
 **Approved outcome:** the owner selected Counterpoint, reviewed it on the local homepage, and explicitly authorized committing, pushing, merging to main and deploying. The final Dispatch surface uses the existing dark background, a single vertical title, a neutral story number and lilac word reveals. It does not repeat a static news list underneath the animation.
