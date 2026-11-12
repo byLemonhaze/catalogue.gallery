@@ -6,6 +6,10 @@ The project now uses [Semantic Versioning](https://semver.org/) for public relea
 
 ## [Unreleased]
 
+- Resolve PR #61’s three CodeFactor complexity findings by separating carousel animation/input and GPU rendering responsibilities, preserving the approved motion and styling. Include the local handoff, actual findings and browser/verification evidence.
+
+- Owner-approved motion polish: curved carousel captions and matching image hit areas; alternating page/story reveal axes; coordinated artwork/GPU/iframe readiness; continuous fluid scrubbing and development-only drag-feel comparisons; fresh discovery order per document with in-app selection/pause memory. Approved for publication; see the [pass record](docs/MOTION-INTERACTION-PASS-2026-11-12.md).
+- Expand the README into a visual platform overview and add a twelve-screen tour covering discovery, profile previews, Stories, Dispatch, directory/search, world fallback, About and Apply. Reuse unmodified review captures with explicit provenance and code/test references; no runtime changes.
 - Reconcile current documentation around external Grok bots → Sanity publishing, distinguish the retained legacy editor, clarify cache/date/retraction behavior, and add a visual README gallery plus indexed session history. Documentation only; no runtime or bot configuration changes.
 
 ## [0.2.0] - 2026-11-12

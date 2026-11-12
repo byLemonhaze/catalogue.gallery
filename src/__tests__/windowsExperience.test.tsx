@@ -8,11 +8,12 @@ const data: PublicPageData = { artists: [{ id: 'test-artist', type: 'artist', na
 function LocationProbe() { const location = useLocation(); return <output data-testid="route">{location.pathname}</output>; }
 function setup(path = '/') { return render(<HelmetProvider><PublicPageContext.Provider value={data}><MemoryRouter initialEntries={[path]}><AppContent /><LocationProbe /></MemoryRouter></PublicPageContext.Provider></HelmetProvider>); }
 beforeEach(() => {
+    vi.spyOn(Math, 'random').mockReturnValue(.999999);
     vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() })));
     HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
     HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
 });
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 it('keeps discovery mounted through profile and world, then returns to its original route', async () => {
     setup();
     const carousel = screen.getByRole('region', { name: 'Discover artist worlds' });

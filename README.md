@@ -6,7 +6,13 @@
 
 CATALOGUE is a publication and discovery platform that takes visitors into artists’ and galleries’ own websites. Discover a practice through the moving Windows carousel, open a profile, then enter the artist’s world. Read longer editorial work in **Stories** and follow the daily news through **Dispatch**.
 
-[Explore Catalogue](https://catalogue.gallery) · [Browse the directory](https://catalogue.gallery/artists/) · [Read Stories](https://catalogue.gallery/stories/) · [Daily Dispatch](https://catalogue.gallery/dispatch/)
+[Explore Catalogue](https://catalogue.gallery) · [Visual tour](docs/presentation/README.md) · [Browse the directory](https://catalogue.gallery/artists/) · [Read Stories](https://catalogue.gallery/stories/) · [Daily Dispatch](https://catalogue.gallery/dispatch/)
+
+![Windows artist carousel beside the Counterpoint daily news transcript on Catalogue's dark homepage](docs/review/dispatch-studies-02/home-counterpoint.png)
+
+*Discovery in motion, daily news alongside it. The Windows stage preserves individual image proportions; Counterpoint reveals the day's headlines in lilac text.*
+
+Screenshots below are real November review captures. Some precede the Content Lab → Stories rename; they document the selected layouts, not today's live content. [Capture record and full platform tour](docs/presentation/README.md#capture-record).
 
 ## Catalogue 0.2
 
@@ -21,19 +27,26 @@ The second-generation experience brings together the Windows WebGL carousel, a d
 
 ## Experience in pictures
 
-**Stories — desktop.** The current public editorial naming and dark visual system.
+| Meet an artist | Read the context |
+| --- | --- |
+| ![Lars Wander profile with his real website revealed inside the image surface and an Enter world action](docs/review/typography-polish/profile-auto-reveal-desktop.png) | ![Stories desktop archive with large display typography and two editorial images](docs/review/navigation-sharing/stories-desktop.png) |
+| A profile introduces the practice. Its miniature website reveals automatically before the visitor chooses to enter. | Stories gives artists, works and ideas a longer editorial treatment. |
 
-![Stories desktop page with Syne headings and dark editorial layout](docs/review/navigation-sharing/stories-desktop.png)
+**Dispatch — an edition to explore.** The daily news opens into an image-led spread, with the original publishing plates preserved.
 
-**Windows + Counterpoint — design checkpoint, 12 November.** The approved carousel and transcript direction. This capture predates the navigation rename from Content Lab to Stories; it is retained as design evidence, not a claim about today's live content.
+![Daily Dispatch edition with its date, oversized heading and a spread of original illustrated news plates](docs/review/typography-polish/edition-after-desktop.png)
 
-![Windows artist carousel beside the lilac Counterpoint daily transcript](docs/review/dispatch-studies-02/home-counterpoint.png)
+**On smaller screens.** Search and sorting stay within reach; editions and Stories have room to read; Apply follows the same dark system.
 
-**Stories — mobile, 390 px.** Real narrow-viewport capture from the navigation/sharing review.
+| Directory · 390 px | Dispatch archive · 390 px |
+| --- | --- |
+| <img src="docs/review/typography-polish/directory-after-390.png" alt="Mobile directory with search, filters, sort, Shuffle and two artist cards" width="300" /> | <img src="docs/review/typography-polish/dispatch-after-390.png" alt="Mobile Dispatch archive with date search and a full-width edition collage" width="300" /> |
 
-<img src="docs/review/navigation-sharing/stories-390.png" alt="Stories archive at a 390 pixel viewport" width="300" />
+| Stories · 390 px | Apply · 360 px |
+| --- | --- |
+| <img src="docs/review/navigation-sharing/stories-390.png" alt="Mobile Stories archive with introduction and lead story image" width="300" /> | <img src="docs/review/typography-polish/apply-after-360.png" alt="Mobile Apply page with artist and gallery choices and listing requirements" width="277" /> |
 
-These are actual review captures. Static images cannot demonstrate the warp, automatic profile reveal or page transitions: [try the live experience](https://catalogue.gallery), or inspect the [visual evidence index](docs/README.md#visual-evidence). A current motion recording remains a follow-up.
+The [full visual tour](docs/presentation/README.md) also covers the article reader, unified search, About and the movable world exit/fallback, with source and regression-test references. These are responsive browser captures, not physical-device certification. For the carousel deformation, automatic portal reveal and page transitions, [try the live experience](https://catalogue.gallery); a current motion recording remains a follow-up.
 
 ## Stack
 

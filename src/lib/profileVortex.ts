@@ -21,7 +21,7 @@ void main(){
  alpha=mix(1.,alpha,smoothstep(0.,.045,t));
  gl_FragColor=vec4(colour.rgb,alpha);
 }`;
-export function createProfileVortex(canvas: HTMLCanvasElement, src: string) {
+export function createProfileVortex(canvas: HTMLCanvasElement, src: string, onState?: (state: 'ready' | 'fallback') => void) {
     const gl=canvas.getContext('webgl',{alpha:true,antialias:true,premultipliedAlpha:false});
     if(!gl) return null;
     const shaders: WebGLShader[]=[];
@@ -41,7 +41,7 @@ export function createProfileVortex(canvas: HTMLCanvasElement, src: string) {
     gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
     const cover=gl.getUniformLocation(program,'uCover'),progress=gl.getUniformLocation(program,'uProgress');
-    let disposed=false,ready=false,raf=0,value=0,target=0,start=0,from=0;
+    let disposed=false,ready=false,raf=0,value=0,target=0,start=0,from=0, announced=false;
     const image=new Image();image.crossOrigin='anonymous';
     function draw(time:number){
         raf=0;if(disposed || !ready || document.hidden)return;
@@ -51,16 +51,17 @@ export function createProfileVortex(canvas: HTMLCanvasElement, src: string) {
         const ratio=(rect.width/rect.height)/(image.width/image.height);
         gl!.uniform2f(cover,Math.min(1,ratio),Math.min(1,1/ratio));gl!.uniform1f(progress,value);gl!.drawArrays(gl!.TRIANGLES,0,6);
         canvas.dataset.ready='true';
+        if (!announced) { announced=true; onState?.('ready'); }
         if(start)raf=requestAnimationFrame(draw);
     }
     function wake(){if(!raf && !disposed)raf=requestAnimationFrame(draw);}
-    image.onload=()=>{if(disposed)return;try{gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);ready=true;if(start)start=performance.now();wake();}catch{canvas.dataset.ready='false';}};
-    image.onerror=()=>{if(!disposed)canvas.dataset.ready='false';};
+    image.onload=()=>{if(disposed)return;try{gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);ready=true;if(start)start=performance.now();wake();}catch{canvas.dataset.ready='false';onState?.('fallback');}};
+    image.onerror=()=>{if(!disposed){canvas.dataset.ready='false';onState?.('fallback');}};
     const url=new URL(src,window.location.href);
     image.src=url.hostname==='cdn.sanity.io' && url.pathname.startsWith('/images/ebj9kqfo/production/') ? '/media/artist?asset='+encodeURIComponent(url.pathname.split('/').pop()!)+'&w=1200' : url.href;
     const observer=new ResizeObserver(wake);observer.observe(canvas);
     const onVisibility=()=>{if(!document.hidden)wake();};document.addEventListener('visibilitychange',onVisibility);
-    const onLoss=(event:Event)=>{event.preventDefault();canvas.dataset.ready='false';};canvas.addEventListener('webglcontextlost',onLoss);
+    const onLoss=(event:Event)=>{event.preventDefault();ready=false;cancelAnimationFrame(raf);raf=0;canvas.dataset.ready='false';onState?.('fallback');};canvas.addEventListener('webglcontextlost',onLoss);
     return {
         open(open:boolean){const next=open?1:0;if(target===next)return;target=next;from=value;start=performance.now();wake();},
         destroy(){disposed=true;cancelAnimationFrame(raf);observer.disconnect();document.removeEventListener('visibilitychange',onVisibility);canvas.removeEventListener('webglcontextlost',onLoss);image.onload=null;image.onerror=null;gl.deleteTexture(texture);gl.deleteBuffer(buffer);gl.deleteProgram(program);shaders.forEach(s=>gl.deleteShader(s));}

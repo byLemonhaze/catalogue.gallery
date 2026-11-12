@@ -24,6 +24,8 @@ Use the current guides for operation and maintenance. Dated session records pres
 
 ## Session history and release evidence
 
+Owner-approved motion pass: [motion and interaction pass](MOTION-INTERACTION-PASS-2026-11-12.md), covering attached captions, alternating transitions, preview readiness, drag comparisons and fresh discovery order. The [local continuation handoff](HANDOFF-MOTION-RELEASE-2026-11-12.md) preserves the PR #61 checkpoint; the pass record documents the three confirmed CodeFactor findings and their behavior-preserving refactor. Publication proceeds through the recorded protected-main release command, with final deployment evidence on PR #61; see its verification evidence and limitations.
+
 | Record | Scope |
 |---|---|
 | [11 November trajectory](SESSION-TRAJECTORY-2026-11-11.md) / [Windows implementation](WINDOWS-REDESIGN.md) | Initial directions, Windows selection, motion and dark system |
@@ -39,6 +41,8 @@ Use the current guides for operation and maintenance. Dated session records pres
 Prepared PR bodies (`*-PR.md`, `releases/v0.2.0-pr.md`) are historical text, not commands to reopen or repeat releases. Keep published tags and historical evidence intact. Live deployment/release alignment requires fresh remote checks, not a report's old status paragraph.
 
 ## Visual evidence
+
+Start with the [full platform visual tour](presentation/README.md): twelve desktop/mobile captures covering discovery, profiles, Stories, Dispatch, directory/search, world fallback, About and Apply, paired with implementation and regression-test references. The [project README](../README.md#experience-in-pictures) presents the shorter portfolio overview.
 
 - [Stories desktop](review/navigation-sharing/stories-desktop.png) and [390 px mobile](review/navigation-sharing/stories-390.png): post-rename public UI.
 - [Windows + Counterpoint](review/dispatch-studies-02/home-counterpoint.png): approved design checkpoint before the public navigation rename.
