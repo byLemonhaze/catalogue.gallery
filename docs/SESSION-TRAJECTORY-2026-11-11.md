@@ -219,3 +219,7 @@ The [mobile review record](MOBILE-POLISH-2026-11-12.md) preserves the screenshot
 ## Finishing pass: typography and automatic preview
 
 The owner approved mobile, then requested the outstanding logo/control-font work. The handwritten header suffix was tested at desktop, 390 px and 360 px. Public controls now consistently use Plex Mono. The owner subsequently requested automatic tearing into the website when the card preview finishes loading; this was implemented and verified on Lars Wander without hover, preserving explicit world entry. Full results, screenshots, the DAX Bigshot One discussion, chatbot proposal and release limitations are in [the finishing-pass report](TYPOGRAPHY-AND-REVEAL-2026-11-12.md). No production deployment or chatbot activation occurred.
+
+## 12 November — Dispatch studies and approved Counterpoint
+
+Continued with twelve interactive studies, a blue News Reel homepage trial, a compactness/copy correction, and the selected Counterpoint direction. The owner explicitly approved commit, push, merge and deploy after local review. The [new session report](SESSION-REPORT-2026-11-12.md) records every run, evidence, current test/build results, earlier merged PR continuity, scope exclusions and the pending remote-release verification. It supersedes earlier Dispatch presentation descriptions while retaining them as history. No continuous session recording is claimed.

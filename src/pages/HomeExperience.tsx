@@ -23,7 +23,7 @@ export function HomeExperience({ artists, loading, artistsError, articles, artic
         {loading ? <div className="windows-empty" role="status">Opening the directory…<span>Artist worlds will appear here.</span></div> : artists.length ? <WindowsCarousel artists={artists.filter(artist => artist.type !== 'collector')}/> : <div className="windows-empty"><p>{artistsError || 'The directory is currently unavailable.'}</p><button onClick={() => window.location.reload()}>Try again</button></div>}
       </div>
       <aside className="context-rail" aria-label="About CATALOGUE and DISPATCH">
-        <div className="catalogue-intro"><h1>A place to begin digital art in the independent world</h1><p>An independent publication and directory for digital art. Read the stories, meet the artists, and explore the work through their own websites.</p><Link className="text-link" to="/info/">About CATALOGUE</Link></div>
+        <div className="catalogue-intro"><h1>A place to begin digital art in the independent world</h1><p>A publication and directory for digital art. Read the stories, meet the artists, and explore the work through their own websites.</p><Link className="text-link" to="/info/">About CATALOGUE</Link></div>
         <DispatchSection/>
       </aside>
     </section>
