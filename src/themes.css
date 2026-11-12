@@ -1,6 +1,7 @@
 /* One public palette contract. Private publishing tools retain their own tokens. */
 :root {
   --catalogue-display: Syne, Sora, sans-serif;
+  --catalogue-controls: 'IBM Plex Mono', monospace;
   --catalogue-paper: #131315;
   --catalogue-ink: #f3f1ed;
   --catalogue-muted: #aaa9b0;
@@ -27,7 +28,7 @@
   color-scheme: var(--catalogue-scheme);
   letter-spacing: normal;
 }
-/* Syne marks entrances; Sora carries reading, captions and controls. */
+/* Syne marks entrances; Sora carries reading; Plex Mono identifies controls. */
 .public-site :is(h1, .section-heading h2, .join-catalogue h2, .search-heading h2, .legal-modal h2) {
   font-family: var(--catalogue-display);
   font-weight: 600;
@@ -35,13 +36,29 @@
   line-height: 1.06;
 }
 .public-site .story-archive .editorial-index-title {font-family:var(--catalogue-display);font-weight:600}
-.public-site :is(button, input, textarea, select, kbd, .font-mono, .editorial-kicker, .editorial-meta, .editorial-link, .editorial-number) {font-family:Sora,sans-serif}
+.public-site :is(input, textarea) {font-family:Sora,sans-serif}
+.public-site :is(button, select, kbd, .font-mono, .editorial-kicker, .editorial-meta, .editorial-link, .editorial-number, .eyebrow, .text-link, .solid-link, .window-bottom, .directory-sort, .entry-type, .story-date, .signal-top, .signal-number, .signal-foot),
+.public-site .application-page label,
+.public-site .windows-footer nav,
+.public-site .rail-heading a,
+.public-site .dispatch-tools label,
+.public-site .dispatch-adjacent,
+.world-shell :is(.world-action, .world-text-link, .world-exit-label, .world-loading, .world-artist-label) {font-family:var(--catalogue-controls)}
 .public-site :is(.editorial-meta > span:first-child, .editorial-lead-foot) {color:var(--muted)}
 .public-site :is(.editorial-kicker, .eyebrow) {font-weight:400;letter-spacing:.12em}
 .public-site .search-heading h2 {font-size:40px}
 .public-site .directory-caption h2 {font-weight:500;letter-spacing:-.035em}
 .public-site .catalogue-intro h1 {line-height:1.12}
-.public-site .catalogue-masthead nav {font-family:Sora,sans-serif;letter-spacing:0;font-weight:400}
+.public-site .catalogue-masthead nav {font-family:var(--catalogue-controls);letter-spacing:0;font-weight:400}
+.catalogue-wordmark .catalogue-signature {
+  position:relative;display:inline-block;width:3.7em;height:1.45em;
+  margin-left:7px;font:400 clamp(16px,1.2vw,18px)/1 Sora,sans-serif;
+  letter-spacing:-.02em;vertical-align:baseline;
+}
+.catalogue-signature img {position:absolute;inset:auto 0 -.2em;width:100%;height:auto;opacity:0}
+.catalogue-wordmark .catalogue-signature-fallback {font:inherit;letter-spacing:inherit;margin:0}
+.catalogue-signature[data-loaded="true"] img {opacity:1}
+.catalogue-signature[data-loaded="true"] .catalogue-signature-fallback {opacity:0}
 .catalogue-masthead {gap:26px}
 .catalogue-masthead nav {margin-left:auto;gap:24px}
 .public-site select option {background:var(--paper);color:var(--ink)}
@@ -106,7 +123,7 @@
 .profile-name>span {display:inline-block;white-space:pre}
 @media(max-width:760px){.public-site .profile-copy .profile-name{font-size:var(--profile-name-size,48px)}}
 
-/* Final public type hierarchy: display entrances; Sora for reading and controls. */
+/* Reading surfaces retain Sora; actions follow the control contract above. */
 html, body {background:var(--catalogue-paper);color:var(--catalogue-ink);color-scheme:dark}
 .public-site .reader-page {font-family:Sora,sans-serif}
 .public-site .reader-page :is(p,li,blockquote) {color:var(--catalogue-ink);font-weight:400}

@@ -122,7 +122,7 @@ export function WindowsCarousel({ artists }: {
     // Only adjacent previews are mounted; the directory links every published profile.
     const visible = artists.map((artist, index) => ({ artist, index, d: relativePosition(index, position, count) })).filter(item => Math.abs(item.d) < 3.2);
     return <div className={`windows-carousel${reduced ? ' is-reduced' : ''}`} role="region" aria-roledescription="carousel" aria-label="Discover artist worlds">
-    <div ref={stage} className="windows-stage" onPointerDown={event => { if (event.button !== 0)
+    <div ref={stage} className="windows-stage" onPointerDown={event => { if (event.button !== 0 || event.isPrimary === false)
         return; hold(); target.current = current.current; suppressClick.current = false; clearTimeout(snap.current); drag.current = { x: event.clientX, y: event.clientY, origin: target.current, horizontal: false }; }} onPointerMove={event => {
             const gesture = drag.current;
             if (!gesture)
@@ -133,6 +133,8 @@ export function WindowsCarousel({ artists }: {
                     drag.current = null;
                     return;
                 }
+                // Leave ambiguous diagonal movement to the page until intent is clear.
+                if (Math.abs(dx) < Math.abs(dy) * 1.25) return;
                 gesture.horizontal = true;
                 suppressClick.current = true;
                 event.currentTarget.setPointerCapture(event.pointerId);
@@ -156,9 +158,9 @@ export function WindowsCarousel({ artists }: {
     </div>
     <div className="windows-controls">
       <div><span className="eyebrow">Selected artist</span><ProfileLink artist={artists[active]} className="selected-artist">{artists[active].name}</ProfileLink></div>
-      <div className="window-pagination"><span>{String(active + 1).padStart(2, '0')} / {count}</span><button className="rotation-toggle" aria-pressed={paused || reduced} onClick={() => setPaused(value => !value)} disabled={reduced}>{paused || reduced ? 'Resume' : 'Pause'}</button></div>
+      <div className="window-pagination"><span className="window-position" aria-label={`Artist ${active + 1} of ${count}`}>{String(active + 1).padStart(2, '0')} / {count}</span><button className="rotation-toggle" aria-pressed={paused || reduced} onClick={() => setPaused(value => !value)} disabled={reduced}>{reduced ? 'Paused' : paused ? 'Resume' : 'Pause'}</button></div>
       <label className="window-scrubber"><span className="sr-only">Choose artist</span><input type="range" min="0" max={count - 1} step="0.01" value={wrap(position,count)} aria-valuetext={artists[active].name} onPointerDown={() => { scrubHeld.current = true; hold(); }} onPointerUp={() => { scrubHeld.current = false; hold(); }} onPointerCancel={() => { scrubHeld.current = false; hold(); }} onBlur={() => { scrubHeld.current = false; hold(); }} onChange={event => move(target.current + relativePosition(Number(event.target.value), target.current, count))}/></label>
     </div>
-    <div className="window-bottom"><span>Scroll or drag to explore.</span><Link to="/artists/">View all artists</Link><button aria-pressed={reduced} onClick={toggleReduced}>Motion: {reduced ? 'reduced' : 'full'}</button></div>
+    <div className="window-bottom"><span><span className="gesture-pointer">Scroll, drag or use arrow keys.</span><span className="gesture-touch">Swipe sideways to explore. Scroll down for stories.</span></span><Link to="/artists/">View all artists</Link><button aria-pressed={reduced} onClick={toggleReduced}>Motion: {reduced ? 'reduced' : 'full'}</button></div>
   </div>;
 }

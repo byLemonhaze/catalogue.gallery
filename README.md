@@ -20,6 +20,7 @@ Catalogue.gallery is a discovery platform designed around the idea that artists 
 - Quality and verification policy: [`docs/QUALITY.md`](./docs/QUALITY.md)
 - Deployment runbook: [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)
 - Redesign session trajectory, decisions and evidence: [`docs/SESSION-TRAJECTORY-2026-11-11.md`](./docs/SESSION-TRAJECTORY-2026-11-11.md)
+- Mobile polish, before/after captures and device checks: [`docs/MOBILE-POLISH-2026-11-12.md`](./docs/MOBILE-POLISH-2026-11-12.md)
 - Product roadmap notes: [`docs/ROADMAP.md`](./docs/ROADMAP.md)
 
 ## Security

@@ -3,14 +3,14 @@ import { DispatchMedia } from '../components/DispatchMedia';
 import { Link, useParams } from 'react-router-dom';
 import { useState } from 'react';
 import { useDispatches } from '../hooks/useDispatches';
-import { dispatchLink, dispatchMeta, safeSourceUrl } from '../lib/dispatch';
+import { dispatchLink, dispatchMeta, matchesDispatch, safeSourceUrl } from '../lib/dispatch';
 import { Seo } from '../components/Seo';
 import { missingMeta } from '../lib/seo';
 export function DispatchArchive() {
     const posts = useDispatches();
     const [query, setQuery] = useState('');
-    const filtered = posts.filter(post => `${post.title} ${post.body || ''} ${post.items?.map(item => `${item.headline} ${item.body}`).join(' ')}`.toLowerCase().includes(query.toLowerCase()));
-    return <main id="main-content" className="dispatch-archive"><header className="dispatch-masthead"><div><span className="eyebrow">The daily edition</span><h1>DISPATCH</h1></div><p>Digital art, day by day.</p></header><div className="dispatch-tools"><span className="eyebrow">{filtered.length} editions</span><label>Search the archive<input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Artist, subject or date" /></label></div><div className="dispatch-grid">{filtered.map(post => <Link key={post.id} to={`/dispatch/${post.slug}/`} className="dispatch-issue-card"><DispatchThumbnail post={post}/><time dateTime={post.issueDate} className="story-date">{post.dateDisplay}</time><h2>{post.summary}</h2><span className="eyebrow">{post.items?.length || 0} stories</span></Link>)}</div>{!filtered.length && <p className="dispatch-empty">No editions match your search.</p>}</main>;
+    const filtered = posts.filter(post => matchesDispatch(post, query));
+    return <main id="main-content" className="dispatch-archive"><header className="dispatch-masthead"><div><span className="eyebrow">The daily edition</span><h1>DISPATCH</h1></div><p>Digital art, day by day.</p></header><div className="dispatch-tools"><span className="eyebrow">{filtered.length} editions</span><label>Search the archive<input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Artist, subject or date" /></label></div><div className="dispatch-grid">{filtered.map(post => <Link key={post.id} to={`/dispatch/${post.slug}/`} className="dispatch-issue-card"><DispatchThumbnail post={post}/><time dateTime={post.issueDate} className="story-date">{post.dateDisplay}</time><h2>{post.summary}</h2><span className="eyebrow">{post.items?.length || 0} stories</span></Link>)}</div>{!filtered.length && <div className="empty-results" role="status"><p>No editions match your search. Try an artist, topic or date.</p><button className="text-link" onClick={() => setQuery('')}>Clear search</button></div>}</main>;
 }
 export function DispatchIssue() {
     const {slug} = useParams(); const posts = useDispatches();

@@ -121,7 +121,7 @@ function ArtistUniverse({ id }: { id: string }) {
     const canEmbed = website && !externalOnlyProfiles.has(id) && !website.startsWith('http:');
     return <div className="world-shell">
         <Seo meta={{...profileMeta({ ...artist, type: route, image: bootstrap?.seoImageUrl || (typeof artist.thumbnail === 'string' ? artist.thumbnail : artist.thumbnail ? urlFor(artist.thumbnail).url() : undefined) }), noindex: true}} />
-        <nav aria-label="Artist website controls" className={`world-controls fixed z-[120] flex flex-wrap justify-center gap-2 max-w-[calc(100%-2rem)] ${getPositionClasses(artist.desktopExitPosition || 'top-right', artist.mobileExitPosition || 'bottom-center')}`}>
+        <nav aria-label="Artist website controls" data-mobile-position={artist.mobileExitPosition || 'bottom-center'} className={`world-controls fixed z-[120] flex flex-wrap justify-center gap-2 max-w-[calc(100%-2rem)] ${getPositionClasses(artist.desktopExitPosition || 'top-right', artist.mobileExitPosition || 'bottom-center')}`}>
             <Link ref={exitLink} to={`/${route}/${encodeURIComponent(id)}/`} onClick={handleExit} aria-label="Exit Artist Universe" className="world-exit"><span className="world-exit-brand">CATALOGUE</span><span className="world-exit-label">Exit world <span className="world-close-mark" aria-hidden="true"/></span></Link>
         </nav>
         {canEmbed ? <EmbeddedWebsite key={website} website={website} name={artist.name} /> : <UnavailableWebsite name={artist.name} website={website} />}
