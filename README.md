@@ -23,6 +23,16 @@ Catalogue.gallery is a discovery platform designed around the idea that artists 
 - Mobile polish, before/after captures and device checks: [`docs/MOBILE-POLISH-2026-11-12.md`](./docs/MOBILE-POLISH-2026-11-12.md)
 - Product roadmap notes: [`docs/ROADMAP.md`](./docs/ROADMAP.md)
 
+## Dispatch design and session records
+
+The homepage uses the approved Counterpoint Dispatch treatment: one vertical masthead, a neutral counter and lilac word reveals on the existing dark surface. Reduced motion keeps the full edition readable.
+
+- [12 November session report and release checkpoint](docs/SESSION-REPORT-2026-11-12.md)
+- [Twelve design studies and decision notebook](docs/DISPATCH-DESIGN-STUDIES-2026-11-12.md)
+- [Dispatch publishing contract](docs/DISPATCH-PUBLISHING.md)
+
+For local review, start Vite and open `/design/dispatch/` (01–06) or `/design/dispatch-02/` (07–12). These entries are preserved for design history and are excluded from the production application build.
+
 ## Security
 
 - Security policy and reporting process: [`SECURITY.md`](./SECURITY.md)

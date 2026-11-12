@@ -78,3 +78,7 @@ Automated coverage includes shared artist requests and retry, deferred article s
 Before release, review the homepage, archive, reader, and artist routes at desktop and narrow widths. On physical iOS Safari and Android Chrome, test vertical and diagonal scrolls starting on the carousel, intentional horizontal swipes, arrow taps, pinch zoom, cancelled gestures, reduced motion, and browser toolbar expansion/collapse. Browser viewport checks and synthetic pointer tests do not replace real-device checks.
 
 For matched performance measurements, retain the audit's six artists, throttle settings, and journey definitions. Measure direct artist links separately from carousel taps, and first embedded visits separately from repeat visits to the same artist. Record LCP/interaction timing and transferred bytes; do not add savings from separate journeys or treat a session byte total as cache proof. Repeat after an authorized deployment to validate CDN headers and deployment-specific behavior.
+
+## Counterpoint Dispatch regression coverage
+
+The approved transcript is covered by reveal/advance/loop tests, correct issue linking, focus hold/resume, reduced motion and missing-item fallback. The 12 November checkpoint passed 209 tests across 30 files plus lint/typecheck. Desktop and 360 px browser review checked the neutral surface, counter spacing and horizontal overflow. The two development-only comparison pages are preserved with screenshots in [the session report](SESSION-REPORT-2026-11-12.md); they are excluded from production build entries.

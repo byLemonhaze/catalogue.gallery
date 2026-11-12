@@ -148,9 +148,9 @@ In Sanity webhook settings:
 
 These are operational repo settings and are intentionally not represented as code changes:
 
-- [ ] Configure branch protection on `main`
-- [ ] Require CI status check before merge
-- [ ] Restrict direct pushes to `main` (recommended)
+- [x] Branch protection on `main` observed in GitHub push rejection
+- [x] Required status: `Lint, type check, test, build`
+- [x] Direct pushes rejected; pull requests required
 
 ## 11) Editorial selection and asset caching
 
@@ -168,3 +168,16 @@ See [SEO delivery](./SEO.md) for route generation, inventory checks, runtime met
 ### Server-rendered public release
 
 The frontend build also creates `server-dist/entry-server.js`, which Pages Functions import. Run the complete `npm run build` before deployment; do not deploy only `dist` copied without the renderer and functions tree. Verify raw homepage/directory/article HTML, browser hydration, host redirects and preview noindex headers in addition to the existing HTTP checks. See SEO.md for the public bootstrap, date and schema behavior.
+
+## Aligned release from a protected main branch
+
+`main` is protected: changes must pass through a pull request and the required **Lint, type check, test, build** status check. Do not push directly to main, bypass checks, force-reset local work, or deploy a feature branch as production.
+
+1. Commit the reviewed source, documentation and evidence on a feature branch. Push it, create the PR, then wait for its checks to register and pass. For Counterpoint the prepared PR body is `docs/COUNTERPOINT-PR.md`.
+2. Squash-merge the checked PR. Switch to local main, fetch origin and pull with `--ff-only`. If this fails, stop and inspect divergence; do not discard local commits.
+3. Require a clean working tree and identical `HEAD` and freshly fetched `origin/main`. Run the **complete** `npm run build`, including SEO generation. An npm/network failure after the client/SSR bundle still means the overall build failed.
+4. From the repository root, deploy with `npx wrangler pages deploy dist --project-name catalogue --branch production --commit-hash "$(git rev-parse HEAD)"`. Keep `functions/`, `server-dist/` and `wrangler.toml` present. This Pages project uses direct uploads; merging GitHub main alone does not publish it.
+5. Inspect `npx wrangler pages deployment list --project-name catalogue`. Confirm the latest successful **Production** deployment identifies the merged commit. Check `https://catalogue.gallery/`, a directory/profile/world route, a Dispatch edition and a story. For this release, confirm the homepage's lilac Counterpoint transcript and its edition link.
+6. Fetch origin again and compare local main, origin/main and the deployment commit. If another change reached main during the release, alignment has not been achieved: build/deploy the new reviewed main or coordinate the concurrent release.
+
+Record the PR URL, merge SHA, deployment ID/URL, successful production status and live smoke checks in the PR release comment. This preserves the post-deployment evidence without creating another source commit that immediately makes the deployed SHA stale. Do not report full alignment until those facts are observed.
