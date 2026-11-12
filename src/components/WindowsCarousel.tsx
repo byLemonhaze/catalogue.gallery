@@ -9,6 +9,24 @@ import { profileImage, profileAspect } from '../lib/profilePresentation';
 import { ProfileLink } from './ProfileLink';
 import { useMotionPreference } from '../hooks/useMotionPreference';
 import { createWindowWarp } from '../lib/windowWarp';
+
+function updateFallbackCaptions(element: HTMLElement) {
+    const cards = Array.from(element.querySelectorAll<HTMLElement>('.world-window'));
+    const surfaces = cards.map(card => ({ rect: (card.querySelector('img') || card).getBoundingClientRect(), depth: Number(card.style.zIndex) }));
+    cards.forEach(card => {
+        const caption = card.querySelector<HTMLElement>('.world-caption');
+        if (caption && !card.dataset.warpReady) caption.dataset.covered = String(captionCovered(caption.getBoundingClientRect(), Number(card.style.zIndex), surfaces));
+    });
+}
+
+function keyboardContextAvailable(element: HTMLElement, focused: Element | null) {
+    if (document.querySelector('dialog[open]') || element.closest('[inert]')) return false;
+    if (focused instanceof HTMLElement && (focused.isContentEditable || focused.matches('input:not([type="range"]),textarea,select,[role="textbox"]'))) return false;
+    if (focused !== document.body && !element.closest('.windows-carousel')?.contains(focused)) return false;
+    const rect = element.getBoundingClientRect();
+    return !(rect.bottom < 80 || rect.top > innerHeight * .8);
+}
+
 export function WindowsCarousel({ artists, discoveryReady = true, memory, onRemember }: {
     artists: Artist[];
     discoveryReady?: boolean;
@@ -67,23 +85,17 @@ export function WindowsCarousel({ artists, discoveryReady = true, memory, onReme
         let onScreen = true;
         const observer = typeof IntersectionObserver !== 'undefined' ? new IntersectionObserver(entries => { onScreen = entries[0].isIntersecting; }) : null;
         if (stage.current) observer?.observe(stage.current);
-        const tick = (time: number) => {
-            const dt = lastTime.current ? Math.min(50, time - lastTime.current) : 16;
-            lastTime.current = time;
-            const element = stage.current;
+        const advanceRotation = (time: number, dt: number, available: boolean, focused: boolean | undefined) => {
             const settings = motionSettings.current;
-            const available = discoveryReady && onScreen && !document.hidden && !element?.closest('[inert]');
-            const focused = element?.closest('.windows-carousel')?.contains(document.activeElement) && document.activeElement?.matches(':focus-visible');
-            if (available && element) {
-                const cards = Array.from(element.querySelectorAll<HTMLElement>('.world-window'));
-                const surfaces = cards.map(card => ({ rect: (card.querySelector('img') || card).getBoundingClientRect(), depth: Number(card.style.zIndex) }));
-                cards.forEach(card => {
-                    const caption = card.querySelector<HTMLElement>('.world-caption');
-                    if (caption && !card.dataset.warpReady) caption.dataset.covered = String(captionCovered(caption.getBoundingClientRect(), Number(card.style.zIndex), surfaces));
-                });
-            }
             if (available && count > 1 && !settings.reduced && !settings.paused && !drag.current && !scrubHeld.current && !focused && time > idleUntil.current) target.current += dt / 8500;
-            const previous = current.current;
+        };
+        const frameVelocity = (time: number, previous: number, dt: number) => {
+            const gesture = drag.current;
+            if (gesture?.horizontal && feelRef.current !== 'baseline') return time - gesture.lastTime < 80 ? gesture.velocity * 260 : 0;
+            return (current.current - previous) / dt * 260;
+        };
+        const updatePosition = (available: boolean, dt: number) => {
+            const settings = motionSettings.current;
             const direct = settings.reduced || (drag.current?.horizontal && feelRef.current !== 'baseline');
             const settle = scrubHeld.current ? 65 : carouselFeels[feelRef.current].settle;
             if (available) current.current = direct ? target.current : current.current + (target.current - current.current) * (1 - Math.exp(-dt / settle));
@@ -91,7 +103,18 @@ export function WindowsCarousel({ artists, discoveryReady = true, memory, onReme
                 const index = wrap(Math.round(current.current), count);
                 onRemember({artistId: artists[index].id, offset: current.current - Math.round(current.current), paused: settings.paused});
             }
-            const velocity = drag.current?.horizontal && feelRef.current !== 'baseline' ? (time - drag.current.lastTime < 80 ? drag.current.velocity * 260 : 0) : (current.current - previous) / dt * 260;
+        };
+        const tick = (time: number) => {
+            const dt = lastTime.current ? Math.min(50, time - lastTime.current) : 16;
+            lastTime.current = time;
+            const element = stage.current;
+            const available = discoveryReady && onScreen && !document.hidden && !element?.closest('[inert]');
+            const focused = element?.closest('.windows-carousel')?.contains(document.activeElement) && document.activeElement?.matches(':focus-visible');
+            if (available && element) updateFallbackCaptions(element);
+            advanceRotation(time, dt, available, focused);
+            const previous = current.current;
+            updatePosition(available, dt);
+            const velocity = frameVelocity(time, previous, dt);
             warp.current.velocity += (velocity - warp.current.velocity) * (1 - Math.exp(-dt / 90));
             if (!scrubHeld.current && Math.abs(current.current - target.current) < .001) setScrubPosition(null);
             if (Math.abs(current.current - previous) > .00001) setPosition(current.current);
@@ -141,11 +164,7 @@ export function WindowsCarousel({ artists, discoveryReady = true, memory, onReme
             const focused = document.activeElement;
             const range = focused?.matches('.window-scrubber input');
             if (!(range ? ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'] : ['ArrowLeft', 'ArrowRight']).includes(event.key)) return;
-            if (document.querySelector('dialog[open]') || element.closest('[inert]')) return;
-            if (focused instanceof HTMLElement && (focused.isContentEditable || focused.matches('input:not([type="range"]),textarea,select,[role="textbox"]'))) return;
-            if (focused !== document.body && !element.closest('.windows-carousel')?.contains(focused)) return;
-            const rect = element.getBoundingClientRect();
-            if (rect.bottom < 80 || rect.top > innerHeight * .8) return;
+            if (!keyboardContextAvailable(element, focused)) return;
             event.preventDefault();
             clearTimeout(snap.current);
             keyboardMove.current = !range && element.contains(focused);

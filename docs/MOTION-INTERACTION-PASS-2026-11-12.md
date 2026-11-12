@@ -1,6 +1,6 @@
 # Motion and interaction pass — 12 November 2026
 
-Status: owner approved the local pass and explicitly authorized commit, push, merge to main and deployment on 12 November 2026. Publication is pending the network-enabled release command, not claimed complete by this report. Branch `feat/motion-interaction-polish` starts from the existing visual-tour documentation commit `f34a699`; that earlier commit is not this pass's publication.
+Status: owner approved the local pass and explicitly authorized commit, push, merge to main and deployment on 12 November 2026. The local continuation has resolved the reported CodeFactor complexity findings and is proceeding through the protected release command. Final merge/deployment evidence belongs on PR #61; this pre-deployment document does not claim publication. Branch `feat/motion-interaction-polish` starts from the existing visual-tour documentation commit `f34a699`; that earlier commit is not this pass's publication.
 
 ## Approved brief
 
@@ -90,3 +90,32 @@ The owner approved commit, push to main and deployment after local review. Relea
 The prepared command is `bash scripts/release-motion-polish.sh`. It preserves a clean working tree, integrates freshly fetched main, runs verification/full build/local and remote share audits, pushes the feature branch, creates the PR using the recorded description, waits for CI and CodeFactor on the exact pushed commit, and performs the protected squash merge without bypasses. It then fast-forwards local main, repeats verification/build/share audits, deploys to the configured Catalogue production branch and checks public routes/assets plus a source commit marker at `/release.json`. Final local/main/origin comparisons must pass. It stops on failure and can be rerun after resolving the reported problem. It does not create or move a release tag.
 
 Publication status: prepared for a local commit and owner-terminal continuation. Do not infer a successful PR merge or deployment until the command prints its final verified alignment message. Browser and physical-device limits above remain applicable.
+
+## Owner-terminal release attempt and continuation
+
+The owner ran the release command successfully through authentication, verification (245 tests), the full build including SEO generation, and both share audits. SEO generation reported 320 profiles, 148 articles and 8 static routes. The local audit at `2026-11-12T20:41:02.332Z` covered 505 pages with no failures; the remote audit at `2026-11-12T20:41:31.075Z` checked all 177 remote images with no failures. The branch was pushed and [PR #61](https://github.com/byLemonhaze/catalogue.gallery/pull/61) was created for implementation commit `c8787963bfc4137a0e85fe82fa96e2fa69645f71` and its included visual-tour history.
+
+The command stopped at failed CodeFactor while GitHub CI was pending. It had not reached merge or deployment. Exact CodeFactor findings were unavailable to the restricted agent session: GitHub API access failed and no browser-control connection was exposed, including subsequent retries. Existing stylesheet duplicates are only an investigative lead, not a confirmed diagnosis. The successful owner build supersedes the earlier environment-specific inability to finish postbuild; those earlier observations remain historical.
+
+The owner requested a full handoff after another failed access retry. See [the local continuation brief](HANDOFF-MOTION-RELEASE-2026-11-12.md). The brief and this appended note are intentionally uncommitted handoff documentation; include them with the next fix commit before rerunning the clean-tree release command. No new runtime edits, merge, or deployment were made during handoff preparation.
+
+
+## Local CodeFactor continuation (12 November 2026)
+
+Local execution was confirmed in `/Users/lemonhaze/Desktop/CATALOGUE/catalogue.gallery`; the only initial changes were the intentional handoff and appended checkpoint above. GitHub returned PR #61 at `c8787963bfc4137a0e85fe82fa96e2fa69645f71`: CI had passed and CodeFactor had failed. Local preview access succeeded using the available elevated network permission; the owner's existing Vite process was reused.
+
+The actual [CodeFactor check annotations](https://api.github.com/repos/byLemonhaze/catalogue.gallery/check-runs/131478242928/annotations) contain exactly these three **Complex Method** findings, using original source lines:
+
+| File / original lines | Reported complexity | Correction |
+| --- | --- | --- |
+| `src/components/WindowsCarousel.tsx:70–99` | 20 | Separate fallback-caption occlusion, autorotation eligibility, position/memory updates and frame velocity from frame scheduling. |
+| `src/components/WindowsCarousel.tsx:138–154` | 17 | Extract keyboard context guards while preserving editable-field, modal, inert, focus and viewport exclusions. |
+| `src/lib/windowWarp.ts:99–177` | 24 | Separate texture lookup/loading, warped geometry and per-card drawing from the frame lifecycle. |
+
+The linked CodeFactor website returned HTTP 403, but all three authoritative annotations were retrieved from its GitHub check run. No duplicate-selector finding was present; CSS was not changed. The refactor retains the exact easing, deformation, texture lifecycle, caption placement, draw order, discovery memory and input rules. No quality rule was suppressed.
+
+Validation: ESLint, TypeScript and **245 tests across 36 files** pass after the final extraction. An additional local ESLint complexity check at a maximum of 15 passes for both edited files without changing repository configuration. The final local full build passed, generating 320 profiles, 148 articles and 8 static routes. The local share audit at `2026-11-12T21:14:38.020Z` passed for 505 pages and 321 local images; the remote audit at `2026-11-12T21:14:58.852Z` checked all 177 remote images with no failures. Client entry: `index-Da1bny8x.js`, 619.24 kB / 181.34 kB gzip; SSR: 1,449.83 kB. The full release command repeats verification, complete SEO build and local/remote share audits on the committed feature branch and again on merged main.
+
+Chromium smoke checks on the existing local preview confirmed a WebGL renderer with loaded textures and six warped cards, whole-artist Left/Right keyboard input, fractional pointer scrubbing and nearest-artist settling. Desktop and 390 × 844 captures were inspected; evidence is retained as [desktop](review/motion-release/motion-release-desktop.png) and [390 px](review/motion-release/motion-release-390.png) screenshots. This is a targeted browser check, not a new design approval or physical Safari/GPU performance certification. Prior checkpoints describing unavailable browser access remain historical.
+
+The handoff and original checkpoint are included with this correction. The updated PR description reflects the successful complete owner-terminal build and audits. Protected merge, deployment URL, source SHA and final production alignment will be recorded on the existing PR after those operations succeed, avoiding a source commit solely to describe its own deployment.

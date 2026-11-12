@@ -4,4 +4,8 @@ Ordinary page and Story reveals alternate horizontal/vertical directions, while 
 
 The branch also includes the previously prepared platform visual-tour documentation commit, plus the approved brief, implementation trajectory, test results, known limits and a protected-main deployment command.
 
-Validation: ESLint, TypeScript and 245 tests across 36 files passed. Client/SSR compilation passed. Complete SEO postbuild and external audits could not run in the agent environment because npm/GitHub DNS resolution failed; the release command requires them to pass before pushing and again before deploying main. Owner reviewed the local interaction and approved publication. No new browser recordings or physical-device performance certification are claimed. The existing bundle-size warning remains.
+CodeFactor reported three Complex Method findings in the carousel frame/keyboard handlers and WebGL render loop. Small helper extractions preserve the approved calculations, timing, input guards and texture/caption lifecycle; no CSS, design or quality-rule changes. The intentional local handoff is included.
+
+Validation: ESLint, TypeScript and all 245 tests across 36 files pass. The owner's full build generated 320 profiles, 148 articles and 8 static routes; share audits passed for 505 pages, 321 local images and all 177 remote images. The local continuation also completed the full build and audits, and checked WebGL texture rendering, fractional scrubbing, release settling and keyboard selection in Chromium at desktop and 390 px. The release command repeats all checks on the exact committed branch and merged main before deployment.
+
+Owner reviewed the local interaction and approved publication. Physical Safari/low-power GPU performance remains unmeasured. The existing bundle-size warning remains. Final merge/deployment evidence and the matching production source marker will be attached to this PR after publication.
