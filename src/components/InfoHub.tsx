@@ -7,7 +7,7 @@ interface InfoHubProps {
 
 export function InfoHub({ setIsLegalModalOpen }: InfoHubProps) {
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-white/20">
+        <div id="main-content" className="about-page min-h-screen bg-black text-white selection:bg-white/20">
 
 
             <div className="pt-28 md:pt-24 p-6 max-w-5xl mx-auto min-h-screen animate-fade-in relative pb-32">
@@ -19,7 +19,7 @@ export function InfoHub({ setIsLegalModalOpen }: InfoHubProps) {
                         <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#c7c7c7]">About</p>
                         <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-white leading-none">CATALOGUE</h1>
                         <p className="text-[#d1d1d1] text-base leading-7 max-w-2xl">
-                            An independent publication and directory for digital art. Read the stories, meet the artists, and explore the work through their own websites. Across mediums, platforms, and chains.
+                            An independent publication and directory for digital art. Read the stories, meet the artists, and explore the work through their own websites.
                         </p>
                     </section>
 
@@ -52,7 +52,7 @@ export function InfoHub({ setIsLegalModalOpen }: InfoHubProps) {
                         <div className="flex flex-col sm:flex-row gap-3">
                             <Link
                                 to="/submit"
-                                className="inline-flex min-h-12 items-center justify-center px-6 py-3 bg-[#f2f2ef] hover:bg-white !text-[#111111] border border-[#f2f2ef] text-xs font-bold uppercase tracking-[0.14em] transition-colors"
+                                className="solid-link"
                             >
                                 Apply to Catalogue
                             </Link>
@@ -64,7 +64,7 @@ export function InfoHub({ setIsLegalModalOpen }: InfoHubProps) {
                 <CatalogueFooterLinks
                     onOpenPolicy={() => setIsLegalModalOpen(true)}
                     variant="info"
-                    containerClassName="fixed bottom-20 md:bottom-8 right-6 z-50 flex flex-col items-end gap-1"
+                    containerClassName="mt-10 flex flex-col items-end gap-1"
                 />
             </div>
         </div>

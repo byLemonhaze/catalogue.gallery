@@ -9,6 +9,8 @@ type SanityArtistRaw = {
     type: 'artist' | 'gallery' | 'collector';
     name: string;
     subtitle: string;
+    shortBio?: string;
+    createdAt?: string;
     websiteUrl: string;
     thumbnail: SanityImageObject | null;
     template?: string;
@@ -20,6 +22,8 @@ export interface Artist {
     id: string;
     name: string;
     subtitle: string;
+    shortBio?: string;
+    createdAt?: string;
     websiteUrl: string;
     thumbnail: SanityImageObject | string | null | undefined;
     isSanity?: boolean;
@@ -38,7 +42,7 @@ function fetchArtists(): Promise<Artist[]> {
     if (artistCache) return Promise.resolve(artistCache);
     if (pending) return pending;
     const query = `*[_type in ["artist", "gallery", "collector"] && (status == "published" || !defined(status))] | order(name asc) {
-        "id": coalesce(slug.current, _id), "type": _type, name, subtitle, websiteUrl, thumbnail,
+        "id": coalesce(slug.current, _id), "type": _type, name, subtitle, shortBio, "createdAt": _createdAt, websiteUrl, thumbnail,
         template, desktopExitPosition, mobileExitPosition
     }`;
     pending = (async () => {

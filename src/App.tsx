@@ -14,8 +14,12 @@ import { ScrollToTop } from './components/ScrollToTop';
 import { SquareLoader } from './components/SquareLoader';
 import { type HomeSectionKey } from './constants/homeSections';
 import { HomeExperience } from './pages/HomeExperience';
+import { ArtistProfile } from './pages/ArtistProfile';
+import type { Location } from 'react-router-dom';
 
 // Lazy-loaded routes — only fetched when the user navigates to them
+const DispatchArchive = lazy(() => import('./pages/Dispatch').then(m => ({ default: m.DispatchArchive })));
+const DispatchIssue = lazy(() => import('./pages/Dispatch').then(m => ({ default: m.DispatchIssue })));
 const ArtistList = lazy(() => recoverImport(() => import('./components/ArtistList').then(m => ({ default: m.ArtistList }))));
 const ArticleView = lazy(() => recoverImport(() => import('./components/ArticleView').then(m => ({ default: m.ArticleView }))));
 const ArticleList = lazy(() => recoverImport(() => import('./components/ArticleList').then(m => ({ default: m.ArticleList }))));
@@ -36,8 +40,11 @@ function shuffleArray<T>(items: T[]) {
 export const AppContent = () => {
   const publicData = useContext(PublicPageContext);
   const location = useLocation();
-  const isArtistPage = location.pathname.startsWith('/artist/') || location.pathname.startsWith('/gallery/');
-  const staticMeta = staticPages.find(page => page.path === canonicalPath(location.pathname));
+  const backgroundLocation = (location.state as { backgroundLocation?: Location } | null)?.backgroundLocation;
+  const routeLocation = backgroundLocation || location;
+  const isWorld = /^\/(artist|gallery)\/[^/]+\/world\/?$/.test(location.pathname);
+  const isArtistPage = isWorld;
+  const staticMeta = staticPages.find(page => page.path === canonicalPath(routeLocation.pathname));
 
   const { artists, loading, error: artistsError } = useArtists(!isArtistPage);
   const { articles, loading: articlesLoading } = useArticles(!isArtistPage);
@@ -76,10 +83,10 @@ export const AppContent = () => {
   );
 
   return (
-    <div className="min-h-screen bg-black text-white font-display selection:bg-white/20">
+    <div className={`min-h-screen font-display ${isWorld ? 'bg-black text-white' : location.pathname.startsWith('/content-lab') ? 'editorial-workspace bg-black text-white' : 'public-site'}`}>
       {staticMeta && <Seo meta={staticMeta} />}
       <Navigation
-        onSearchOpen={() => setIsSearchOpen(true)}
+        onSearchOpen={() => {setSearch('');setIsSearchOpen(true);}}
         activeHomeSection={location.pathname === '/' ? homeSection : undefined}
       />
 
@@ -103,7 +110,8 @@ export const AppContent = () => {
           <SquareLoader className="w-6 h-6" label="Loading page" strokeWidth={1.6} />
         </div>
       }>
-        <Routes>
+        <div inert={Boolean(backgroundLocation)} aria-hidden={backgroundLocation ? true : undefined}>
+        <Routes location={routeLocation}>
           <Route
             path="/"
             element={
@@ -118,19 +126,25 @@ export const AppContent = () => {
               />
             }
           />
-          <Route path="/artist/:id" element={<ArtistFrame />} />
-          <Route path="/gallery/:id" element={<ArtistFrame />} />
+          <Route path="/artist/:id" element={<ArtistProfile />} />
+          <Route path="/gallery/:id" element={<ArtistProfile />} />
+          <Route path="/artist/:id/world" element={<ArtistFrame />} />
+          <Route path="/gallery/:id/world" element={<ArtistFrame />} />
           <Route path="/submit" element={<SubmitArtist />} />
 
           <Route path="/blog" element={<ArticleList filter="all" articles={articles} loading={articlesLoading} />} />
           <Route path="/blog/:id" element={<ArticleView articles={articles} loading={articlesLoading} />} />
 
+          <Route path="/dispatch" element={<DispatchArchive />} />
+          <Route path="/dispatch/:slug" element={<DispatchIssue />} />
           <Route path="/artists" element={<ArtistList />} />
           <Route path="/content-lab" element={<ContentLab />} />
           <Route path="/content-lab/admin" element={<Navigate to="/content-lab" replace />} />
           <Route path="/info" element={<InfoHub setIsLegalModalOpen={setIsLegalModalOpen} />} />
-          <Route path="*" element={<main className="min-h-screen px-6 pt-36 text-center"><Seo meta={missingMeta(location.pathname)} /><h1 className="text-4xl mb-5">Page not found</h1><p className="text-white/60 mb-6">This page may have moved or is no longer available.</p><Link className="editorial-link" to="/artists/">Explore the directory</Link></main>} />
+          <Route path="*" element={<main className="route-state"><Seo meta={missingMeta(location.pathname)} /><h1 >Page not found</h1><p >This page may have moved or is no longer available.</p><Link className="text-link" to="/artists/">Explore the directory</Link></main>} />
         </Routes>
+        </div>
+        {backgroundLocation && <Routes><Route path="/artist/:id" element={<ArtistProfile modal />} /><Route path="/gallery/:id" element={<ArtistProfile modal />} /><Route path="/artist/:id/world" element={<ArtistFrame />} /><Route path="/gallery/:id/world" element={<ArtistFrame />} /></Routes>}
       </Suspense>
       </RouteRecoveryBoundary>
     </div>

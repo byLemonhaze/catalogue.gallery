@@ -4,6 +4,7 @@ vi.mock('../../functions/_lib/renderPublic', () => ({ publicPageData: async () =
 import { onRequestGet as article } from '../../functions/blog/[slug]';
 import { onRequestGet as artist } from '../../functions/artist/[slug]';
 import { onRequestGet as gallery } from '../../functions/gallery/[slug]';
+import { onRequestGet as dispatch } from '../../functions/dispatch/[slug]';
 import { onRequestGet as sitemap } from '../../functions/sitemap.xml';
 const shell = '<html><head><title>Old</title></head><body><div id="root"></div></body></html>';
 const assets = vi.fn(async (req: Request) => req.method === 'HEAD' ? new Response(null, { status: 404 }) : new Response(shell));
@@ -58,10 +59,10 @@ it('does not canonicalize preview pages to the preview host', async () => {
     expect(await response.text()).toContain('href="https://catalogue.gallery/blog/new-story/"');
 });
 it('refreshes sitemap inventory and excludes the editorial workspace', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(Response.json({ result: [profile] })).mockResolvedValueOnce(Response.json({ result: [post] })));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(Response.json({ result: [profile] })).mockResolvedValueOnce(Response.json({ result: [post] })).mockResolvedValueOnce(Response.json({ result: [] })));
     const response = await sitemap({ env }); const xml = await response.text();
     expect(response.status).toBe(200); expect(response.headers.get('Content-Type')).toContain('application/xml');
-    expect(xml).toContain('/artist/new-artist/'); expect(xml).toContain('/blog/new-story/'); expect(xml).not.toContain('content-lab');
+    expect(xml).toContain('/artist/new-artist/'); expect(xml).toContain('/blog/new-story/'); expect(xml).not.toContain('content-lab'); expect(xml).toContain('/dispatch/2026-11-11/');
 });
 it('does not silently serve a truncated sitemap when the CMS is unavailable', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
@@ -85,4 +86,22 @@ it('reuses public page cache across tracking parameters without caching missing 
     revision = 'v2';
     await cachedPublicResponse(new Request('https://catalogue.gallery/artist/new/'), render, cacheEnv);
     expect(render).toHaveBeenCalledTimes(2);
+});
+it('serves world deep links with a profile canonical, noindex, and the iframe bootstrap', async () => {
+    const { onRequestGet: world } = await import('../../functions/artist/[slug]/world');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ result: [profile] })));
+    const response = await world(context('/artist/new-artist/world/', 'new-artist'));
+    const html = await response.text();
+    expect(response.status).toBe(200);
+    expect(html).toContain('https://catalogue.gallery/artist/new-artist/');
+    expect(html).toContain('noindex, follow');
+    expect(html).toContain('id="catalogue-profile"');
+});
+
+it('serves archived dispatch canonical and cover metadata, and returns real 404 for missing editions', async()=>{
+    vi.stubGlobal('fetch',vi.fn().mockImplementation(async()=>Response.json({result:[]})));
+    const response=await dispatch(context('/dispatch/2026-11-11/','2026-11-11'));
+    expect(response.status).toBe(200);
+    const html=await response.text(); expect(html).toContain('https://catalogue.gallery/dispatch/2026-11-11/'); expect(html).toContain('pbs.twimg.com/media/');
+    expect((await dispatch(context('/dispatch/2026-11-08/','2026-11-08'))).status).toBe(404);
 });

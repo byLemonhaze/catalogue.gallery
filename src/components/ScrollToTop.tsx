@@ -8,10 +8,10 @@ export function ScrollToTop() {
   useEffect(() => {
     // If the navigation action is PUSH (new link) or REPLACE, scroll to top.
     // If the action is POP (back button), do nothing (let browser restore scroll).
-    if (navType !== 'POP') {
+    if (navType !== 'POP' && !(location.state as { backgroundLocation?: unknown } | null)?.backgroundLocation) {
       window.scrollTo(0, 0);
     }
-  }, [location.pathname, navType]);
+  }, [location.pathname, location.state, navType]);
 
   return null;
 }

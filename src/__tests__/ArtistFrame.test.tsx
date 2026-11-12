@@ -17,14 +17,14 @@ afterEach(() => { cleanup(); document.getElementById('catalogue-profile')?.remov
 it('opens the bootstrap website while the directory is still loading', () => {
     seed(); setup(); expect(screen.getByTitle('Test artist Website')).toHaveAttribute('src', 'https://example.com/');
     expect(screen.getAllByRole('link')).toHaveLength(1);
-    expect(screen.getByRole('link', { name: 'Exit Artist Universe' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'Exit Artist Universe' })).toHaveAttribute('href', '/artist/test/');
 });
 it.each(['burst', 'far', 'nullish'])('offers the official website without creating a blocked iframe for %s', id => {
     seed(id); const { container } = setup(id); expect(container.querySelector('iframe')).toBeNull();
     expect(screen.getByRole('heading', { name: 'This website cannot be displayed here.' })).toBeVisible();
     expect(screen.getAllByRole('link')).toHaveLength(2);
-    expect(screen.getByRole('link', { name: 'Open official website ↗' })).toHaveAttribute('href', 'https://example.com/');
-    expect(screen.getByRole('link', { name: 'Exit Artist Universe' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'Open official website' })).toHaveAttribute('href', 'https://example.com/');
+    expect(screen.getByRole('link', { name: 'Exit Artist Universe' })).toHaveAttribute('href', `/artist/${id}/`);
 });
 it('replaces the spinner with a nonblocking slow-load message and removes it on load', () => {
     vi.useFakeTimers(); seed(); setup(); act(() => vi.advanceTimersByTime(3000));

@@ -1,6 +1,6 @@
 import { publicationDate } from './publicationDate';
 export const SITE_ORIGIN = 'https://catalogue.gallery';
-export type PageMeta = { title: string; description: string; path: string; image?: string; type?: 'website' | 'article'; noindex?: boolean; article?: { title: string; author?: string; publishedAt?: string; updatedAt?: string } };
+export type PageMeta = { title: string; description: string; path: string; image?: string; profile?: {name: string; type: string; websiteUrl?: string}; type?: 'website' | 'article'; noindex?: boolean; article?: { title: string; author?: string; publishedAt?: string; updatedAt?: string } };
 export function canonicalPath(path: string) {
     const pathname = path.split(/[?#]/)[0].replace(/\/+$/, '');
     return pathname ? `${pathname}/` : '/';
@@ -14,13 +14,14 @@ export const staticPages: PageMeta[] = [
     { path: '/', title: 'Digital Artists & Independent Art Editorial | CATALOGUE', description: 'Discover independent digital artists, explore their own websites, and read stories and interviews about digital art on CATALOGUE.' },
     { path: '/artists/', title: 'Digital Artists & Galleries Directory | CATALOGUE', description: 'Browse independent digital artists, galleries and curated spaces. Discover their practices and explore their own websites through CATALOGUE.' },
     { path: '/blog/', title: 'Digital Art Stories & Interviews | CATALOGUE', description: 'Stories, conversations, and critical perspectives on digital art. Explore Content Lab, the publication from CATALOGUE.' },
+    { path: '/dispatch/', title: 'DISPATCH | Daily Digital Art News | CATALOGUE', description: 'The CATALOGUE daily digital art edition. Read past issues, exhibitions, artists, and developments across independent digital culture.' },
     { path: '/info/', title: 'About CATALOGUE | Independent Digital Art Directory', description: 'Learn about CATALOGUE, an independent publication and directory connecting readers with digital artists, their work and their own websites.' },
     { path: '/submit/', title: 'Submit Your Artist or Gallery Website | CATALOGUE', description: 'Apply to the CATALOGUE directory. Submit your independent artist website or gallery programme for editorial review.' },
     { path: '/content-lab/', title: 'Content Lab Editor | CATALOGUE', description: 'The CATALOGUE editorial workspace.', noindex: true },
     { path: '/content-lab/admin/', title: 'Content Lab Editor | CATALOGUE', description: 'The CATALOGUE editorial workspace.', noindex: true },
 ];
-export function profileMeta(profile: { id: string; type: string; name: string; subtitle?: string; image?: string }): PageMeta {
-    return { path: `/${profile.type}/${encodeURIComponent(profile.id)}/`, title: `${profile.name} | CATALOGUE`, description: profile.subtitle?.trim() ? `${profile.subtitle.trim()} — view ${profile.name} on CATALOGUE.` : `View ${profile.name} on CATALOGUE.`, image: profile.image };
+export function profileMeta(profile: { id: string; type: string; name: string; subtitle?: string; shortBio?: string; websiteUrl?: string; image?: string }): PageMeta {
+    return { path: `/${profile.type}/${encodeURIComponent(profile.id)}/`, title: `${profile.name} | CATALOGUE`, profile: {name: profile.name, type: profile.type, websiteUrl: profile.websiteUrl}, description: profile.shortBio?.trim() || (profile.subtitle?.trim() ? `${profile.subtitle.trim()} — view ${profile.name} on CATALOGUE.` : `View ${profile.name} on CATALOGUE.`), image: profile.image };
 }
 export function articleMeta(article: { id: string; title: string; excerpt: string; thumbnailUrl?: string; author?: string; publishedAt?: string; displayDate?: string; updatedAt?: string }): PageMeta {
     return { path: `/blog/${encodeURIComponent(article.id)}/`, title: `${article.title} | CATALOGUE`, description: article.excerpt, type: 'article', image: article.thumbnailUrl, article: { title: article.title, author: article.author, publishedAt: publicationDate(article.publishedAt, article.displayDate), updatedAt: article.updatedAt } };
@@ -72,13 +73,19 @@ export function pageSchema(meta: PageMeta) {
     const graph: Record<string, unknown>[] = [organization, { '@type': 'WebSite', '@id': `${SITE_ORIGIN}/#website`, name: 'CATALOGUE', url: SITE_ORIGIN, publisher: { '@id': organization['@id'] } }];
     if (!meta.noindex) {
         graph.push({ '@type': 'WebPage', '@id': `${url}#page`, url, name: meta.title, description: meta.description, isPartOf: { '@id': `${SITE_ORIGIN}/#website` } });
+        if (meta.profile) {
+            const entity = { '@type': meta.profile.type === 'gallery' ? 'Organization' : 'Person', '@id': `${url}#profile`, name: meta.profile.name, description: meta.description, ...(meta.profile.websiteUrl && /^https?:\/\//.test(meta.profile.websiteUrl) ? { url: meta.profile.websiteUrl } : {}), ...(meta.image ? { image: absoluteImage(meta.image) } : {}) };
+            graph.push(entity);
+            const page = graph.find(item => item['@id'] === `${url}#page`);
+            if (page) page.mainEntity = { '@id': entity['@id'] };
+        }
         if (meta.article) {
             const author = meta.article.author || 'CATALOGUE';
             graph.push({ '@type': 'Article', '@id': `${url}#article`, mainEntityOfPage: { '@id': `${url}#page` }, headline: meta.article.title, description: meta.description, image: [absoluteImage(meta.image)], author: /catalogue/i.test(author) ? { '@id': organization['@id'] } : { '@type': 'Person', name: author }, publisher: { '@id': organization['@id'] }, ...(meta.article.publishedAt ? { datePublished: meta.article.publishedAt } : {}), ...(meta.article.updatedAt ? { dateModified: meta.article.updatedAt } : {}) });
         }
         if (meta.path !== '/') {
             const items = [{ name: 'CATALOGUE', item: `${SITE_ORIGIN}/` }];
-            if (meta.article) items.push({ name: 'Content Lab', item: `${SITE_ORIGIN}/blog/` });
+            if (meta.article) items.push(meta.path.startsWith('/dispatch/') ? { name: 'DISPATCH', item: `${SITE_ORIGIN}/dispatch/` } : { name: 'Content Lab', item: `${SITE_ORIGIN}/blog/` });
             items.push({ name: meta.article?.title || meta.title.split(' | ')[0], item: url });
             graph.push({ '@type': 'BreadcrumbList', itemListElement: items.map((item, i) => ({ '@type': 'ListItem', position: i + 1, ...item })) });
         }
