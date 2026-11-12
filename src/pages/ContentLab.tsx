@@ -136,7 +136,7 @@ function pickRandomArtistSeed(artists: Artist[]): ContentLabArtistSeed | null {
 function AuthGate({ onAuth }: { onAuth: (pw: string) => void }) {
     const [pw, setPw] = useState('');
     return (
-        <div className="relative flex min-h-screen items-center justify-center bg-black px-6 text-white">
+        <div className="editorial-auth relative flex min-h-screen items-center justify-center px-6">
             <div className="w-full max-w-sm border border-white/10 bg-white/[0.02] p-6 md:p-7">
                 <p className="mb-6 text-[10px] font-bold uppercase tracking-[0.3em] text-white/30">Content Lab</p>
                 <p className="text-sm leading-relaxed text-white/50">
@@ -144,6 +144,7 @@ function AuthGate({ onAuth }: { onAuth: (pw: string) => void }) {
                 </p>
                 <input
                     type="password"
+                    aria-label="Content Lab password"
                     autoFocus
                     value={pw}
                     onChange={e => setPw(e.target.value)}

@@ -12,3 +12,21 @@ export function windowGeometry(distance: number) {
     return { left: (values[0] - values[2] / 2) * 100, top: (values[1] - values[3] / 2) * 100, width: values[2] * 100, height: values[3] * 100,
         opacity: clamp((3.2 - Math.abs(distance)) / .6, 0, 1), zIndex: Math.round(100 - Math.abs(distance) * 10) };
 }
+
+export type SurfaceRect = { left: number; top: number; right: number; bottom: number };
+/** Hide a background label as a unit when a nearer artwork covers it. */
+export function captionCovered(caption: SurfaceRect, depth: number, surfaces: { rect: SurfaceRect; depth: number }[]) {
+    return surfaces.some(surface => surface.depth > depth && caption.left < surface.rect.right && caption.right > surface.rect.left && caption.top < surface.rect.bottom && caption.bottom > surface.rect.top);
+}
+
+/** Fit the original image inside the moving slot without cropping or stretching. */
+export function naturalWindowGeometry(distance: number, aspect: number | undefined, stageWidth: number, stageHeight: number) {
+    const box = windowGeometry(distance);
+    if (!aspect || !Number.isFinite(aspect) || aspect <= 0 || stageWidth <= 0 || stageHeight <= 0) return box;
+    const maxWidth = box.width * stageWidth / 100;
+    const maxHeight = Math.max(1, box.height * stageHeight / 100 - 29);
+    const imageHeight = Math.min(maxHeight, maxWidth / aspect);
+    const width = imageHeight * aspect / stageWidth * 100;
+    const height = (imageHeight + 29) / stageHeight * 100;
+    return { ...box, left: box.left + (box.width-width)/2, top: box.top + (box.height-height)/2, width, height };
+}

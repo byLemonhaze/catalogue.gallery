@@ -1,0 +1,17 @@
+/* The image is the door. The iframe remains a quiet, non-interactive preview. */
+.profile-surface{position:relative;isolation:isolate;overflow:hidden}
+.profile-portal{position:absolute;inset:0;display:block;overflow:hidden;pointer-events:none;background:#101010}
+.profile-surface[data-framed="true"] .profile-portal{inset:6px}
+.profile-portal iframe{position:absolute;inset:0;width:250%;height:250%;border:0;transform:scale(.4);transform-origin:0 0;pointer-events:none;background:#fff;opacity:0}
+.profile-portal[data-loaded="true"] iframe{opacity:1}
+.profile-surface .profile-portal .portal-fallback{position:absolute;inset:0;width:100%;height:100%;max-height:none;border:0;aspect-ratio:auto;object-fit:cover;transform:none!important;transition:opacity .7s}
+.profile-portal canvas{position:absolute;inset:0;width:100%;height:100%;opacity:0}
+.profile-portal canvas[data-ready="true"]{opacity:1}
+.profile-portal:has(canvas[data-ready="true"]) .portal-fallback{opacity:0}
+.profile-portal[data-open="true"]:not(:has(canvas[data-ready="true"])) .portal-fallback{opacity:0}
+.profile-portal[data-reduced="true"] .portal-fallback{transition:none}
+.profile-portal[data-reduced="true"] .portal-loading{animation:none}
+.profile-portal .portal-loading{position:absolute;bottom:18px;right:18px;width:10px;height:10px;background:#fff;box-shadow:0 0 0 5px #111;animation:portal-wait 1.5s ease-in-out infinite}
+@keyframes portal-wait{to{transform:rotate(180deg)}}
+.profile-surface:has(.profile-portal)>img{transform:none!important}
+@media(prefers-reduced-motion:reduce){.profile-portal .portal-loading{animation:none}}

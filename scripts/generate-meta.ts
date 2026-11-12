@@ -1,3 +1,4 @@
+import { dispatchMeta } from '../src/lib/dispatch';
 import { publicPageData, renderPublicDocument } from '../functions/_lib/renderPublic';
 import fs from 'fs';
 import path from 'path';
@@ -103,7 +104,7 @@ async function generate() {
     fs.writeFileSync(path.join(DIST_DIR, 'app-shell.html'), template);
     const publicData = await publicPageData(process.env);
     if (!profiles.length || !articles.length) throw new Error('Refusing to build an empty public content inventory');
-    const entries = [...staticPages.filter(page => !page.noindex), ...profiles.map(profile => ({ path: profileMeta(profile).path, updatedAt: profile.updatedAt })), ...articles.map(article => ({ path: articleMeta(article).path, updatedAt: article.updatedAt }))];
+    const entries = [...(publicData.dispatches || []).map(post => ({path:dispatchMeta(post).path, updatedAt:post.publishedAt})), ...staticPages.filter(page => !page.noindex), ...profiles.map(profile => ({ path: profileMeta(profile).path, updatedAt: profile.updatedAt })), ...articles.map(article => ({ path: articleMeta(article).path, updatedAt: article.updatedAt }))];
     // Validate uniqueness before writing anything. Failure must stop the deployment.
     const sitemap = sitemapXml(entries);
     async function writePage(meta: PageMeta, transform?: (html: string) => string | Promise<string>) {
@@ -115,6 +116,7 @@ async function generate() {
         fs.writeFileSync(path.join(directory, 'index.html'), transform ? await transform(html) : html);
     }
     for (const page of staticPages) await writePage(page, page.noindex ? undefined : html => renderPublicDocument(html, page.path, publicData));
+    for (const post of publicData.dispatches || []) await writePage(dispatchMeta(post), html => renderPublicDocument(html, dispatchMeta(post).path, publicData));
     for (const article of articles) {
         const data = { ...publicData, articles: publicData.articles.map(item => item.id === article.id ? { ...item, content: article.content || '' } : item) };
         await writePage(articleMeta(article), html => renderPublicDocument(html, articleMeta(article).path, data));

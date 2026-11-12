@@ -20,7 +20,7 @@ it('renders directory links and complete editorial text before JavaScript runs',
 it('renders homepage discovery without accessing browser storage', async () => {
     const html = await renderPublicPage('/', data);
     expect(html).toContain('href="/artist/test-artist/"');
-    expect(html).toContain('Independent worlds');
+    expect(html).toContain('A place to begin digital art in the independent world');
     expect(html).not.toContain('hidden id="S:');
 });
 it('uses recorded dates without substituting creation dates or fabricating missing dates', () => {
@@ -38,4 +38,15 @@ it('renders the public profile biography and entry link without mounting an ifra
     expect(html).toContain('href="/artist/test-artist/world/"');
     expect(html).not.toContain('<iframe');
     expect(html).toContain('<h1');
+});
+
+import dispatchArchive from '../data/dispatch-archive.json';
+it('renders the full dispatch and every edition image without JavaScript',async()=>{
+    const html=await renderPublicPage('/dispatch/2026-11-11/',{...data,dispatches:dispatchArchive});
+    expect(html).toContain('In 1785 the young United States');
+    expect(html).toContain('A palace turned into a camera.');
+    expect(html).toContain('Expand plate 03');
+    expect(html).toContain('href="/dispatch/2026-11-10/"');
+    expect(html).not.toContain('hidden id="S:');
+    expect(html).not.toContain('Loading page');
 });

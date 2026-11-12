@@ -32,7 +32,7 @@ it('keeps discovery mounted through profile and world, then returns to its origi
     expect(screen.getByRole('region', { name: 'Discover artist worlds' })).toBe(carousel);
     expect(screen.getByRole('link', {name:'View Test Artist'})).toHaveFocus();
 });
-it('provides a standalone profile on direct entry and never embeds before consent to enter', () => {
+it('provides a standalone profile without loading a website before image interaction', () => {
     setup('/artist/test-artist/');
     expect(screen.getByRole('heading', { name: 'Test Artist' })).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -60,5 +60,69 @@ it('searches the complete directory without requiring carousel interaction', asy
 it('exposes search on standalone profile pages', () => {
     setup('/artist/test-artist/');
     fireEvent.click(screen.getByRole('button', { name: 'Search artists and stories' }));
-    expect(screen.getByRole('dialog', { name: 'Find a world. Or a story.' })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Search' })).toBeInTheDocument();
+});
+it('captures vertical wheel input over the stage but preserves browser zoom gestures', () => {
+    setup();
+    const stage = document.querySelector('.windows-stage')!;
+    const wheel = new WheelEvent('wheel', { deltaY: 120, bubbles: true, cancelable: true });
+    fireEvent(stage, wheel);
+    expect(wheel.defaultPrevented).toBe(true);
+    const zoom = new WheelEvent('wheel', { deltaY: 120, ctrlKey: true, bubbles: true, cancelable: true });
+    fireEvent(stage, zoom);
+    expect(zoom.defaultPrevented).toBe(false);
+});
+it('enters the artist website on the second image click and returns to the same profile', async () => {
+    setup();
+    fireEvent.click(screen.getByRole('link', {name:'View Test Artist'}));
+    fireEvent.click(screen.getByRole('link', {name:'Enter Test Artist’s world'}));
+    await screen.findByTitle('Test Artist Website');
+    expect(screen.getByTestId('route')).toHaveTextContent('/artist/test-artist/world/');
+    fireEvent.click(screen.getByRole('link', {name:'Exit Artist Universe'}));
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+});
+it('treats the opened profile card text as an entrance without requiring the explicit CTA', async () => {
+    setup();
+    fireEvent.click(screen.getByRole('link', {name:'View Test Artist'}));
+    fireEvent.click(screen.getByRole('heading', {name:'Test Artist'}));
+    await screen.findByTitle('Test Artist Website');
+    expect(screen.getByTestId('route')).toHaveTextContent('/artist/test-artist/world/');
+});
+it('moves one whole artist with arrow keys from the page and scrubber, preserving focus', async () => {
+    setup();
+    vi.spyOn(document.querySelector('.windows-stage')!, 'getBoundingClientRect').mockReturnValue({top:100,bottom:600,left:0,right:1000,width:1000,height:500,x:0,y:100,toJSON:()=>({})});
+    const selected = () => document.querySelector('.selected-artist')?.textContent;
+    expect(selected()).toBe('Test Artist');
+    fireEvent.keyDown(document.body, {key:'ArrowRight'});
+    await waitFor(() => expect(selected()).toBe('Other Artist'));
+    const slider = screen.getByRole('slider', {name:'Choose artist'});
+    slider.focus();
+    fireEvent.keyDown(slider, {key:'ArrowLeft'});
+    await waitFor(() => expect(selected()).toBe('Test Artist'));
+    expect(slider).toHaveFocus();
+    fireEvent.keyDown(slider, {key:'ArrowLeft'});
+    await waitFor(() => expect(selected()).toBe('Other Artist'));
+});
+it('does not intercept arrows in search or an open profile', () => {
+    setup();
+    fireEvent.click(screen.getByRole('button', {name:'Search artists and stories'}));
+    const input = screen.getByRole('searchbox');
+    const arrow = new KeyboardEvent('keydown', {key:'ArrowRight',bubbles:true,cancelable:true});
+    fireEvent(input,arrow);
+    expect(arrow.defaultPrevented).toBe(false);
+    fireEvent.click(screen.getByRole('button', {name:'Close search'}));
+    fireEvent.click(screen.getByRole('link', {name:'View Test Artist'}));
+    const modalArrow = new KeyboardEvent('keydown', {key:'ArrowLeft',bubbles:true,cancelable:true});
+    fireEvent(screen.getByRole('dialog'),modalArrow);
+    expect(modalArrow.defaultPrevented).toBe(false);
+});
+it('opens the branded policy dialog, closes with Escape and restores its opener',()=>{
+    setup();
+    const opener=screen.getByRole('button',{name:'Policy'});opener.focus();fireEvent.click(opener);
+    const dialog=screen.getByRole('dialog',{name:'LEGAL FRAMEWORK'});
+    expect(document.body.style.overflow).toBe('hidden');
+    fireEvent(dialog,new Event('cancel',{bubbles:true,cancelable:true}));
+    expect(screen.queryByRole('dialog',{name:'LEGAL FRAMEWORK'})).not.toBeInTheDocument();
+    expect(opener).toHaveFocus();
+    expect(document.body.style.overflow).not.toBe('hidden');
 });

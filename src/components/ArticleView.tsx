@@ -29,7 +29,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
 
     if (loading && !article) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-black text-white">
+            <div className="route-state">
                 <div className="text-xs text-white/40 font-mono uppercase tracking-widest">Loading article...</div>
             </div>
         );
@@ -37,7 +37,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
 
     if (!article) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-black text-white">
+            <div className="route-state">
                 <div className="text-center">
                     <Seo meta={missingMeta(`/blog/${id}/`)} /><h1 className="text-4xl font-bold mb-4">404</h1>
                     <p className="text-white/50 mb-8">Article not found.</p>
@@ -51,7 +51,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
 
 
     return (
-        <div id="main-content" className="reader-page min-h-screen bg-black text-white selection:bg-white selection:text-black font-sans">
+        <div id="main-content" className="reader-page min-h-screen bg-black text-white selection:bg-white selection:text-black">
             <Seo meta={articleMeta(article)} />
 
             {/* Article Content */}
@@ -64,7 +64,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
                     </div>
                     <h1 className="text-3xl md:text-5xl font-semibold tracking-tight mb-7 leading-tight text-white max-w-3xl mx-auto">{article.title}</h1>
                     <p className="max-w-2xl mx-auto text-sm md:text-base leading-relaxed text-white/60 mb-8">{article.excerpt}</p>
-                    <div className="flex items-center justify-center gap-6 text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] border-t border-white/10 pt-6 max-w-md mx-auto relative">
+                    <div className="flex items-center justify-center gap-4 flex-wrap text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] border-t border-white/10 pt-6 max-w-md mx-auto relative">
                         <time dateTime={article.publishedAt}>{article.date}</time>
                         <span>•</span>
                         <Link to="/info/" rel="author" className="hover:text-white underline-offset-4 hover:underline">{article.author}</Link>
@@ -125,10 +125,10 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
                 <hr className="my-20 border-white/10" />
                 <div className="flex items-center justify-between">
                     <Link to="/blog" className="text-[10px] font-bold uppercase tracking-widest text-white/30 hover:text-white transition-colors">
-                        ← All stories
+                        All stories
                     </Link>
                     <Link to="/" className="text-[10px] font-bold uppercase tracking-widest text-white/30 hover:text-white transition-colors">
-                        Home →
+                        Home
                     </Link>
                 </div>
             </article>

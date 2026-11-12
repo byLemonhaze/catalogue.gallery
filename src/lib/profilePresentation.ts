@@ -17,3 +17,12 @@ export function officialWebsite(value: string) {
         return undefined;
     }
 }
+
+/** Sanity asset IDs encode the uncropped source dimensions. */
+export function profileAspect(artist: Artist) {
+    const source = typeof artist.thumbnail === 'string' ? artist.thumbnail : artist.thumbnail?.asset?._ref;
+    const match = source?.match(/-(\d+)x(\d+)(?:-|\.)/);
+    if (!match) return undefined;
+    const ratio = Number(match[1]) / Number(match[2]);
+    return Number.isFinite(ratio) && ratio > 0 ? ratio : undefined;
+}

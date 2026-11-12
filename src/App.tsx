@@ -18,6 +18,8 @@ import { ArtistProfile } from './pages/ArtistProfile';
 import type { Location } from 'react-router-dom';
 
 // Lazy-loaded routes — only fetched when the user navigates to them
+const DispatchArchive = lazy(() => import('./pages/Dispatch').then(m => ({ default: m.DispatchArchive })));
+const DispatchIssue = lazy(() => import('./pages/Dispatch').then(m => ({ default: m.DispatchIssue })));
 const ArtistList = lazy(() => recoverImport(() => import('./components/ArtistList').then(m => ({ default: m.ArtistList }))));
 const ArticleView = lazy(() => recoverImport(() => import('./components/ArticleView').then(m => ({ default: m.ArticleView }))));
 const ArticleList = lazy(() => recoverImport(() => import('./components/ArticleList').then(m => ({ default: m.ArticleList }))));
@@ -81,7 +83,7 @@ export const AppContent = () => {
   );
 
   return (
-    <div className={`min-h-screen font-display ${isWorld || location.pathname.startsWith('/content-lab') ? 'bg-black text-white' : 'public-site'}`}>
+    <div className={`min-h-screen font-display ${isWorld ? 'bg-black text-white' : location.pathname.startsWith('/content-lab') ? 'editorial-workspace bg-black text-white' : 'public-site'}`}>
       {staticMeta && <Seo meta={staticMeta} />}
       <Navigation
         onSearchOpen={() => {setSearch('');setIsSearchOpen(true);}}
@@ -133,11 +135,13 @@ export const AppContent = () => {
           <Route path="/blog" element={<ArticleList filter="all" articles={articles} loading={articlesLoading} />} />
           <Route path="/blog/:id" element={<ArticleView articles={articles} loading={articlesLoading} />} />
 
+          <Route path="/dispatch" element={<DispatchArchive />} />
+          <Route path="/dispatch/:slug" element={<DispatchIssue />} />
           <Route path="/artists" element={<ArtistList />} />
           <Route path="/content-lab" element={<ContentLab />} />
           <Route path="/content-lab/admin" element={<Navigate to="/content-lab" replace />} />
           <Route path="/info" element={<InfoHub setIsLegalModalOpen={setIsLegalModalOpen} />} />
-          <Route path="*" element={<main className="min-h-screen px-6 pt-36 text-center"><Seo meta={missingMeta(location.pathname)} /><h1 className="text-4xl mb-5">Page not found</h1><p className="text-white/60 mb-6">This page may have moved or is no longer available.</p><Link className="editorial-link" to="/artists/">Explore the directory</Link></main>} />
+          <Route path="*" element={<main className="route-state"><Seo meta={missingMeta(location.pathname)} /><h1 >Page not found</h1><p >This page may have moved or is no longer available.</p><Link className="text-link" to="/artists/">Explore the directory</Link></main>} />
         </Routes>
         </div>
         {backgroundLocation && <Routes><Route path="/artist/:id" element={<ArtistProfile modal />} /><Route path="/gallery/:id" element={<ArtistProfile modal />} /><Route path="/artist/:id/world" element={<ArtistFrame />} /><Route path="/gallery/:id/world" element={<ArtistFrame />} /></Routes>}

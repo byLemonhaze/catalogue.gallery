@@ -1,0 +1,157 @@
+/* One public palette contract. Private publishing tools retain their own tokens. */
+:root {
+  --catalogue-display: Syne, Sora, sans-serif;
+  --catalogue-paper: #131315;
+  --catalogue-ink: #f3f1ed;
+  --catalogue-muted: #aaa9b0;
+  --catalogue-line: #3c3c43;
+  --catalogue-surface: #1c1c20;
+  --catalogue-surface-alt: #29292f;
+  --catalogue-action: #f3f1ed;
+  --catalogue-action-text: #171719;
+  --catalogue-accent: #dedbe8;
+  --catalogue-error: #ff9e98;
+  --catalogue-success: #8de1a9;
+  --catalogue-scheme: dark;
+}
+.public-site, .world-shell {
+  --paper: var(--catalogue-paper);
+  --ink: var(--catalogue-ink);
+  --muted: var(--catalogue-muted);
+  --line: var(--catalogue-line);
+  --surface: var(--catalogue-surface);
+  --surface-alt: var(--catalogue-surface-alt);
+  --display-face: var(--catalogue-display);
+  background: var(--paper);
+  color: var(--ink);
+  color-scheme: var(--catalogue-scheme);
+  letter-spacing: normal;
+}
+/* Syne marks entrances; Sora carries reading, captions and controls. */
+.public-site :is(h1, .section-heading h2, .join-catalogue h2, .search-heading h2, .legal-modal h2) {
+  font-family: var(--catalogue-display);
+  font-weight: 600;
+  letter-spacing: -.045em;
+  line-height: 1.06;
+}
+.public-site .story-archive .editorial-index-title {font-family:var(--catalogue-display);font-weight:600}
+.public-site :is(button, input, textarea, select, kbd, .font-mono, .editorial-kicker, .editorial-meta, .editorial-link, .editorial-number) {font-family:Sora,sans-serif}
+.public-site :is(.editorial-meta > span:first-child, .editorial-lead-foot) {color:var(--muted)}
+.public-site :is(.editorial-kicker, .eyebrow) {font-weight:400;letter-spacing:.12em}
+.public-site .search-heading h2 {font-size:40px}
+.public-site .directory-caption h2 {font-weight:500;letter-spacing:-.035em}
+.public-site .catalogue-intro h1 {line-height:1.12}
+.public-site .catalogue-masthead nav {font-family:Sora,sans-serif;letter-spacing:0;font-weight:400}
+.catalogue-masthead {gap:26px}
+.catalogue-masthead nav {margin-left:auto;gap:24px}
+.public-site select option {background:var(--paper);color:var(--ink)}
+.public-site :focus, .world-shell :focus {outline:none!important}
+:root[data-input="keyboard"] :is(.public-site,.world-shell) :focus-visible {outline:none!important;box-shadow:0 2px 0 var(--catalogue-accent)!important}
+:root[data-input="keyboard"] .world-window:focus-visible .world-caption {text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+.public-site :is(input:not([type="range"]),textarea):focus {border-bottom-color:var(--catalogue-accent)}
+.public-site ::selection {background:var(--ink);color:var(--paper)}
+.public-site :is(input:not([type="range"]),textarea,select) {border-color:var(--line);color:var(--ink)}
+.public-site :is(input,textarea)::placeholder {color:var(--muted);opacity:1}
+.public-site :is(.solid-link, .directory-shuffle), .world-action, .world-exit {
+  background:var(--catalogue-action);color:var(--catalogue-action-text)!important;
+}
+.public-site .solid-link:hover, .directory-shuffle:hover, .world-action:hover, .world-exit:hover,
+.profile-layout:has(:is(.profile-surface:hover,.profile-surface:focus-visible,.solid-link:hover,.solid-link:focus-visible)) .solid-link {
+  background:var(--catalogue-action);box-shadow:none;
+}
+.profile-dialog {border-color:var(--line)}
+.public-site .window-scrubber input {accent-color:var(--catalogue-action)}
+.window-scrubber input::-webkit-slider-thumb {background:var(--catalogue-action)}
+.window-scrubber input::-moz-range-thumb {background:var(--catalogue-action)}
+.window-scrubber input:active::-webkit-slider-thumb {background:var(--catalogue-accent)}
+.window-scrubber input::-webkit-slider-runnable-track {background:var(--line)}
+.window-scrubber input::-moz-range-track {background:var(--line)}
+.public-site [class*="bg-[#191919]"] {background:var(--surface)}
+.public-site [class*="border-[#"] {border-color:var(--line)}
+.public-site [class*="bg-[#f2f2ef]"] {background:var(--surface-alt)}
+.public-site [class~="bg-white"] {background:var(--ink)}
+.public-site [class~="text-black"] {color:var(--paper)}
+.public-site .application-page {background:var(--paper)}
+.public-site .application-page :is(input:not([type="range"]), textarea) {background:var(--paper)}
+.public-site .application-page :is(label, p[class*="tracking-"], button[class*="tracking-"]) {letter-spacing:.08em;font-weight:500}
+.public-site .application-page h1 {letter-spacing:-.045em;font-weight:600}
+.public-site .application-page [aria-invalid="true"] {border-color:var(--catalogue-error)}
+.public-site [class*="text-red-400"] {color:var(--catalogue-error)}
+.public-site .text-emerald-400 {color:var(--catalogue-success)}
+.public-site .application-preview-caption p {color:#fff}
+.public-site .legal-modal > .absolute {background:#0009}
+.public-site .legal-modal h2 {text-transform:none;font-size:32px}
+.world-artist-label, .world-message-copy {color:var(--muted)}
+.world-message-title {font-family:var(--catalogue-display)}
+.world-text-link {color:var(--ink);border-color:var(--ink)}
+.world-loading {background:var(--paper);color:var(--ink);border-color:var(--line)}
+.world-exit {border-color:var(--paper)}
+.world-exit-label {border-color:color-mix(in srgb,var(--catalogue-action-text) 30%,transparent)}
+@media(max-width:1000px) and (min-width:761px) {.catalogue-masthead{gap:16px;padding-inline:24px}.catalogue-masthead nav{gap:15px}}
+@media(max-width:760px) {
+  .catalogue-masthead{gap:15px 12px}
+  .catalogue-masthead nav{order:3;width:100%;margin:0;gap:12px;font-size:10px}
+  .public-site .search-heading h2{font-size:34px}
+}
+.directory-caption {overflow-wrap:anywhere}
+.public-site .application-page button[type="submit"] {background:var(--catalogue-action);color:var(--catalogue-action-text);border-color:var(--catalogue-action)}
+.public-site .application-page button[type="submit"] .catalogue-square-loader {color:currentColor}
+
+
+.profile-copy {min-width:0}
+.public-site .profile-copy .profile-name {
+  width:100%;max-width:100%;font-size:var(--profile-name-size,clamp(40px,5.9vw,88px));
+  overflow-wrap:normal;word-break:normal;hyphens:none;white-space:nowrap;line-height:1.08;
+}
+.profile-name>span {display:inline-block;white-space:pre}
+@media(max-width:760px){.public-site .profile-copy .profile-name{font-size:var(--profile-name-size,48px)}}
+
+/* Final public type hierarchy: display entrances; Sora for reading and controls. */
+html, body {background:var(--catalogue-paper);color:var(--catalogue-ink);color-scheme:dark}
+.public-site .reader-page {font-family:Sora,sans-serif}
+.public-site .reader-page :is(p,li,blockquote) {color:var(--catalogue-ink);font-weight:400}
+.public-site .reader-page :is(h2,h3) {font-weight:500;line-height:1.3}
+.public-site .reader-page h2 {font-size:clamp(24px,2.4vw,32px)}
+.public-site .reader-page h3 {font-size:clamp(20px,2vw,25px)}
+.public-site .reader-page header>div:last-child, .public-site .reader-page header>div:first-child>span {letter-spacing:.08em;font-weight:400}
+.public-site .about-page section>p:first-child {font-weight:400;letter-spacing:.12em}
+.public-site .legal-modal h3 {font-size:13px;letter-spacing:.08em;font-weight:500}
+.public-site .legal-modal section>div {font-size:14px;line-height:1.8}
+.public-site .legal-modal section span {font-size:11px;letter-spacing:.08em;font-weight:500}
+.public-site .legal-modal header p, .public-site .legal-modal footer p {font-size:10px;letter-spacing:.08em}
+.public-site .legal-modal header button {display:grid;place-items:center;width:40px;height:40px;flex-shrink:0}
+.public-site .legal-modal {margin:auto;padding:0;width:min(672px,92vw);max-width:none;max-height:85dvh;background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.public-site .legal-modal::backdrop {background:#0009;backdrop-filter:blur(12px)}
+.public-site .legal-modal>div {max-height:85dvh;display:flex;flex-direction:column}
+.public-site .legal-modal header, .public-site .legal-modal footer {background:var(--paper)}
+.public-site .legal-modal h2 {font-size:clamp(25px,3vw,32px)}
+.public-site .legal-modal .legal-scroll {overflow:auto}
+.public-site :is(.dispatch-empty,.route-state) {padding-block:60px}
+.public-site .route-state {min-height:65vh;display:grid;place-content:center;gap:22px;text-align:center;padding-inline:24px}
+.public-site .route-state h1 {font-size:clamp(40px,5vw,68px)}
+.public-site .route-state p {color:var(--muted);font-size:14px;line-height:1.8;max-width:38em}
+.public-site .route-state .text-link {justify-self:center}
+@media(max-width:760px){
+ .public-site .legal-modal :is(header,footer,.legal-scroll){padding:22px}
+ .public-site .reader-page>article>header{margin-bottom:36px;padding-bottom:28px}
+ .public-site .reader-page>article>header>div:last-child{gap:12px;font-size:9px}
+}
+.public-site .legal-modal>div{background:var(--surface)}
+
+/* A single assertive display voice, shared by every public entrance. */
+.public-site :is(h1,.section-heading h2,.join-catalogue h2,.search-heading h2,.legal-modal h2,.editorial-index-title) {
+  font-family:var(--catalogue-display);font-weight:600;letter-spacing:-.045em;line-height:1.06;
+}
+.public-site .catalogue-intro h1 {font-size:clamp(28px,2.5vw,38px);line-height:1.08;letter-spacing:-.045em;text-wrap:balance;max-width:19ch;margin-top:0}
+.world-message-title {font-weight:600;letter-spacing:-.045em}
+@media(max-width:760px){.public-site .catalogue-intro h1{font-size:30px;max-width:24ch}}
+.editorial-workspace {font-family:Sora,sans-serif;font-weight:400;letter-spacing:normal;color-scheme:dark}
+.editorial-workspace h1 {font-family:var(--catalogue-display);font-weight:600;letter-spacing:-.045em}
+.editorial-workspace .catalogue-masthead nav {font-family:Sora,sans-serif;font-weight:400;letter-spacing:normal}
+.editorial-auth {background:var(--catalogue-paper);color:var(--catalogue-ink);min-height:calc(100dvh - 86px)}
+.editorial-auth>div {background:var(--catalogue-surface);border-color:var(--catalogue-line)}
+.editorial-auth p {color:var(--catalogue-muted)}
+.editorial-auth p:first-child {font-weight:400;letter-spacing:.12em}
+.editorial-auth input {color:var(--catalogue-ink);border-color:var(--catalogue-line)}
+.editorial-auth input::placeholder {color:var(--catalogue-muted)}
+.editorial-auth button {background:var(--catalogue-action);color:var(--catalogue-action-text);font-weight:400;letter-spacing:.04em}

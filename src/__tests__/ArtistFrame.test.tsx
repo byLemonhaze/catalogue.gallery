@@ -23,7 +23,7 @@ it.each(['burst', 'far', 'nullish'])('offers the official website without creati
     seed(id); const { container } = setup(id); expect(container.querySelector('iframe')).toBeNull();
     expect(screen.getByRole('heading', { name: 'This website cannot be displayed here.' })).toBeVisible();
     expect(screen.getAllByRole('link')).toHaveLength(2);
-    expect(screen.getByRole('link', { name: 'Open official website ↗' })).toHaveAttribute('href', 'https://example.com/');
+    expect(screen.getByRole('link', { name: 'Open official website' })).toHaveAttribute('href', 'https://example.com/');
     expect(screen.getByRole('link', { name: 'Exit Artist Universe' })).toHaveAttribute('href', `/artist/${id}/`);
 });
 it('replaces the spinner with a nonblocking slow-load message and removes it on load', () => {

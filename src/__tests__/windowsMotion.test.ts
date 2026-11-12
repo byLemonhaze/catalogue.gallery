@@ -16,3 +16,22 @@ it('wraps in both directions without jumping across the artist inventory', () =>
     expect(relativePosition(0, 315.8, 316)).toBeCloseTo(.2);
     expect(relativePosition(315, .2, 316)).toBeCloseTo(-1.2);
 });
+
+import { captionCovered } from '../lib/windowsMotion';
+it('hides a background label behind a nearer artwork but leaves foreground and clear labels visible', () => {
+    const caption = { left: 600, right: 800, top: 300, bottom: 329 };
+    const front = { rect: { left: 400, right: 700, top: 100, bottom: 500 }, depth: 100 };
+    expect(captionCovered(caption, 90, [front])).toBe(true);
+    expect(captionCovered(caption, 110, [front])).toBe(false);
+    expect(captionCovered({ ...caption, left: 710 }, 90, [front])).toBe(false);
+});
+
+import {naturalWindowGeometry} from '../lib/windowsMotion';
+it('preserves portrait, square and panoramic proportions throughout movement',()=>{
+    for(const aspect of [.3,1,3]) for(const distance of [-2,-.6,0,.8,2]){
+        const box=naturalWindowGeometry(distance,aspect,1200,600);
+        expect((box.width*12)/(box.height*6-29)).toBeCloseTo(aspect,5);
+        expect(box.width).toBeLessThanOrEqual(windowGeometry(distance).width+.00001);
+        expect(box.height).toBeLessThanOrEqual(windowGeometry(distance).height+.00001);
+    }
+});

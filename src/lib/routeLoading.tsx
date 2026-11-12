@@ -44,6 +44,6 @@ export class RouteRecoveryBoundary extends Component<{ children: ReactNode }, { 
     static getDerivedStateFromError() { return { failed: true }; }
     render() {
         if (!this.state.failed) return this.props.children;
-        return <div className="min-h-screen grid place-items-center px-6"><div className="text-center max-w-md"><h1 className="text-2xl">This page could not load.</h1><p className="my-5 text-white/60">Check your connection, then reload to get the latest version of CATALOGUE.</p><button className="border border-white/30 px-5 py-3" onClick={() => window.location.reload()}>Reload page</button></div></div>;
+        return <div className="route-state"><div className="text-center max-w-md"><h1 className="text-2xl">This page could not load.</h1><p className="my-5 text-white/60">Check your connection, then reload to get the latest version of CATALOGUE.</p><button className="text-link" onClick={() => window.location.reload()}>Reload page</button></div></div>;
     }
 }

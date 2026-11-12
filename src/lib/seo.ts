@@ -14,6 +14,7 @@ export const staticPages: PageMeta[] = [
     { path: '/', title: 'Digital Artists & Independent Art Editorial | CATALOGUE', description: 'Discover independent digital artists, explore their own websites, and read stories and interviews about digital art on CATALOGUE.' },
     { path: '/artists/', title: 'Digital Artists & Galleries Directory | CATALOGUE', description: 'Browse independent digital artists, galleries and curated spaces. Discover their practices and explore their own websites through CATALOGUE.' },
     { path: '/blog/', title: 'Digital Art Stories & Interviews | CATALOGUE', description: 'Stories, conversations, and critical perspectives on digital art. Explore Content Lab, the publication from CATALOGUE.' },
+    { path: '/dispatch/', title: 'DISPATCH | Daily Digital Art News | CATALOGUE', description: 'The CATALOGUE daily digital art edition. Read past issues, exhibitions, artists, and developments across independent digital culture.' },
     { path: '/info/', title: 'About CATALOGUE | Independent Digital Art Directory', description: 'Learn about CATALOGUE, an independent publication and directory connecting readers with digital artists, their work and their own websites.' },
     { path: '/submit/', title: 'Submit Your Artist or Gallery Website | CATALOGUE', description: 'Apply to the CATALOGUE directory. Submit your independent artist website or gallery programme for editorial review.' },
     { path: '/content-lab/', title: 'Content Lab Editor | CATALOGUE', description: 'The CATALOGUE editorial workspace.', noindex: true },
@@ -84,7 +85,7 @@ export function pageSchema(meta: PageMeta) {
         }
         if (meta.path !== '/') {
             const items = [{ name: 'CATALOGUE', item: `${SITE_ORIGIN}/` }];
-            if (meta.article) items.push({ name: 'Content Lab', item: `${SITE_ORIGIN}/blog/` });
+            if (meta.article) items.push(meta.path.startsWith('/dispatch/') ? { name: 'DISPATCH', item: `${SITE_ORIGIN}/dispatch/` } : { name: 'Content Lab', item: `${SITE_ORIGIN}/blog/` });
             items.push({ name: meta.article?.title || meta.title.split(' | ')[0], item: url });
             graph.push({ '@type': 'BreadcrumbList', itemListElement: items.map((item, i) => ({ '@type': 'ListItem', position: i + 1, ...item })) });
         }

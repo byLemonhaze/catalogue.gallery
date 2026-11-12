@@ -1,25 +1,34 @@
+import { useEffect, useRef } from 'react';
 interface LegalModalProps {
     isOpen: boolean;
     onClose: () => void;
 }
 
 export function LegalModal({ isOpen, onClose }: LegalModalProps) {
+    const dialog = useRef<HTMLDialogElement>(null);
+    useEffect(() => {
+        if (!isOpen) return;
+        const previous = document.activeElement as HTMLElement | null;
+        const overflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        const node = dialog.current;
+        node?.showModal();
+        return () => { node?.close(); document.body.style.overflow = overflow; previous?.focus({ preventScroll: true }); };
+    }, [isOpen]);
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 md:p-6 animate-fade-in">
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-black/85"
-                onClick={onClose}
-            />
-
+        <dialog ref={dialog} className="legal-modal" aria-labelledby="legal-title" onCancel={event => { event.preventDefault(); onClose(); }} onClick={event => {
+            if (event.target !== event.currentTarget) return;
+            const r = event.currentTarget.getBoundingClientRect();
+            if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) onClose();
+        }}>
             {/* Modal Content */}
             <div className="relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 overflow-hidden shadow-2xl flex flex-col max-h-[85vh] animate-scale-in">
                 {/* Header */}
-                <div className="p-8 border-b border-white/10 flex justify-between items-center bg-[#0d0d0d]">
+                <header className="p-8 border-b border-white/10 flex justify-between items-center bg-[#0d0d0d]">
                     <div className="space-y-1">
-                        <h2 className="text-2xl font-black uppercase tracking-tighter">LEGAL FRAMEWORK</h2>
+                        <h2 id="legal-title" className="text-2xl font-black uppercase tracking-tighter">LEGAL FRAMEWORK</h2>
                         <p className="text-[9px] font-mono uppercase tracking-[0.3em] text-white/30">Last Updated: Jan 30, 2026</p>
                     </div>
                     <button
@@ -32,10 +41,10 @@ export function LegalModal({ isOpen, onClose }: LegalModalProps) {
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                         </svg>
                     </button>
-                </div>
+                </header>
 
                 {/* Content - Scrollable */}
-                <div className="flex-1 overflow-y-auto p-8 space-y-12 custom-scrollbar">
+                <div className="legal-scroll flex-1 overflow-y-auto p-8 space-y-12 custom-scrollbar">
 
                     {/* Terms */}
                     <section className="space-y-4">
@@ -78,10 +87,10 @@ export function LegalModal({ isOpen, onClose }: LegalModalProps) {
                 </div>
 
                 {/* Footer Tip */}
-                <div className="p-6 bg-white/[0.01] border-t border-white/5 text-center px-8">
+                <footer className="p-6 bg-white/[0.01] border-t border-white/5 text-center px-8">
                     <p className="text-[9px] text-white/20 font-mono tracking-widest uppercase">CATALOGUE — FOR COLLECTORS, FROM THE LENS OF THE ARTISTS</p>
-                </div>
+                </footer>
             </div>
-        </div>
+        </dialog>
     );
 }
