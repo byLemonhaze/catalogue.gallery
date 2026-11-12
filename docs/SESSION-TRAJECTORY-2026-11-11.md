@@ -214,3 +214,8 @@ For future sessions, append dated decisions and evidence as work happens. Preser
 The owner requested a focused mobile refinement of the merged Windows system at 390 × 844 and 360 × 800, with a PR and before/after evidence. The work adds safe-area handling, larger controls, a single-column phone DISPATCH archive, directory spacing, clearer carousel intent/position, blocked-site expectations and DISPATCH in global search. Dark-only branding, fonts, WebGL and profile-before-world navigation remain intact. The optional handwritten logo experiment was deferred.
 
 The [mobile review record](MOBILE-POLISH-2026-11-12.md) preserves the screenshots, implementation decisions, 196 passing tests, build/postbuild distinction, physical-device limitations and publication handoff. This follow-up is not a deployment. Its final push/PR status must be appended when observed.
+
+
+## Finishing pass: typography and automatic preview
+
+The owner approved mobile, then requested the outstanding logo/control-font work. The handwritten header suffix was tested at desktop, 390 px and 360 px. Public controls now consistently use Plex Mono. The owner subsequently requested automatic tearing into the website when the card preview finishes loading; this was implemented and verified on Lars Wander without hover, preserving explicit world entry. Full results, screenshots, the DAX Bigshot One discussion, chatbot proposal and release limitations are in [the finishing-pass report](TYPOGRAPHY-AND-REVEAL-2026-11-12.md). No production deployment or chatbot activation occurred.

@@ -55,6 +55,7 @@ export function createProfileVortex(canvas: HTMLCanvasElement, src: string) {
     }
     function wake(){if(!raf && !disposed)raf=requestAnimationFrame(draw);}
     image.onload=()=>{if(disposed)return;try{gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);ready=true;if(start)start=performance.now();wake();}catch{canvas.dataset.ready='false';}};
+    image.onerror=()=>{if(!disposed)canvas.dataset.ready='false';};
     const url=new URL(src,window.location.href);
     image.src=url.hostname==='cdn.sanity.io' && url.pathname.startsWith('/images/ebj9kqfo/production/') ? '/media/artist?asset='+encodeURIComponent(url.pathname.split('/').pop()!)+'&w=1200' : url.href;
     const observer=new ResizeObserver(wake);observer.observe(canvas);
@@ -62,6 +63,6 @@ export function createProfileVortex(canvas: HTMLCanvasElement, src: string) {
     const onLoss=(event:Event)=>{event.preventDefault();canvas.dataset.ready='false';};canvas.addEventListener('webglcontextlost',onLoss);
     return {
         open(open:boolean){const next=open?1:0;if(target===next)return;target=next;from=value;start=performance.now();wake();},
-        destroy(){disposed=true;cancelAnimationFrame(raf);observer.disconnect();document.removeEventListener('visibilitychange',onVisibility);canvas.removeEventListener('webglcontextlost',onLoss);image.onload=null;gl.deleteTexture(texture);gl.deleteBuffer(buffer);gl.deleteProgram(program);shaders.forEach(s=>gl.deleteShader(s));}
+        destroy(){disposed=true;cancelAnimationFrame(raf);observer.disconnect();document.removeEventListener('visibilitychange',onVisibility);canvas.removeEventListener('webglcontextlost',onLoss);image.onload=null;image.onerror=null;gl.deleteTexture(texture);gl.deleteBuffer(buffer);gl.deleteProgram(program);shaders.forEach(s=>gl.deleteShader(s));}
     };
 }

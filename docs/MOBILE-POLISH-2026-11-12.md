@@ -1,5 +1,7 @@
 # Windows mobile polish — review record
 
+**Follow-up:** The owner has since approved the mobile experience. The original mobile build and push succeeded in their terminal and PR #53 was opened. Typography and automatic profile-preview work, updated screenshots, validation and outstanding limits are recorded in [the finishing-pass report](TYPOGRAPHY-AND-REVEAL-2026-11-12.md). The entries below preserve the original checkpoint.
+
 12 November 2026 UTC (11 November in Montréal). Branch: `feat/mobile-polish`, based on the merged Windows release `90c1f888be96597be7aadcddc729380d1c488f96`.
 
 ## Scope and decisions

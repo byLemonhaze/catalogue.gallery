@@ -8,7 +8,7 @@
 .profile-portal canvas{position:absolute;inset:0;width:100%;height:100%;opacity:0}
 .profile-portal canvas[data-ready="true"]{opacity:1}
 .profile-portal:has(canvas[data-ready="true"]) .portal-fallback{opacity:0}
-.profile-portal[data-open="true"]:not(:has(canvas[data-ready="true"])) .portal-fallback{opacity:0}
+.profile-portal[data-open="true"]:not(:has(canvas[data-ready="true"],canvas[data-ready="pending"])) .portal-fallback{opacity:0}
 .profile-portal[data-reduced="true"] .portal-fallback{transition:none}
 .profile-portal[data-reduced="true"] .portal-loading{animation:none}
 .profile-portal .portal-loading{position:absolute;bottom:18px;right:18px;width:10px;height:10px;background:#fff;box-shadow:0 0 0 5px #111;animation:portal-wait 1.5s ease-in-out infinite}

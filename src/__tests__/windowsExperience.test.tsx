@@ -32,7 +32,7 @@ it('keeps discovery mounted through profile and world, then returns to its origi
     expect(screen.getByRole('region', { name: 'Discover artist worlds' })).toBe(carousel);
     expect(screen.getByRole('link', {name:'View Test Artist'})).toHaveFocus();
 });
-it('provides a standalone profile without loading a website before image interaction', () => {
+it('provides a standalone profile and explicit entry when no preview image is available', () => {
     setup('/artist/test-artist/');
     expect(screen.getByRole('heading', { name: 'Test Artist' })).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
