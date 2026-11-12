@@ -14,7 +14,7 @@ The historical source URLs currently use X's public image CDN. The bot's origina
 
 ## Sanity and backfill
 
-The `dispatch` document is independent of `post`. Fields: title, issueDate, date slug, dateDisplay, dek, publishedAt, cover (alt/credit/sourceUrl), items (number/headline/body/sources/verified handles/plate/artist references/related post references), archived plates, original text and xPostUrl. Public queries explicitly exclude drafts and future publication dates. Published Sanity records override the bundled edition of the same date.
+The `dispatch` document is independent of `post`. Fields: title, issueDate, date slug, dateDisplay, dek, publishedAt, cover (alt/credit/sourceUrl), coverSource (original unedited cover image, with alt/credit/sourceUrl), items (number/headline/body/sources/verified handles/plate/plateSource/artist references/related post references), archived plates, plateSources (original unedited images for those archived plates), original text and xPostUrl. `coverSource`, `plateSource` and `plateSources` are Studio-only archives so plates can be reproduced in-house; public GROQ queries do not select them and the site does not render them. Public queries explicitly exclude drafts and future publication dates. Published Sanity records override the bundled edition of the same date.
 
 Preview the import: `node scripts/backfill-dispatch.mjs`.
 
@@ -26,8 +26,8 @@ Before publishing historical drafts, review text/media and enrich Sources from t
 
 This updates the existing DISPATCH bot, not a second scheduler. The existing 7:03 AM ET hunt and human approval gate stay in place.
 
-1. Bot prepares the full edition, 5–8 numbered stories, verified handles, Sources for each item, a 1200px cover and three credited highlight plates attached to the correct stories. Store original media and text in the existing art-recap/catalogue-plates archive.
-2. Bot creates/updates `drafts.dispatch-YYYY-MM-DD` in Sanity. Do not write the non-draft ID. Do not use the Content Lab publish endpoint. Set the slug and issueDate to the editorial date, and preserve the exact approved content.
+1. Bot prepares the full edition, 5–8 numbered stories, verified handles, Sources for each item, a 1200px cover and three credited highlight plates attached to the correct stories. Store original media and text in the existing art-recap/catalogue-plates archive. As part of the draft, the posting agent must also upload the original unedited source image to `coverSource` for the cover and to `plateSource` for every plate, with credit and sourceUrl (alt is required when a source image is set). For historical editions that only have archived `plates`, upload the matching originals to `plateSources`.
+2. Bot creates/updates `drafts.dispatch-YYYY-MM-DD` in Sanity, including the finished cover and plates plus their `coverSource` / `plateSource` originals. Do not write the non-draft ID. Do not use the Content Lab publish endpoint. Set the slug and issueDate to the editorial date, and preserve the exact approved content.
 3. Present the four images, full text, Sources and proposed time to Frédérick. Wait for his explicit approval. Changes after approval require renewed approval.
 4. At the approved time, publish the Sanity document. The frontend reads only published content with a publication timestamp at or before now. Historical dates remain historical; new issue publication time is the actual release.
 5. Verify `https://catalogue.gallery/dispatch/YYYY-MM-DD/`: HTTP 200; correct canonical; visible approved text and all media; matching OG/Twitter image; edition listed in `/dispatch/` and sitemap. Retry through the existing public cache window; never treat the SPA shell or an old page as success. Respect the existing three-minute post-publication wait.

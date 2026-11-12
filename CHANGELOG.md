@@ -6,6 +6,10 @@ The project now uses [Semantic Versioning](https://semver.org/) for public relea
 
 ## [Unreleased]
 
+### Added
+
+- Optional DISPATCH source-image fields in Sanity (`coverSource`, per-item `plateSource`, and `plateSources` for archived plates), each with alt, credit and source URL. The site does not render them; they exist so original unedited images can be stored and plates reproduced in-house.
+
 ### Changed
 
 - Adopt the selected Constellation logo across vector masters, X exports, favicon/device icons and default social cards.
