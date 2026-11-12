@@ -28,3 +28,11 @@ export function dispatchMedia(post: DispatchPost) {
         ...(post.items || []).filter(item=>item.plateUrl).map(item=>({url:item.plateUrl!,alt:item.plateAlt || item.headline,label:`Story ${String(item.number).padStart(2,'0')}`})),
     ].filter((item,index,all)=>all.findIndex(other=>other.url===item.url)===index);
 }
+
+/** Shared archive/global search includes editorial dates, not just body text. */
+export function matchesDispatch(post: DispatchPost, query: string) {
+    const needle = query.trim().toLocaleLowerCase();
+    return [post.title, post.issueDate, post.dateDisplay, post.slug, post.summary, post.body,
+        ...(post.items || []).map(item => `${item.headline} ${item.body}`)]
+        .some(value => value?.toLocaleLowerCase().includes(needle));
+}

@@ -58,7 +58,7 @@ export const AppContent = () => {
   // Cmd+K / Ctrl+K to open search
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         if (!isArtistPage) setIsSearchOpen(prev => !prev);
       }
@@ -74,12 +74,12 @@ export const AppContent = () => {
   }, [artists, loading, publicData]);
 
   const filteredArtists = randomizedArtists.filter(artist =>
-    artist.name.toLowerCase().includes(search.toLowerCase())
+    artist.type !== 'collector' && `${artist.name} ${artist.subtitle}`.toLowerCase().includes(search.trim().toLowerCase())
   );
 
   const filteredArticles = articles.filter(article =>
-    article.title.toLowerCase().includes(search.toLowerCase()) ||
-    article.excerpt.toLowerCase().includes(search.toLowerCase())
+    article.title.toLowerCase().includes(search.trim().toLowerCase()) ||
+    article.excerpt.toLowerCase().includes(search.trim().toLowerCase())
   );
 
   return (
