@@ -3,7 +3,7 @@ import { SiteLink as Link } from './SiteLink';
 import { useMotionPreference } from '../hooks/useMotionPreference';
 import { createProfileVortex } from '../lib/profileVortex';
 
-function WorldPreview({ website, name, src, reduced }: { website: string; name: string; src: string; reduced: boolean }) {
+function WorldPreview({ website, name, src, reduced, returningFromWorld }: { website: string; name: string; src: string; reduced: boolean; returningFromWorld: boolean }) {
     const [loaded,setLoaded]=useState(false);
     const [failed,setFailed]=useState(false);
     const [coverReady, setCoverReady] = useState(false);
@@ -32,7 +32,7 @@ function WorldPreview({ website, name, src, reduced }: { website: string; name: 
     useEffect(() => {
         let cancelled = false;
         const update = (state: 'ready' | 'fallback') => { if (!cancelled) setRendererState(state); };
-        if (!reduced && canvas.current && typeof WebGLRenderingContext !== 'undefined') {
+        if (!reduced && !returningFromWorld && canvas.current && typeof WebGLRenderingContext !== 'undefined') {
             canvas.current.dataset.ready = 'pending';
             renderer.current = createProfileVortex(canvas.current, src, update);
         }
@@ -45,7 +45,7 @@ function WorldPreview({ website, name, src, reduced }: { website: string; name: 
             }
         }, 10000);
         return () => { cancelled = true; clearTimeout(timeout); renderer.current?.destroy(); renderer.current = null; };
-    }, [src, reduced]);
+    }, [src, reduced, returningFromWorld]);
     const open = loaded && coverReady && !failed && (reduced || rendererState !== 'pending');
     useEffect(() => { renderer.current?.open(open); }, [open, rendererState]);
     useEffect(()=>{
@@ -56,14 +56,14 @@ function WorldPreview({ website, name, src, reduced }: { website: string; name: 
         const timeout=window.setTimeout(fail,10000);
         return ()=>{clearTimeout(timeout);frame?.removeEventListener('error',fail);};
     },[loaded,failed]);
-    return <span className="profile-portal" data-open={open} data-loaded={loaded && !failed} data-cover-ready={coverReady} data-renderer={rendererState} data-reduced={reduced} aria-hidden="true">
+    return <span className="profile-portal" data-open={open} data-loaded={loaded && !failed} data-cover-ready={coverReady} data-renderer={rendererState} data-reduced={reduced} data-restored={returningFromWorld} aria-hidden="true">
         {!failed && <iframe ref={iframe} src={website} title={`${name} website preview`} tabIndex={-1} sandbox="allow-scripts allow-same-origin" allow="autoplay 'none'; camera 'none'; microphone 'none'" referrerPolicy="no-referrer" onLoad={()=>setLoaded(true)}/>}
         <img ref={cover} className="portal-fallback" src={src} alt="" draggable="false"/>
-        {!reduced && <canvas ref={canvas}/>}
+        {!reduced && !returningFromWorld && <canvas ref={canvas}/>}
         {!open && !failed && <span className="portal-loading"/>}
     </span>;
 }
-export function ProfileSurface({ src, name, framed, to, state, website }: { src?: string; name: string; framed: boolean; to?: string; state?: unknown; website?: string }) {
+export function ProfileSurface({ src, name, framed, to, state, website, returningFromWorld = false }: { src?: string; name: string; framed: boolean; to?: string; state?: unknown; website?: string; returningFromWorld?: boolean }) {
     const [mounted,setMounted]=useState(false);
     const [reduced]=useMotionPreference();
     const canPreview=Boolean(src && to && website?.startsWith('https:'));
@@ -75,6 +75,6 @@ export function ProfileSurface({ src, name, framed, to, state, website }: { src?
         return ()=>window.cancelAnimationFrame(frame);
     },[canPreview]);
     const picture=<>{src ? <img src={src} alt={name} draggable="false"/> : <span>{name}</span>}
-        {canPreview && mounted && <WorldPreview key={`${website}|${src}`} website={website!} name={name} src={src!} reduced={reduced}/>}</>;
+        {canPreview && mounted && <WorldPreview key={`${website}|${src}`} website={website!} name={name} src={src!} reduced={reduced} returningFromWorld={returningFromWorld}/>}</>;
     return <div className="profile-art">{to ? <Link className="profile-surface" data-framed={framed} to={to} state={state} aria-label={`Enter ${name}’s world`}>{picture}</Link> : <div className="profile-surface" data-framed={framed}>{picture}</div>}</div>;
 }

@@ -108,3 +108,16 @@ it('shows the ready preview without the vortex when reduced motion is requested'
     expect(document.querySelector('.profile-portal')).toHaveAttribute('data-reduced','true');
     expect(document.querySelector('canvas')).toBeNull();
 });
+
+it('restores a returning preview without a vortex or fade while retaining readiness guards', async () => {
+    vi.stubGlobal('WebGLRenderingContext', class {});
+    render(<MemoryRouter><ProfileSurface src="/portrait.jpg" name="Test Artist" framed={false} to="/artist/test/world/" website="https://artist.example/" returningFromWorld/></MemoryRouter>);
+    await paint();
+    fireEvent.load(screen.getByTitle('Test Artist website preview'));
+    expect(document.querySelector('.profile-portal')).toHaveAttribute('data-open','false');
+    expect(document.querySelector('.profile-portal')).toHaveAttribute('data-restored','true');
+    expect(document.querySelector('canvas')).toBeNull();
+    expect(createProfileVortex).not.toHaveBeenCalled();
+    await loadCover(); await paint();
+    expect(document.querySelector('.profile-portal')).toHaveAttribute('data-open','true');
+});

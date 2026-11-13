@@ -6,6 +6,8 @@ The project now uses [Semantic Versioning](https://semver.org/) for public relea
 
 ## [Unreleased]
 
+- Restore an artist/gallery preview without replaying the vortex when returning from its world; fresh profile openings retain the original reveal. Preserve preview readiness and cover browser Back/Forward with regressions.
+
 - Fix mobile artwork swipes cancelling when touch capture transfers from an artwork child to the carousel stage. Preserve page scrolling, pinch zoom, slider feel and profile taps; add pointer-capture regressions.
 
 - Resolve PR #61’s three CodeFactor complexity findings by separating carousel animation/input and GPU rendering responsibilities, preserving the approved motion and styling. Include the local handoff, actual findings and browser/verification evidence.

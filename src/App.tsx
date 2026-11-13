@@ -1,4 +1,5 @@
 import { useDiscovery } from './hooks/useDiscovery';
+import { useProfileReturn } from './hooks/useProfileReturn';
 import { Seo } from './components/Seo';
 import { staticPages, canonicalPath, missingMeta } from './lib/seo';
 import { SiteLink as Link } from './components/SiteLink';
@@ -37,6 +38,7 @@ const ContentLab = lazy(() => recoverImport(() => import('./pages/ContentLab').t
 
 export const AppContent = () => {
   const location = useLocation();
+  const returningToProfile = useProfileReturn(location.pathname);
   const backgroundLocation = (location.state as { backgroundLocation?: Location } | null)?.backgroundLocation;
   const routeLocation = backgroundLocation || location;
   const isWorld = /^\/(artist|gallery)\/[^/]+\/world\/?$/.test(location.pathname);
@@ -122,8 +124,8 @@ export const AppContent = () => {
               />
             }
           />
-          <Route path="/artist/:id" element={<ArtistProfile />} />
-          <Route path="/gallery/:id" element={<ArtistProfile />} />
+          <Route path="/artist/:id" element={<ArtistProfile returningFromWorld={returningToProfile} />} />
+          <Route path="/gallery/:id" element={<ArtistProfile returningFromWorld={returningToProfile} />} />
           <Route path="/artist/:id/world" element={<ArtistFrame />} />
           <Route path="/gallery/:id/world" element={<ArtistFrame />} />
           <Route path="/submit" element={<SubmitArtist />} />
@@ -142,7 +144,7 @@ export const AppContent = () => {
           <Route path="*" element={<main className="route-state"><Seo meta={missingMeta(location.pathname)} /><h1 >Page not found</h1><p >This page may have moved or is no longer available.</p><Link className="text-link" to="/artists/">Explore the directory</Link></main>} />
         </Routes>
         </div>
-        {backgroundLocation && <Routes><Route path="/artist/:id" element={<ArtistProfile modal />} /><Route path="/gallery/:id" element={<ArtistProfile modal />} /><Route path="/artist/:id/world" element={<ArtistFrame />} /><Route path="/gallery/:id/world" element={<ArtistFrame />} /></Routes>}
+        {backgroundLocation && <Routes><Route path="/artist/:id" element={<ArtistProfile modal returningFromWorld={returningToProfile} />} /><Route path="/gallery/:id" element={<ArtistProfile modal returningFromWorld={returningToProfile} />} /><Route path="/artist/:id/world" element={<ArtistFrame />} /><Route path="/gallery/:id/world" element={<ArtistFrame />} /></Routes>}
       </Suspense>
       </RouteRecoveryBoundary>
     </div>
