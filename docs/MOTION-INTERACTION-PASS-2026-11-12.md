@@ -135,3 +135,16 @@ Validation before publication:
 - [WebKit iPhone 14 Pro profile](review/mobile-swipe/webkit-iphone14pro.json), 393 × 660 browser viewport: six loaded WebGL cards, no horizontal document overflow, and native touch tap opening the profile. [Screenshot](review/mobile-swipe/webkit-iphone14pro.png). WebKit checks covered rendering and taps; continuous swipe/pinch checks used Chromium touch dispatch.
 
 These checks do not constitute a physical iPhone, DuckDuckGo, X or LinkedIn app session. The prior desktop mouse/viewport tests did not exercise implicit touch capture; the new regressions cover that specific gap. Deployment evidence will be attached to the follow-up PR after normal CI/CodeFactor checks, protected merge, main rebuild and production source verification.
+
+
+## Restore the artist box after world exit (13 November 2026)
+
+The owner requested that the vortex play on a fresh artist-box opening from CATALOGUE, but not replay after leaving the artist's world. Previously, navigating back remounted `WorldPreview` and created a fresh renderer without considering the route it came from.
+
+A route-local navigation hook now recognizes a world → matching artist/gallery profile return before the profile mounts. Both modal and standalone profiles pass that return state into the preview. Returning previews allocate no vortex canvas and remove the fallback fade; they still wait for iframe load and decoded artwork readiness, preserving the no-flash and failure guards. Exit world, browser Back and repeated Forward/Back visits share this behavior, including a directly opened world. Closing the box and opening it afresh from CATALOGUE, opening another artist, or reloading a profile still permits the normal reveal. No persistent per-artist flag, new history entry, changed motion preference or iframe permission is introduced.
+
+Validation: lint, TypeScript and **253 tests across 37 files** pass. Six added cases cover modal exit/fresh reopening, standalone artist/gallery history returns, direct-world exit, a different artist and restored-preview readiness. [Browser journeys](review/profile-return/browser-journeys.json) at 1280 × 900 and 393 × 852 confirmed a ready WebGL vortex on initial opening, zero vortex canvases and zero cover transition duration after Exit world, no vortex on browser Back, and a fresh vortex after closing/reopening. Third-party iframe documents were replaced with a controlled browser fixture so these checks isolate CATALOGUE's animation; real artwork and GPU rendering were used. These are desktop-browser checks, not physical-device certification.
+
+The complete client/SSR/SEO build passed: 320 profiles, 150 articles and 8 static routes. Share audits passed for 508 pages, 321 local images and all 180 remote images (remote check `2026-11-13T19:07:37.110Z`). `git diff --check` passed.
+
+This correction is prepared locally. It does not change the mobile swipe fix in PR #62. Publication and final source/deployment evidence require the follow-up release.

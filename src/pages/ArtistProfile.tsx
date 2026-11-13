@@ -8,8 +8,9 @@ import { officialWebsite, profileImage, profilePath } from '../lib/profilePresen
 import { missingMeta, profileMeta } from '../lib/seo';
 import { ProfileSurface } from '../components/ProfileSurface';
 import { Seo } from '../components/Seo';
-export function ArtistProfile({ modal = false }: {
+export function ArtistProfile({ modal = false, returningFromWorld = false }: {
     modal?: boolean;
+    returningFromWorld?: boolean;
 }) {
     const { id = '' } = useParams();
     const location = useLocation(), navigate = useNavigate();
@@ -38,7 +39,7 @@ export function ArtistProfile({ modal = false }: {
     };
     const content = artist ? <>
     <Seo meta={profileMeta({ ...artist, type, image: profileImage(artist) })}/>
-    <ProfileSurface key={artist.id} website={externalOnlyProfiles.has(artist.id) ? undefined : officialWebsite(artist.websiteUrl)} src={profileImage(artist, 1200)} name={artist.name} framed={Boolean(artist.shortBio?.trim())} to={officialWebsite(artist.websiteUrl) ? `${profilePath(artist)}world/` : undefined} state={{ ...location.state, from: 'profile' }}/>
+    <ProfileSurface key={artist.id} returningFromWorld={returningFromWorld} website={externalOnlyProfiles.has(artist.id) ? undefined : officialWebsite(artist.websiteUrl)} src={profileImage(artist, 1200)} name={artist.name} framed={Boolean(artist.shortBio?.trim())} to={officialWebsite(artist.websiteUrl) ? `${profilePath(artist)}world/` : undefined} state={{ ...location.state, from: 'profile' }}/>
     <div className="profile-copy"><span className="eyebrow">{type === 'gallery' ? 'Curated space' : 'Artist universe'}</span><ProfileName name={artist.name}/><p className="profile-subtitle">{artist.subtitle}</p>{artist.shortBio?.trim() && <p className="profile-bio">{artist.shortBio}</p>}
       {officialWebsite(artist.websiteUrl) ? <><Link className="solid-link" to={`${profilePath(artist)}world/`} state={{ ...location.state, from: 'profile' }}>Enter world</Link></> : <p>The artist’s website is currently unavailable.</p>}
       {externalOnlyProfiles.has(artist.id) && <p className="profile-embed-note">This website opens separately. Its owner does not allow embedded viewing.</p>}

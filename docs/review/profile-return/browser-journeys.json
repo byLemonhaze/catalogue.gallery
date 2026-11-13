@@ -1,0 +1,43 @@
+{
+  "thirdPartyDocuments": "controlled fixture",
+  "journeys": [
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "name": "Dangiuz",
+      "first": {
+        "restored": "false",
+        "canvas": 1,
+        "renderer": "ready"
+      },
+      "returned": {
+        "restored": "true",
+        "canvas": 0,
+        "transition": "0s"
+      },
+      "browserBackSkipped": true,
+      "freshReopenAnimated": true
+    },
+    {
+      "viewport": {
+        "width": 393,
+        "height": 852
+      },
+      "name": "Archan Nair",
+      "first": {
+        "restored": "false",
+        "canvas": 1,
+        "renderer": "ready"
+      },
+      "returned": {
+        "restored": "true",
+        "canvas": 0,
+        "transition": "0s"
+      },
+      "browserBackSkipped": true,
+      "freshReopenAnimated": true
+    }
+  ]
+}
