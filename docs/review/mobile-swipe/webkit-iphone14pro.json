@@ -1,0 +1,10 @@
+{
+  "viewport": {
+    "width": 393,
+    "height": 660
+  },
+  "renderer": "webgl",
+  "ready": 6,
+  "overflow": false,
+  "tapOpenedProfile": true
+}

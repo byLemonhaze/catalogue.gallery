@@ -73,6 +73,8 @@ The Apply tests cover simultaneous missing-field highlighting, live correction, 
 
 ## Editorial and mobile regression checks
 
+Carousel touch tests must exercise gestures starting on artwork descendants, including the bubbling `lostpointercapture` event when implicit capture transfers to the stage. Resizing a mouse-driven browser alone does not cover this path. The [13 November mobile correction](MOTION-INTERACTION-PASS-2026-11-12.md#mobile-swipe-correction-13-november-2026) records the reproduction, regressions and browser touch evidence.
+
 Automated coverage includes shared artist requests and retry, deferred article summaries, persistent editorial selection/deduplication, profile-bootstrap validation, known blocked-profile states, bounded lazy-import recovery, and carousel gesture direction/cancellation/click suppression.
 
 Before release, review the homepage, archive, reader, and artist routes at desktop and narrow widths. On physical iOS Safari and Android Chrome, test vertical and diagonal scrolls starting on the carousel, intentional horizontal swipes, arrow taps, pinch zoom, cancelled gestures, reduced motion, and browser toolbar expansion/collapse. Browser viewport checks and synthetic pointer tests do not replace real-device checks.

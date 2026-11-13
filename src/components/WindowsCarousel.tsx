@@ -222,7 +222,11 @@ export function WindowsCarousel({ artists, discoveryReady = true, memory, onReme
             if (feelRef.current !== 'baseline') { current.current = next; setPosition(next); }
             remember(next);
         }
-    }} onPointerUp={() => release()} onPointerCancel={() => release(true)} onLostPointerCapture={() => { if (drag.current) release(true); }} onPointerLeave={() => { if (drag.current && !drag.current.horizontal) release(true); }} onDragStart={event => event.preventDefault()} onClickCapture={event => {
+    }} onPointerUp={() => release()} onPointerCancel={() => release(true)} onLostPointerCapture={event => {
+        // Touch capture transfers from the artwork to the stage when a swipe starts.
+        // The child's bubbling loss is that handoff, not a cancelled stage gesture.
+        if (event.target === event.currentTarget && drag.current?.pointerId === event.pointerId) release(true);
+    }} onPointerLeave={() => { if (drag.current && !drag.current.horizontal) release(true); }} onDragStart={event => event.preventDefault()} onClickCapture={event => {
         if (suppressClick.current) { event.preventDefault(); event.stopPropagation(); suppressClick.current = false; }
     }}>
       <canvas ref={canvas} className="window-warp" aria-hidden="true"/>

@@ -9,7 +9,10 @@ import type {Artist} from '../hooks/useArtists';
 import {createWindowWarp, type WarpMotion} from '../lib/windowWarp';
 vi.mock('../lib/windowWarp',()=>({createWindowWarp:vi.fn(()=>null)}));
 const artists: Artist[]=Array.from({length:20},(_,i)=>({id:String(i),name:`Artist ${i}`,subtitle:'',websiteUrl:'https://example.com',thumbnail:null}));
-beforeEach(()=>{vi.useFakeTimers();vi.stubGlobal('PointerEvent',MouseEvent);vi.stubGlobal('matchMedia',vi.fn(()=>({matches:false,addEventListener:vi.fn(),removeEventListener:vi.fn()})));});
+beforeEach(()=>{vi.useFakeTimers();vi.stubGlobal('PointerEvent',class extends MouseEvent {
+    readonly pointerId: number;
+    constructor(type: string, init: PointerEventInit = {}) { super(type,init); this.pointerId=init.pointerId ?? 1; }
+});vi.stubGlobal('matchMedia',vi.fn(()=>({matches:false,addEventListener:vi.fn(),removeEventListener:vi.fn()})));});
 afterEach(()=>{cleanup();vi.useRealTimers();vi.unstubAllGlobals();});
 const setup=(items=artists)=>render(<MemoryRouter><WindowsCarousel artists={items}/></MemoryRouter>);
 it('keeps direct releases close and bounds weighted/glide momentum, including stale gestures',()=>{
@@ -108,4 +111,39 @@ it('restores selection and pause when the homepage remounts within the same visi
     fireEvent.click(screen.getByRole('button',{name:'Other page'}));
     expect(screen.getByRole('slider')).toHaveValue('17');
     expect(screen.getByRole('button',{name:'Resume'})).toHaveAttribute('aria-pressed','true');
+});
+
+it('keeps swiping when touch capture transfers from an artwork child to the stage',()=>{
+    setup();
+    const stage=document.querySelector('.windows-stage') as HTMLElement;
+    const artwork=stage.querySelector('.window-hit-surface path')!;
+    stage.setPointerCapture=vi.fn();
+    fireEvent.pointerDown(artwork,{button:0,pointerId:1,clientX:300,clientY:200});
+    fireEvent.pointerMove(artwork,{pointerId:1,clientX:280,clientY:201});
+    expect(stage).toHaveAttribute('data-dragging','true');
+    // Touch starts with implicit capture on the SVG path. Transferring it to
+    // the stage bubbles lostpointercapture from that child before the next move.
+    fireEvent.lostPointerCapture(artwork,{pointerId:1});
+    expect(stage).toHaveAttribute('data-dragging','true');
+    fireEvent.pointerMove(stage,{pointerId:1,clientX:100,clientY:202});
+    expect(document.querySelector('.selected-artist')).toHaveTextContent('Artist 1');
+    fireEvent.pointerUp(stage,{pointerId:1});
+    expect(stage).not.toHaveAttribute('data-dragging');
+    const click=new MouseEvent('click',{bubbles:true,cancelable:true});
+    fireEvent(screen.getByRole('link',{name:'View Artist 1'}),click);
+    expect(click.defaultPrevented).toBe(true);
+});
+
+it('cancels a swipe only when the stage loses capture of the active pointer',()=>{
+    setup();
+    const stage=document.querySelector('.windows-stage') as HTMLElement;
+    stage.setPointerCapture=vi.fn();
+    fireEvent.pointerDown(stage,{button:0,pointerId:1,clientX:300,clientY:200});
+    fireEvent.pointerMove(stage,{pointerId:1,clientX:100,clientY:201});
+    fireEvent.lostPointerCapture(stage,{pointerId:2});
+    expect(stage).toHaveAttribute('data-dragging','true');
+    fireEvent.lostPointerCapture(stage,{pointerId:1});
+    expect(stage).not.toHaveAttribute('data-dragging');
+    fireEvent.pointerMove(stage,{pointerId:1,clientX:-200,clientY:201});
+    expect(document.querySelector('.selected-artist')).toHaveTextContent('Artist 1');
 });

@@ -6,6 +6,8 @@ The project now uses [Semantic Versioning](https://semver.org/) for public relea
 
 ## [Unreleased]
 
+- Fix mobile artwork swipes cancelling when touch capture transfers from an artwork child to the carousel stage. Preserve page scrolling, pinch zoom, slider feel and profile taps; add pointer-capture regressions.
+
 - Resolve PR #61’s three CodeFactor complexity findings by separating carousel animation/input and GPU rendering responsibilities, preserving the approved motion and styling. Include the local handoff, actual findings and browser/verification evidence.
 
 - Owner-approved motion polish: curved carousel captions and matching image hit areas; alternating page/story reveal axes; coordinated artwork/GPU/iframe readiness; continuous fluid scrubbing and development-only drag-feel comparisons; fresh discovery order per document with in-app selection/pause memory. Approved for publication; see the [pass record](docs/MOTION-INTERACTION-PASS-2026-11-12.md).
