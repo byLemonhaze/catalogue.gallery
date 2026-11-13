@@ -6,7 +6,7 @@ The project now uses [Semantic Versioning](https://semver.org/) for public relea
 
 ## [Unreleased]
 
-- Restore an artist/gallery preview without replaying the vortex when returning from its world; fresh profile openings retain the original reveal. Preserve preview readiness and cover browser Back/Forward with regressions.
+- Restore the original artist/gallery profile image when returning from its world, with no embedded website or vortex. Fresh profile openings retain the original reveal; browser Back/Forward and image-based re-entry are covered by regressions.
 
 - Fix mobile artwork swipes cancelling when touch capture transfers from an artwork child to the carousel stage. Preserve page scrolling, pinch zoom, slider feel and profile taps; add pointer-capture regressions.
 

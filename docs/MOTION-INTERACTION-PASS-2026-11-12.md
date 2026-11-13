@@ -139,6 +139,8 @@ These checks do not constitute a physical iPhone, DuckDuckGo, X or LinkedIn app 
 
 ## Restore the artist box after world exit (13 November 2026)
 
+Historical PR #63 checkpoint: this implementation restored the website preview. The owner clarified that the return must show the original profile image; the correction below supersedes that behavior.
+
 The owner requested that the vortex play on a fresh artist-box opening from CATALOGUE, but not replay after leaving the artist's world. Previously, navigating back remounted `WorldPreview` and created a fresh renderer without considering the route it came from.
 
 A route-local navigation hook now recognizes a world → matching artist/gallery profile return before the profile mounts. Both modal and standalone profiles pass that return state into the preview. Returning previews allocate no vortex canvas and remove the fallback fade; they still wait for iframe load and decoded artwork readiness, preserving the no-flash and failure guards. Exit world, browser Back and repeated Forward/Back visits share this behavior, including a directly opened world. Closing the box and opening it afresh from CATALOGUE, opening another artist, or reloading a profile still permits the normal reveal. No persistent per-artist flag, new history entry, changed motion preference or iframe permission is introduced.
@@ -148,3 +150,14 @@ Validation: lint, TypeScript and **253 tests across 37 files** pass. Six added c
 The complete client/SSR/SEO build passed: 320 profiles, 150 articles and 8 static routes. Share audits passed for 508 pages, 321 local images and all 180 remote images (remote check `2026-11-13T19:07:37.110Z`). `git diff --check` passed.
 
 This correction is prepared locally. It does not change the mobile swipe fix in PR #62. Publication and final source/deployment evidence require the follow-up release.
+
+
+## Correct world return to the profile image (13 November 2026)
+
+The prior change misunderstood the requested return state: suppressing the vortex while showing the website preview was wrong. The intended result is the artist's original profile image, with neither website preview nor vortex. The existing route-return classification is retained; `ProfileSurface` now disables preview creation for the entire returned visit. No iframe, cover overlay or GPU renderer is mounted on return, and the original clickable image remains visible. The image and Enter world still re-enter the artist's world. A fresh box opening from CATALOGUE retains the original vortex/readiness behavior.
+
+The tests now assert the visible original image and absence of the preview subtree, rather than merely checking that animation is absent. The corrected assertions reproduced the mistake before the implementation changed. They cover modal and standalone artist/gallery returns, browser Back/Forward, direct-world exits, repeated image-based entry and fresh reopening. A timed surface regression verifies no preview appears later. ESLint, TypeScript and **253 tests across 37 files** pass.
+
+[Corrected browser journeys](review/profile-return-image/browser-journeys.json) verified original image source, successful image loading, full opacity and zero preview iframes/portals after return at 1280 × 900 and 393 × 852. The [desktop](review/profile-return-image/returned-image-1280.png) and [mobile](review/profile-return-image/returned-image-393.png) returned-image screenshots were visually inspected. Clicking that returned image still enters the world; browser Back restores the image; closing and opening anew still creates a vortex. Third-party documents were controlled browser fixtures; actual artwork was loaded. This correction supersedes the earlier website-preview restoration and its assertions, while retaining that historical evidence.
+
+Correction build validation: complete client/SSR/SEO build passed (320 profiles, 150 articles, 8 static routes). The local audit at `2026-11-13T19:18:13.086Z` passed for 508 pages and 321 local images; the remote audit at `2026-11-13T19:18:35.320Z` checked all 180 remote images with no failures. Final merged-main and production evidence will be attached to the corrective PR.
