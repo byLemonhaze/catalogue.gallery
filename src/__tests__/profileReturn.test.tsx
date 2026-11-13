@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, useNavigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { AppContent } from '../App';
@@ -22,9 +22,15 @@ function setup(path = '/') {
     return render(<HelmetProvider><PublicPageContext.Provider value={data}><MemoryRouter initialEntries={[path]}><AppContent /><HistoryControls /></MemoryRouter></PublicPageContext.Provider></HelmetProvider>);
 }
 async function preview(name: string, restored: boolean) {
-    await screen.findByTitle(`${name} website preview`);
-    expect(document.querySelector('.profile-portal')).toHaveAttribute('data-restored', String(restored));
-    expect(document.querySelector('.profile-portal canvas') !== null).toBe(!restored);
+    if (restored) {
+        expect(await screen.findByRole('img', { name })).toBeVisible();
+        await act(async () => { await new Promise<void>(resolve => requestAnimationFrame(() => resolve())); });
+        expect(screen.queryByTitle(`${name} website preview`)).not.toBeInTheDocument();
+        expect(document.querySelector('.profile-portal')).toBeNull();
+    } else {
+        await screen.findByTitle(`${name} website preview`);
+        expect(document.querySelector('.profile-portal canvas')).not.toBeNull();
+    }
 }
 beforeEach(() => {
     vi.spyOn(Math, 'random').mockReturnValue(.999999);
@@ -34,7 +40,7 @@ beforeEach(() => {
     HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
 });
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); vi.mocked(createProfileVortex).mockClear(); });
-it('restores the modal after Exit world but plays the vortex on a fresh catalogue opening', async () => {
+it('restores the profile image after Exit world but plays the vortex on a fresh catalogue opening', async () => {
     setup();
     fireEvent.click(screen.getByRole('link', { name: 'View Test Artist' }));
     await preview('Test Artist', false);
@@ -43,6 +49,11 @@ it('restores the modal after Exit world but plays the vortex on a fresh catalogu
     await screen.findByTitle('Test Artist Website');
     fireEvent.click(screen.getByRole('link', { name: 'Exit Artist Universe' }));
     await screen.findByRole('dialog');
+    await preview('Test Artist', true);
+    expect(createProfileVortex).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole('link', { name: 'Enter Test Artist’s world' }));
+    await screen.findByTitle('Test Artist Website');
+    fireEvent.click(screen.getByRole('link', { name: 'Exit Artist Universe' }));
     await preview('Test Artist', true);
     expect(createProfileVortex).toHaveBeenCalledTimes(1);
     fireEvent.click(screen.getByRole('button', { name: 'Close artist profile' }));

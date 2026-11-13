@@ -1,0 +1,39 @@
+{
+  "thirdPartyDocuments": "controlled fixture",
+  "journeys": [
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "name": "Jozh Urban Davis",
+      "restored": {
+        "src": "https://cdn.sanity.io/images/ebj9kqfo/production/1664a459b23946d22d09607c736d2ea319b8214e-1024x1024.png?w=1200&q=80&auto=format",
+        "loaded": true,
+        "opacity": "1",
+        "previewCount": 0,
+        "portalCount": 0
+      },
+      "returnedImageStillEntersWorld": true,
+      "browserBackShowsImage": true,
+      "freshOpeningHasVortex": true
+    },
+    {
+      "viewport": {
+        "width": 393,
+        "height": 852
+      },
+      "name": "Dan Tepfer",
+      "restored": {
+        "src": "https://cdn.sanity.io/images/ebj9kqfo/production/0f731e205641e6d3f83719d0670b45522531cee8-2500x2451.jpg?w=1200&q=80&auto=format",
+        "loaded": true,
+        "opacity": "1",
+        "previewCount": 0,
+        "portalCount": 0
+      },
+      "returnedImageStillEntersWorld": true,
+      "browserBackShowsImage": true,
+      "freshOpeningHasVortex": true
+    }
+  ]
+}
