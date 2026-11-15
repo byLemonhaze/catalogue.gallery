@@ -1,0 +1,144 @@
+{
+  "url": "https://catalogue.gallery/dispatch/2026-11-14/",
+  "arrival": "true",
+  "events": [
+    {
+      "at": 24260,
+      "type": "opening-attribute",
+      "opening": "true"
+    },
+    {
+      "at": 24487,
+      "type": "animationstart",
+      "name": "-ua-view-transition-group-anim-dispatch-date",
+      "target": "",
+      "pseudo": "::view-transition-group(dispatch-date)",
+      "opening": "true"
+    },
+    {
+      "at": 24487,
+      "type": "animationstart",
+      "name": "dispatch-aperture",
+      "target": "",
+      "pseudo": "::view-transition-new(root)",
+      "opening": "true"
+    },
+    {
+      "at": 24487,
+      "type": "animationstart",
+      "name": "dispatch-recede",
+      "target": "",
+      "pseudo": "::view-transition-old(root)",
+      "opening": "true"
+    },
+    {
+      "at": 24487,
+      "type": "animationstart",
+      "name": "-ua-view-transition-fade-in",
+      "target": "",
+      "pseudo": "::view-transition-new(dispatch-date)",
+      "opening": "true"
+    },
+    {
+      "at": 24487,
+      "type": "animationstart",
+      "name": "-ua-mix-blend-mode-plus-lighter",
+      "target": "",
+      "pseudo": "::view-transition-new(dispatch-date)",
+      "opening": "true"
+    },
+    {
+      "at": 24487,
+      "type": "animationstart",
+      "name": "-ua-view-transition-fade-out",
+      "target": "",
+      "pseudo": "::view-transition-old(dispatch-date)",
+      "opening": "true"
+    },
+    {
+      "at": 24487,
+      "type": "animationstart",
+      "name": "-ua-mix-blend-mode-plus-lighter",
+      "target": "",
+      "pseudo": "::view-transition-old(dispatch-date)",
+      "opening": "true"
+    },
+    {
+      "at": 24995,
+      "type": "animationend",
+      "name": "-ua-view-transition-group-anim-dispatch-date",
+      "target": "",
+      "pseudo": "::view-transition-group(dispatch-date)",
+      "opening": "true"
+    },
+    {
+      "at": 24995,
+      "type": "animationend",
+      "name": "dispatch-aperture",
+      "target": "",
+      "pseudo": "::view-transition-new(root)",
+      "opening": "true"
+    },
+    {
+      "at": 24995,
+      "type": "animationend",
+      "name": "dispatch-recede",
+      "target": "",
+      "pseudo": "::view-transition-old(root)",
+      "opening": "true"
+    },
+    {
+      "at": 24995,
+      "type": "animationend",
+      "name": "-ua-view-transition-fade-in",
+      "target": "",
+      "pseudo": "::view-transition-new(dispatch-date)",
+      "opening": "true"
+    },
+    {
+      "at": 24995,
+      "type": "animationend",
+      "name": "-ua-mix-blend-mode-plus-lighter",
+      "target": "",
+      "pseudo": "::view-transition-new(dispatch-date)",
+      "opening": "true"
+    },
+    {
+      "at": 24995,
+      "type": "animationend",
+      "name": "-ua-view-transition-fade-out",
+      "target": "",
+      "pseudo": "::view-transition-old(dispatch-date)",
+      "opening": "true"
+    },
+    {
+      "at": 24995,
+      "type": "animationend",
+      "name": "-ua-mix-blend-mode-plus-lighter",
+      "target": "",
+      "pseudo": "::view-transition-old(dispatch-date)",
+      "opening": "true"
+    },
+    {
+      "at": 24996,
+      "type": "opening-attribute",
+      "opening": null
+    },
+    {
+      "at": 25062,
+      "type": "animationstart",
+      "name": "dispatch-arrival",
+      "target": "dispatch-issue",
+      "pseudo": "",
+      "opening": null
+    },
+    {
+      "at": 25195,
+      "type": "animationend",
+      "name": "dispatch-arrival",
+      "target": "dispatch-issue",
+      "pseudo": "",
+      "opening": null
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "origin": "http://127.0.0.1:5175/",
+  "thirdPartyDocuments": "controlled fixture with actual cross-origin iframe history",
+  "dispatch": [
+    {
+      "width": 1280,
+      "mode": "normal",
+      "aperture": 1,
+      "fallback": 0,
+      "extraFade": false
+    },
+    {
+      "width": 1280,
+      "mode": "reduced",
+      "aperture": 0,
+      "fallback": 1,
+      "extraFade": false
+    },
+    {
+      "width": 1280,
+      "mode": "unsupported",
+      "aperture": 0,
+      "fallback": 1,
+      "extraFade": false
+    },
+    {
+      "width": 393,
+      "mode": "normal",
+      "aperture": 1,
+      "fallback": 0,
+      "extraFade": false
+    },
+    {
+      "width": 393,
+      "mode": "reduced",
+      "aperture": 0,
+      "fallback": 1,
+      "extraFade": false
+    },
+    {
+      "width": 393,
+      "mode": "unsupported",
+      "aperture": 0,
+      "fallback": 1,
+      "extraFade": false
+    }
+  ],
+  "worlds": [
+    {
+      "width": 1280,
+      "artist": "Sofia Crespo",
+      "scrollBefore": 200,
+      "scrollAfter": 200,
+      "embeddedHistoryEntries": 5,
+      "oneClickExit": true,
+      "profileImageRestored": true,
+      "oneClickClose": true,
+      "discoveryPreserved": true
+    },
+    {
+      "width": 393,
+      "artist": "fingacode",
+      "scrollBefore": 200,
+      "scrollAfter": 200,
+      "embeddedHistoryEntries": 5,
+      "oneClickExit": true,
+      "profileImageRestored": true,
+      "oneClickClose": true,
+      "discoveryPreserved": true
+    }
+  ]
+}

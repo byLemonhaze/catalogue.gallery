@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter, useNavigate } from 'react-router-dom';
+import { MemoryRouter, useNavigate, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { AppContent } from '../App';
 import { PublicPageContext, type PublicPageData } from '../lib/publicPageData';
@@ -16,7 +16,8 @@ const data: PublicPageData = {
 };
 function HistoryControls() {
     const navigate = useNavigate();
-    return <><button onClick={() => navigate(-1)}>Browser back</button><button onClick={() => navigate(1)}>Browser forward</button><button onClick={() => navigate('/artist/other/')}>Other profile</button></>;
+    const location = useLocation();
+    return <><output data-testid="current-location">{location.pathname}{location.search}{location.hash}</output><button onClick={() => navigate(-1)}>Browser back</button><button onClick={() => navigate(1)}>Browser forward</button><button onClick={() => navigate('/artist/other/')}>Other profile</button></>;
 }
 function setup(path = '/') {
     return render(<HelmetProvider><PublicPageContext.Provider value={data}><MemoryRouter initialEntries={[path]}><AppContent /><HistoryControls /></MemoryRouter></PublicPageContext.Provider></HelmetProvider>);
@@ -44,23 +45,23 @@ it('restores the profile image after Exit world but plays the vortex on a fresh 
     setup();
     fireEvent.click(screen.getByRole('link', { name: 'View Test Artist' }));
     await preview('Test Artist', false);
-    expect(createProfileVortex).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(createProfileVortex).toHaveBeenCalledTimes(1));
     fireEvent.click(screen.getByRole('link', { name: 'Enter world' }));
     await screen.findByTitle('Test Artist Website');
     fireEvent.click(screen.getByRole('link', { name: 'Exit Artist Universe' }));
     await screen.findByRole('dialog');
     await preview('Test Artist', true);
-    expect(createProfileVortex).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(createProfileVortex).toHaveBeenCalledTimes(1));
     fireEvent.click(screen.getByRole('link', { name: 'Enter Test Artist’s world' }));
     await screen.findByTitle('Test Artist Website');
     fireEvent.click(screen.getByRole('link', { name: 'Exit Artist Universe' }));
     await preview('Test Artist', true);
-    expect(createProfileVortex).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(createProfileVortex).toHaveBeenCalledTimes(1));
     fireEvent.click(screen.getByRole('button', { name: 'Close artist profile' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     fireEvent.click(screen.getByRole('link', { name: 'View Test Artist' }));
     await preview('Test Artist', false);
-    expect(createProfileVortex).toHaveBeenCalledTimes(2);
+    await waitFor(() => expect(createProfileVortex).toHaveBeenCalledTimes(2));
 });
 it.each([['artist/test','Test Artist'], ['gallery/space','Test Gallery']])('restores %s through browser Back and repeated Forward/Back visits', async (path, name) => {
     setup(`/${path}/`);
@@ -70,7 +71,7 @@ it.each([['artist/test','Test Artist'], ['gallery/space','Test Gallery']])('rest
     for (let visit = 0; visit < 2; visit++) {
         fireEvent.click(screen.getByRole('button', { name: 'Browser back' }));
         await preview(name, true);
-        expect(createProfileVortex).toHaveBeenCalledTimes(1);
+        await waitFor(() => expect(createProfileVortex).toHaveBeenCalledTimes(1));
         if (visit === 0) {
             fireEvent.click(screen.getByRole('button', { name: 'Browser forward' }));
             await screen.findByTitle(`${name} Website`);
@@ -89,5 +90,24 @@ it('still animates a different artist opened from a world', async () => {
     await screen.findByTitle('Test Artist Website');
     fireEvent.click(screen.getByRole('button', { name: 'Other profile' }));
     await preview('Other Artist', false);
-    expect(createProfileVortex).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(createProfileVortex).toHaveBeenCalledTimes(1));
+});
+
+it.each([['artist/test','Test Artist'], ['gallery/space','Test Gallery']])('exits %s in one click despite intervening world history entries', async (path, name) => {
+    const backgroundLocation = { pathname: '/', search: '?view=discovery', hash: '#artists', state: null, key: 'home' };
+    const state = { backgroundLocation, profileOpener: 'original-opener', from: 'profile' };
+    const world = { pathname: `/${path}/world/`, state };
+    // Model the top-level route staying on the world while embedded navigation adds history.
+    const entries = [backgroundLocation, { pathname: `/${path}/`, state }, world, world, world];
+    render(<HelmetProvider><PublicPageContext.Provider value={data}><MemoryRouter initialEntries={entries}><AppContent /><HistoryControls /></MemoryRouter></PublicPageContext.Provider></HelmetProvider>);
+    await screen.findByTitle(`${name} Website`);
+    fireEvent.click(screen.getByRole('link', { name: 'Exit Artist Universe' }));
+    await screen.findByRole('dialog');
+    await preview(name, true);
+    expect(screen.queryByTitle(`${name} Website`)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Close artist profile' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(screen.getByTestId('current-location')).toHaveTextContent('/?view=discovery#artists');
+    expect(screen.getByRole('region', { name: 'Discover artist worlds' })).toBeVisible();
+    expect(screen.queryByTitle(`${name} Website`)).not.toBeInTheDocument();
 });
