@@ -1,6 +1,6 @@
 import { ProfileName } from '../components/ProfileName';
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, type Location } from 'react-router-dom';
 import { SiteLink as Link } from '../components/SiteLink';
 import { useArtists } from '../hooks/useArtists';
 import { readProfileBootstrap, externalOnlyProfiles } from '../lib/profileBootstrap';
@@ -19,6 +19,11 @@ export function ArtistProfile({ modal = false, returningFromWorld = false }: {
     const [bootstrap] = useState(() => readProfileBootstrap(id, type));
     const artist = artists.find(item => item.id === id && (item.type || 'artist') === type) || ((loading || error) ? bootstrap : null);
     const dialog = useRef<HTMLDialogElement>(null);
+    const closeProfile = () => {
+        const background = (location.state as { backgroundLocation?: Location } | null)?.backgroundLocation;
+        // A world exit replaces its current entry; never traverse embedded-site history to close.
+        if (background) navigate(background, { replace: true, state: background.state });
+    };
     const openerId = (location.state as {profileOpener?: string} | null)?.profileOpener;
     useEffect(() => {
         if (!modal)
@@ -46,9 +51,9 @@ export function ArtistProfile({ modal = false, returningFromWorld = false }: {
       <Link to="/artists/" className="text-link profile-browse">Browse the directory</Link>
     </div>
   </> : <div className="profile-copy">{!loading && !error && <Seo meta={missingMeta(location.pathname)}/>}<h1 id="profile-title">{loading ? 'Finding this artist…' : error ? 'The directory could not load.' : 'This profile is not available.'}</h1><p>{error || (!loading ? 'The artist may have moved, or this link is out of date.' : '')}</p>{error && <button onClick={() => window.location.reload()}>Try again</button>}<Link to="/artists/" className="text-link profile-browse">Browse the directory</Link></div>;
-    return modal ? <dialog ref={dialog} className="profile-dialog" aria-labelledby="profile-title" onCancel={event => { event.preventDefault(); navigate(-1); }} onClick={event => { if (event.target === event.currentTarget) {
+    return modal ? <dialog ref={dialog} className="profile-dialog" aria-labelledby="profile-title" onCancel={event => { event.preventDefault(); closeProfile(); }} onClick={event => { if (event.target === event.currentTarget) {
         const r = event.currentTarget.getBoundingClientRect();
         if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom)
-            navigate(-1);
-    } }}><button className="profile-close" aria-label="Close artist profile" onClick={() => navigate(-1)}>×</button><div className="profile-layout" onClick={enterFromCard}>{content}</div></dialog> : <main id="main-content" className="profile-page"><Link className="text-link profile-directory" to="/artists/">Directory</Link><div className="profile-layout" onClick={enterFromCard}>{content}</div></main>;
+            closeProfile();
+    } }}><button className="profile-close" aria-label="Close artist profile" onClick={() => closeProfile()}>×</button><div className="profile-layout" onClick={enterFromCard}>{content}</div></dialog> : <main id="main-content" className="profile-page"><Link className="text-link profile-directory" to="/artists/">Directory</Link><div className="profile-layout" onClick={enterFromCard}>{content}</div></main>;
 }

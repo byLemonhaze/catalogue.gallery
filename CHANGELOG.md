@@ -6,6 +6,8 @@ The project now uses [Semantic Versioning](https://semver.org/) for public relea
 
 ## [Unreleased]
 
+- Remove the extra Dispatch fade after its opening animation. Exit world now returns directly to the original profile image in one click after embedded-site navigation; closing the profile restores the originating CATALOGUE page without walking iframe history.
+
 - Restore the original artist/gallery profile image when returning from its world, with no embedded website or vortex. Fresh profile openings retain the original reveal; browser Back/Forward and image-based re-entry are covered by regressions.
 
 - Fix mobile artwork swipes cancelling when touch capture transfers from an artwork child to the carousel stage. Preserve page scrolling, pinch zoom, slider feel and profile taps; add pointer-capture regressions.

@@ -26,10 +26,7 @@ html[data-dispatch-opening]::view-transition-new(dispatch-date) { height: 100%; 
 @keyframes dispatch-recede {
     to { opacity: .28; filter: blur(2px); }
 }
-/* Normal navigation and reduced-motion users get a brief, displacement-free arrival. */
-.dispatch-issue[data-arrival=true] { animation: dispatch-arrival 140ms ease-out both; }
-html[data-dispatch-opening] .dispatch-issue[data-arrival=true] { animation: none; }
-@keyframes dispatch-arrival { from { opacity: .75; } to { opacity: 1; } }
+/* Fallback arrivals are owned by RouteTransitionReady, with no second fade here. */
 @media (prefers-reduced-motion: reduce) {
     html[data-dispatch-opening]::view-transition-old(root),
     html[data-dispatch-opening]::view-transition-new(root) { animation: none; }

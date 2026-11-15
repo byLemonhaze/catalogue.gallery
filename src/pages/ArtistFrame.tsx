@@ -20,13 +20,13 @@ function useArtistExit(): ExitHandler {
     const location = useLocation();
     return event => {
         if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-        const state = location.state as { from?: string } | null;
-        if (state?.from === 'profile') { event.preventDefault(); navigate(-1); }
-
+        event.preventDefault();
+        // Embedded pages add browser history entries: Exit must target the profile directly.
+        navigate(event.currentTarget.pathname, { replace: true, state: location.state });
     };
 }
 
-function ProfileLookupState({ loading, error, onExit }: { loading: boolean; error: string | null; onExit: ExitHandler }) {
+function ProfileLookupState({ loading, error }: { loading: boolean; error: string | null }) {
     return <div className="world-shell world-state">
         <div className="world-message"><span className="world-brand">CATALOGUE<span>.gallery</span></span>
             {loading ? <>
@@ -37,7 +37,7 @@ function ProfileLookupState({ loading, error, onExit }: { loading: boolean; erro
                 <p className="world-message-copy">{error ? 'Check your connection and try again.' : 'The artist may have moved, or this link is out of date.'}</p>
                 {error && <button className="world-text-link" onClick={() => window.location.reload()}>Try again</button>}
             </>}
-            <Link to="/" onClick={onExit} className="world-text-link">Return to CATALOGUE</Link>
+            <Link to="/" className="world-text-link">Return to CATALOGUE</Link>
         </div>
     </div>;
 }
@@ -88,7 +88,7 @@ function ArtistUniverse({ id }: { id: string }) {
     const { artists, loading, error } = useArtists();
     const artist = artists.find(item => item.id === id && (item.type || 'artist') === route) || ((loading || error) ? bootstrap : null);
     const handleExit = useArtistExit();
-    if (!artist) return <>{!loading && !error && <Seo meta={missingMeta(location.pathname)} />}<ProfileLookupState loading={loading} error={error} onExit={handleExit} /></>;
+    if (!artist) return <>{!loading && !error && <Seo meta={missingMeta(location.pathname)} />}<ProfileLookupState loading={loading} error={error} /></>;
 
     const website = resolveWebsiteUrl(artist.websiteUrl);
     const canEmbed = website && !externalOnlyProfiles.has(id) && !website.startsWith('http:');

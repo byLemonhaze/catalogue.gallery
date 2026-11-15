@@ -54,7 +54,7 @@ export function DispatchSignal({ post }: { post: DispatchPost }) {
         onClick={event => {
             if (!post.slug || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.defaultPrevented) return;
             event.preventDefault();
-            openDispatchIssue(event.currentTarget, post.slug, () => navigate(`/dispatch/${post.slug}/`, {state: {dispatchArrival: true}}), reduced);
+            openDispatchIssue(event.currentTarget, post.slug, () => navigate(`/dispatch/${post.slug}/`), reduced);
         }}
         aria-label={`Read the edition: ${post.dateDisplay || post.title}`} aria-describedby={bulletinId}
         onPointerEnter={event=>{if(event.pointerType!=='touch')setHeld(true);}} onPointerLeave={()=>setHeld(false)}
