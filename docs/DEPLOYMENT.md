@@ -58,7 +58,7 @@ Set the following environment variables/secrets in Cloudflare Pages for both env
 - `WEBHOOK_SHARED_SECRET`
 - `EMAIL_ENCRYPTION_KEY`
 
-The above config supports the public site and applications/review. `CONTENT_LAB_PASSWORD`, `GROK_API_KEY` and `CLAUDE_API_KEY` are **legacy editor dependencies**, not prerequisites for reading bot-published content. Existing legacy code still references them; consult [the inventory](legacy/CONTENT-LAB.md) before changing or revoking any secrets. External Grok bot credentials are configured in the bot environment, outside this repo.
+The above config supports the public site and applications/review. `CONTENT_LAB_PASSWORD`, `GROK_API_KEY` and `CLAUDE_API_KEY` were removed from the website configuration when Content Lab was retired. Do not restore them. External Grok bot credentials are configured in the bot environment, outside this repo. The website uses a separate Sanity editor credential for applications; see the [credential incident and audit](SECURITY-AUDIT-2026-11-18.md).
 
 Environment-specific behavior for social metadata:
 
@@ -142,7 +142,7 @@ In Sanity webhook settings:
 
 - Pages rollback: promote/redeploy last known-good deployment in Cloudflare dashboard.
 - D1 rollback: ship a forward SQL migration that repairs bad state (avoid ad-hoc production edits).
-- Secrets rollback: revert changed secret values in Cloudflare env settings and redeploy.
+- Secrets rollback: restore only valid, unexposed credentials in Cloudflare settings and redeploy. Never restore the revoked historical Sanity token or retired editor bindings.
 
 ## 10) Manual Repo Settings Checklist (Not Code-Delivered)
 
@@ -190,4 +190,4 @@ For a failed external check, inspect the exact PR head with `gh pr view 61 --jso
 
 ## Response security policy (18 November 2026)
 
-Global middleware applies the common response security headers to Functions, redirects and assets. `public/_headers` supplies the static fallback policy. HTML responses additionally carry `Content-Security-Policy-Report-Only`; it does not block resources. Violations are visible in browser developer tools only, with no reporting endpoint or visitor-URL upload. Validate artist frames, inline metadata, images, analytics and retained Content Lab requests before considering enforcement. Do not replace report-only with enforcement as part of a routine deployment.
+Global middleware applies the common response security headers to Functions, redirects and assets. `public/_headers` supplies the static fallback policy. HTML responses additionally carry `Content-Security-Policy-Report-Only`; it does not block resources. Violations are visible in browser developer tools only, with no reporting endpoint or visitor-URL upload. Validate artist frames, inline metadata, images and analytics before considering enforcement. Do not replace report-only with enforcement as part of a routine deployment.

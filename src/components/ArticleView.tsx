@@ -1,5 +1,5 @@
 import { useArticleBody } from '../hooks/useArticleBody';
-import { EditorialCard } from './ContentLabSection';
+import { EditorialCard } from './EditorialCards';
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { SiteLink as Link } from './SiteLink';

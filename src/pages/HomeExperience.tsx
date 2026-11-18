@@ -5,7 +5,7 @@ import type { ArticleRecord } from '../types/article';
 import type { HomeSectionKey } from '../constants/homeSections';
 import { WindowsCarousel } from '../components/WindowsCarousel';
 import { DispatchSection } from '../components/DispatchSection';
-import { EditorialCard } from '../components/ContentLabSection';
+import { EditorialCard } from '../components/EditorialCards';
 interface Props {
     artists: Artist[];
     discovery?: { ready: boolean; memory: DiscoveryMemory; remember: (next: DiscoveryMemory) => void };

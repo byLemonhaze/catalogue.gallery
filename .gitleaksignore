@@ -1,0 +1,4 @@
+# Revoked 2026-11-18; exact original commit/path/rule/line only.
+# See docs/SECURITY-AUDIT-2026-11-18.md. New copies are not exempt.
+41a3a0cef208b2261324c797038f6e272b6764c6:.env:generic-api-key:3
+41a3a0cef208b2261324c797038f6e272b6764c6:.env:sanity-api-token:3

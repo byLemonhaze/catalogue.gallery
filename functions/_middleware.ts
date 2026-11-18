@@ -1,4 +1,5 @@
 import { withSecurityHeaders } from './_lib/securityHeaders';
+import { retiredRouteResponse } from './_lib/retiredRoutes';
 import { staticPages, canonicalPath } from '../src/lib/seo';
 import { cachedPublicResponse, pageResponse, unavailableResponse, slashRedirect, type PageEnv } from './_lib/seoResponse';
 import { publicPageData, renderPublicDocument } from './_lib/renderPublic';
@@ -36,5 +37,5 @@ async function routeRequest({ request, env, next }: Context) {
 }
 
 export async function onRequest(context: Context) {
-    return withSecurityHeaders(await routeRequest(context));
+    return withSecurityHeaders(retiredRouteResponse(context.request) || await routeRequest(context));
 }

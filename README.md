@@ -182,7 +182,7 @@ Cloudflare binding (not an env var):
 
 The bots run outside this repository. Their scheduler, approval records and X publication ledger are separate operational concerns. The website supplies schemas and display surfaces. See the [current publishing guide](docs/EDITORIAL-PUBLISHING.md) for required fields, approval and timing rules, and [Dispatch's site-first publication contract](docs/DISPATCH-PUBLISHING.md).
 
-The old in-repository Content Lab editor and its model integrations remain in source but are **not the current publishing workflow**. Their routes, dependencies and migration tools are documented in the [legacy inventory](docs/legacy/CONTENT-LAB.md). Do not run the old article migration as a routine content refresh.
+The in-repository Content Lab editor, APIs, model integrations and generation workflow have been removed. Retired URLs return HTTP 410. See the [retirement record](docs/legacy/CONTENT-LAB.md) and [credential audit](docs/SECURITY-AUDIT-2026-11-18.md). Do not run the old article migration as a routine content refresh.
 
 ## Resend + apply@ Reply-To (Recommended)
 

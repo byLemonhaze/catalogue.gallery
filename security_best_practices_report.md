@@ -1,5 +1,7 @@
 # Catalogue security and maintenance review
 
+> Subsequent owner-authorized update: Content Lab has been removed, and a separate full-history audit found and revoked an exposed Sanity editor token. This report records the earlier review; use [the credential audit](docs/SECURITY-AUDIT-2026-11-18.md) and [retirement record](docs/legacy/CONTENT-LAB.md) for current status.
+
 Reviewed 18 November 2026 against main `5130a59e695f636ec96f3994af29a56caa4c1e00`.
 
 ## Executive summary
