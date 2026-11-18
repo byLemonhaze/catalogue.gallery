@@ -103,3 +103,5 @@ Implemented: workflow reactivation and manual dispatch; job-scoped CodeQL permis
 Superseded dependency PRs 32, 35 and 36 were closed after confirming installed undici 7.30.2, tar 7.5.23 and Vision 6.24.0 exceed their requested updates. The Studio check was added to main's required checks. Final CI, scanner and deployment evidence belongs in the remediation PR's release record.
 
 Content Lab is retained and hardened pending confirmation of usage. No production data or credentials are deleted. Independent-review and fuzzing recommendations remain lower-priority process decisions. CSP remains report-only until browser observations justify enforcement.
+
+The first refreshed full main scan closed the original four CodeQL findings and surfaced ten additional warnings. Editorial image URLs were further restricted; contextual false positives were triaged individually. Their source/sink analysis, regression evidence and dismissal rationale are documented in [Code-scanning triage](docs/CODE-SCANNING-TRIAGE.md). Scorecard's three process recommendations remain open.

@@ -1,4 +1,5 @@
 import type { ArticleRecord } from '../types/article';
+import { safeImageUrl } from './imageUrl';
 export interface EditorialSelection { lead?: string; selected?: string[] }
 export const defaultSelections = [
     'claire-silver-taste-is-the-new-skill-v2', 'xcopy-right-click-save',
@@ -19,6 +20,7 @@ export function selectEditorial(articles: ArticleRecord[], selection?: Editorial
     return { lead, selected, recent };
 }
 export function previewImage(url: string, width: number) {
+    url = safeImageUrl(url) || '/logo.png';
     if (!url.startsWith('https://cdn.sanity.io/')) return url;
     const result = new URL(url);
     result.searchParams.set('w', String(width)); result.searchParams.set('auto', 'format'); result.searchParams.set('q', '80');

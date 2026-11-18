@@ -3,6 +3,7 @@ import { publicPageData, renderPublicDocument } from '../functions/_lib/renderPu
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { execFileSync } from 'node:child_process';
 import { applyPageMeta, staticPages, profileMeta, articleMeta, missingMeta, profileBootstrapHtml, sitemapXml, SITE_ORIGIN, type PageMeta } from '../src/lib/seo';
 import { publicInventory } from '../functions/_lib/publicContent';
 
@@ -100,6 +101,8 @@ async function generateSplitProfileImage(
 
 async function generate() {
     const template = fs.readFileSync(TEMPLATE_PATH, 'utf8');
+    const commit = process.env.CF_PAGES_COMMIT_SHA || execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+    fs.writeFileSync(path.join(DIST_DIR, 'release.json'), JSON.stringify({ commit, builtAt: new Date().toISOString() }) + '\n');
     const publicEnv = { SANITY_PROJECT_ID: process.env.SANITY_PROJECT_ID, VITE_SANITY_PROJECT_ID: process.env.VITE_SANITY_PROJECT_ID, SANITY_DATASET: process.env.SANITY_DATASET, VITE_SANITY_DATASET: process.env.VITE_SANITY_DATASET };
     const { profiles, articles } = await publicInventory(publicEnv, true);
     fs.writeFileSync(path.join(DIST_DIR, 'app-shell.html'), template);

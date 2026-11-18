@@ -1,5 +1,6 @@
 import archive from '../data/dispatch-archive.json';
 import type { PageMeta } from './seo';
+import { safeImageUrl } from './imageUrl';
 export interface DispatchItem { number: number; headline: string; body: string; sources?: {label: string; url: string}[]; plateUrl?: string; plateAlt?: string; plateCredit?: string; artists?: {id: string; name: string; type: string}[]; relatedPosts?: {id: string; title: string}[] }
 export interface DispatchPost { id: string; slug?: string; title: string; issueDate?: string; dateDisplay?: string; publishedAt: string; summary: string; body?: string; xUrl?: string; coverUrl?: string | null; coverAlt?: string; items?: DispatchItem[]; plates?: {url: string; alt: string}[]; archiveSource?: string }
 export const dispatchQuery = `*[_type == "dispatch" && !(_id in path("drafts.**")) && defined(publishedAt) && dateTime(publishedAt) <= dateTime(now()) && defined(slug.current)] | order(issueDate desc){"id": _id, "slug": slug.current, title, issueDate, dateDisplay, publishedAt, archiveSource, "summary": coalesce(dek, summary, items[0].headline), body, "xUrl": coalesce(xPostUrl, xUrl), "coverUrl": cover.asset->url, "coverAlt": cover.alt, items[]{number, headline, body, sources, "plateUrl": plate.asset->url, "plateAlt": plate.alt, "plateCredit": plate.credit, "artists": artists[!(_ref in path("drafts.**"))]->{"id": slug.current, name, "type": _type}, "relatedPosts": relatedPosts[!(_ref in path("drafts.**"))]->{"id": slug.current, title}}, plates[]{"url": asset->url, alt}}`;
@@ -26,7 +27,10 @@ export function dispatchMedia(post: DispatchPost) {
         ...(post.coverUrl ? [{url:post.coverUrl,alt:post.coverAlt || post.title,label:'Cover'}] : []),
         ...(post.plates || []).map((plate,i)=>({...plate,label:`Plate ${String(i+1).padStart(2,'0')}`})),
         ...(post.items || []).filter(item=>item.plateUrl).map(item=>({url:item.plateUrl!,alt:item.plateAlt || item.headline,label:`Story ${String(item.number).padStart(2,'0')}`})),
-    ].filter((item,index,all)=>all.findIndex(other=>other.url===item.url)===index);
+    ].flatMap(item => {
+        const url = safeImageUrl(item.url);
+        return url ? [{ ...item, url }] : [];
+    }).filter((item,index,all)=>all.findIndex(other=>other.url===item.url)===index);
 }
 
 /** Shared archive/global search includes editorial dates, not just body text. */
