@@ -11,6 +11,9 @@ export default defineConfig({
     projectId: 'ebj9kqfo',
     dataset: 'production',
 
+    // Preserve the existing search results when upgrading Studio to Sanity 6.
+    search: { strategy: 'groqLegacy' },
+
     plugins: [
         deskTool({
             structure: (S) =>
