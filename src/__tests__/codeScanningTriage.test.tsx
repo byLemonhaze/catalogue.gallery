@@ -47,10 +47,12 @@ it.each(['javascript:alert(123456)', 'data:text/html,<script>alert(1)</script>',
 
 it('keeps even malformed runtime story numbers inside a fixed fragment link', () => {
     const malformed = 'javascript:alert(1)" onclick="alert(2)';
-    const issue = { ...post, coverUrl: null, items: [{ number: malformed as unknown as number, headline: 'Test headline', body: 'Test body' }] };
+    const issue = { ...post, coverUrl: null, items: [{ number: malformed as unknown as number, headline: 'Test headline', body: 'Test body', plateUrl: injection }] };
     const { container } = render(<HelmetProvider><MemoryRouter initialEntries={[`/dispatch/${post.slug}/`]}><PublicPageContext.Provider value={{ artists: [], articles: [], editorial: null, dispatches: [issue] }}><Routes><Route path="/dispatch/:slug/" element={<DispatchIssue />} /></Routes></PublicPageContext.Provider></MemoryRouter></HelmetProvider>);
     const anchor = container.querySelector('nav[aria-label="In this edition"] a');
     expect(anchor?.getAttribute('href')).toBe(`#story-${malformed}`);
     expect(anchor).not.toHaveAttribute('onclick');
+    expect(container.querySelector('.dispatch-story img')?.getAttribute('src')).toContain('https://images.example/');
+    expect(container.querySelector('[onclick], [onerror], .dispatch-story script')).toBeNull();
     expect(new URL(anchor!.getAttribute('href')!, 'https://catalogue.gallery/').origin).toBe('https://catalogue.gallery');
 });
