@@ -145,7 +145,7 @@ function extractGrokText(data: GrokResponseBody) {
 function buildGrokPrompt(
     type: DraftType,
     artist: SanityArtistResult,
-    topic: string
+    topic: Parameters<typeof buildWildcardPrompt>[0]
 ) {
     switch (type) {
         case 'article':

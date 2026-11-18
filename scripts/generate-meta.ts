@@ -100,9 +100,10 @@ async function generateSplitProfileImage(
 
 async function generate() {
     const template = fs.readFileSync(TEMPLATE_PATH, 'utf8');
-    const { profiles, articles } = await publicInventory(process.env, true);
+    const publicEnv = { SANITY_PROJECT_ID: process.env.SANITY_PROJECT_ID, VITE_SANITY_PROJECT_ID: process.env.VITE_SANITY_PROJECT_ID, SANITY_DATASET: process.env.SANITY_DATASET, VITE_SANITY_DATASET: process.env.VITE_SANITY_DATASET };
+    const { profiles, articles } = await publicInventory(publicEnv, true);
     fs.writeFileSync(path.join(DIST_DIR, 'app-shell.html'), template);
-    const publicData = await publicPageData(process.env);
+    const publicData = await publicPageData(publicEnv);
     if (!profiles.length || !articles.length) throw new Error('Refusing to build an empty public content inventory');
     const entries = [...(publicData.dispatches || []).map(post => ({path:dispatchMeta(post).path, updatedAt:post.publishedAt})), ...staticPages.filter(page => !page.noindex), ...profiles.map(profile => ({ path: profileMeta(profile).path, updatedAt: profile.updatedAt })), ...articles.map(article => ({ path: articleMeta(article).path, updatedAt: article.updatedAt }))];
     // Validate uniqueness before writing anything. Failure must stop the deployment.

@@ -1,3 +1,4 @@
+import type { D1Database } from '@cloudflare/workers-types';
 /**
  * Content bank utilities — shared types and DB helpers
  */

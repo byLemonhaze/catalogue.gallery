@@ -149,7 +149,7 @@ In Sanity webhook settings:
 These are operational repo settings and are intentionally not represented as code changes:
 
 - [x] Branch protection on `main` observed in GitHub push rejection
-- [x] Required status: `Lint, type check, test, build`
+- [x] Required statuses: `Lint, type check, test, build` and `Studio build`
 - [x] Direct pushes rejected; pull requests required
 
 ## 11) Editorial selection and asset caching
@@ -187,3 +187,7 @@ Record the PR URL, merge SHA, deployment ID/URL, successful production status an
 Run `bash scripts/release-motion-polish.sh` from a clean checkout of `feat/motion-interaction-polish` (or main when resuming after its merge). The command checks the exact pushed commit, uses a protected PR merge, rebuilds on main, runs share and production smoke audits, and verifies `/release.json` against local and freshly fetched GitHub main. It stops on failed checks, divergence, dirty files or a production mismatch. See the [pass record](MOTION-INTERACTION-PASS-2026-11-12.md) and [PR description](MOTION-INTERACTION-PR.md). This command requires the owner's network-enabled GitHub/Cloudflare CLI session; it does not bypass branch protection or create a new version tag.
 
 For a failed external check, inspect the exact PR head with `gh pr view 61 --json headRefOid,statusCheckRollup`, then its commit check runs and each failed run's annotations. CodeFactor reports can be available through GitHub annotations even when the provider website refuses access. The PR #61 continuation found three Complex Method annotations, not stylesheet duplicates. Preserve and commit intentional handoff notes with the correction before invoking the clean-tree release command. Do not bypass the failed check; wait for successful CI and CodeFactor on the new head.
+
+## Response security policy (18 November 2026)
+
+Global middleware applies the common response security headers to Functions, redirects and assets. `public/_headers` supplies the static fallback policy. HTML responses additionally carry `Content-Security-Policy-Report-Only`; it does not block resources. Violations are visible in browser developer tools only, with no reporting endpoint or visitor-URL upload. Validate artist frames, inline metadata, images, analytics and retained Content Lab requests before considering enforcement. Do not replace report-only with enforcement as part of a routine deployment.
