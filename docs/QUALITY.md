@@ -102,3 +102,5 @@ Metadata generation uses the locally installed, lockfile-managed `tsx` executabl
 Focused tests cover retained Content Lab key handling, scraper parsing, request validation, redirect/size limits and response-header behavior. Missing fuzzing and independent-review Scorecard recommendations remain process decisions, not findings to dismiss merely to obtain a clean score.
 
 The findings and remediation decisions are recorded in the [18 November security review](../security_best_practices_report.md).
+
+The first refreshed main scan's additional warnings are covered by [the contextual CodeQL triage and regression evidence](CODE-SCANNING-TRIAGE.md). Dismissals are specific to those reviewed alerts; scanning rules remain enabled.
