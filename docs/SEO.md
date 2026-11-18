@@ -16,7 +16,7 @@ For known blocked embeds (currently Burst, FAR and Nullish), and other deliberat
 - The sitemap Function reads the current public inventory. The build also writes a static sitemap for inspection and local previews. Neither includes the private editor.
 - A root `404.html` opts out of Cloudflare's implicit SPA success fallback. Known static React routes are generated explicitly. The React wildcard provides a usable error page during client navigation.
 - Required CMS read failures return 503 with Retry-After rather than generic success pages or false 404s. The shared homepage/index data loader handles a failed Dispatch request with the bundled archive fallback; its old edition is not proof of successful fresh publication. The Dispatch detail handler can return 503. See [publishing verification](EDITORIAL-PUBLISHING.md).
-- `/content-lab/` and its admin alias are noindex in their generated HTML. Dynamic content responses on `*.pages.dev` include a noindex header.
+- `/content-lab/`, its subpaths and `/api/content-*` return HTTP 410 with noindex and no-store headers. Dynamic content responses on `*.pages.dev` include a noindex header.
 
 The build-time profile card can differ from a newly published profile's card until its branded image is generated: the dynamic route uses a deployed branded image when available and otherwise uses the CMS thumbnail. Client-only profile navigation can use the original thumbnail; title, description and canonical identity remain consistent.
 
@@ -48,7 +48,7 @@ Submit `https://catalogue.gallery/sitemap.xml` in the owner's verified Search Co
 
 ## Stories migration and sharing audit (2026-11-12)
 
-Public editorial routes are `/stories/` and `/stories/:slug/`. Every old `/blog/` route permanently redirects to the corresponding Stories URL, preserving slug and query. Browser navigation also retains hash anchors. Navigation, search, related links, structured data, generated documents and the sitemap use the new routes. Stored editorial types/history are not migrated. The retained legacy Content Lab remains at its existing noindex URL; see [legacy inventory](legacy/CONTENT-LAB.md). Its presence does not describe the active Grok bot publishing workflow.
+Public editorial routes are `/stories/` and `/stories/:slug/`. Every old `/blog/` route permanently redirects to the corresponding Stories URL, preserving slug and query. Browser navigation also retains hash anchors. Navigation, search, related links, structured data, generated documents and the sitemap use the new routes. Stored editorial types/history are not migrated. The legacy Content Lab editor is removed; its URLs return HTTP 410. See the [retirement record](legacy/CONTENT-LAB.md).
 
 Default previews use the 1200 × 630 Constellation card. Article/Dispatch imagery stays specific to its content. Build-time profile composites use `/og/profiles/constellation/`. OG and Twitter tags include matching absolute image URLs and descriptive alt text. Optional dimensions/publication dates are removed when the active route no longer supplies them.
 

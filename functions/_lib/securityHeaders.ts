@@ -1,6 +1,6 @@
 // Report-only while we verify artist embeds and third-party services in browsers.
 // Violations stay in the browser console; no visitor URLs are uploaded.
-export const REPORT_ONLY_CSP = "default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data: blob:; font-src 'self' data:; connect-src 'self' https://*.sanity.io https://api.x.ai https://cloudflareinsights.com; frame-src https:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'";
+export const REPORT_ONLY_CSP = "default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data: blob:; font-src 'self' data:; connect-src 'self' https://*.sanity.io https://cloudflareinsights.com; frame-src https:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'";
 
 export function withSecurityHeaders(response: Response): Response {
     // Clone because redirects and upstream responses can have immutable headers.

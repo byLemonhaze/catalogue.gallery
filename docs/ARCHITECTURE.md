@@ -13,7 +13,7 @@ Current system map, reconciled 12 November 2026. [Documentation index](README.md
 | Private applicant data | Cloudflare D1 `CONTACTS_DB` | Encrypted contact emails and notification state |
 | Review email | Resend | Approval/decline notifications; replies to `apply@catalogue.gallery` |
 | Observability | Cloudflare analytics and Function logs | Traffic and browser runtime error reporting |
-| Retained legacy editor | `/content-lab/`, `/api/content-*`, D1 `content_drafts` | Superseded authoring implementation; [inventory and contracts](legacy/CONTENT-LAB.md) |
+| Retired editor URLs | `/content-lab/`, `/api/content-*` | HTTP 410; [retirement record](legacy/CONTENT-LAB.md) |
 
 Sanity is the current public content source. Historical Dispatch also has a bundled archive fallback; removing a published historical Sanity override can restore that fallback. D1 is not today's editorial publishing source, although legacy draft tables remain present.
 
@@ -56,14 +56,14 @@ Published-profile consumption is separate from editorial bot publishing. The con
 | Config / binding | Current site use |
 |---|---|
 | `CONTACTS_DB` | Applicant contacts/notifications; shared with retained legacy drafts |
-| `SANITY_WRITE_TOKEN` | Server-side application writes; also referenced by legacy editor endpoints |
+| `SANITY_WRITE_TOKEN` | Server-side application writes; dedicated website credential |
 | `EMAIL_ENCRYPTION_KEY` | Contact encryption/decryption |
 | `WEBHOOK_SHARED_SECRET` | Review webhook authentication |
 | `RESEND_API_KEY`, sender/reply config | Review notification delivery |
 | Sanity project/dataset, public base URL | Public read and metadata configuration |
 | `VITE_CF_WEB_ANALYTICS_TOKEN` | Optional public analytics token |
 
-`CONTENT_LAB_PASSWORD`, `GROK_API_KEY` and `CLAUDE_API_KEY` belong to the retained legacy implementation, not the current public editorial read path. See its [dependency inventory](legacy/CONTENT-LAB.md) before changing any deployment secrets. External bot credentials are managed separately and must never enter the frontend.
+`CONTENT_LAB_PASSWORD`, `GROK_API_KEY` and `CLAUDE_API_KEY` were removed from the website deployment with the retired editor. External bot credentials are managed separately and must never enter the frontend.
 
 Keep applicant emails encrypted in D1, validate webhook authentication, and never commit secrets. Noindex does not secure a private interface. Browser production errors are sent to `/api/client-errors` and logged by Functions; logging does not establish external bot health.
 

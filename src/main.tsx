@@ -1,4 +1,5 @@
 import { initInputModality } from './lib/theme'
+import { clearRetiredCredentials } from './lib/retiredCredentials'
 import { PublicPageContext, readPublicPageData } from './lib/publicPageData'
 import { StrictMode } from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
@@ -15,6 +16,7 @@ import { HelmetProvider } from 'react-helmet-async'
 import { initCloudflareWebAnalytics, initObservability } from './utils/observability'
 
 initInputModality()
+clearRetiredCredentials()
 initObservability()
 initCloudflareWebAnalytics()
 

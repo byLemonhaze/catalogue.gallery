@@ -10,6 +10,7 @@ Use the current guides for operation and maintenance. Dated session records pres
 | [Editorial publishing](EDITORIAL-PUBLISHING.md) | External Grok bots → Sanity → Catalogue; schemas, freshness and verification |
 | [Dispatch publishing](DISPATCH-PUBLISHING.md) | Archive provenance, backfill/retraction and site-first X contract |
 | [API](API.md) | Public APIs and application/review contracts |
+| [Credential audit](SECURITY-AUDIT-2026-11-18.md) | Historical token revocation, secret scanning and audit limits |
 | [Deployment](DEPLOYMENT.md) | Cloudflare configuration, protected-main merge and deployment alignment |
 | [SEO and sharing](SEO.md) | SSR, canonicals, redirects, caches, sitemap and social previews |
 | [Quality](QUALITY.md) | Verification commands, test coverage and device-check limits |
@@ -18,7 +19,7 @@ Use the current guides for operation and maintenance. Dated session records pres
 
 ## Legacy and future work
 
-- [Retained Content Lab](legacy/CONTENT-LAB.md): implementation still present, superseded publishing workflow. Not disabled by this documentation update.
+- [Retired Content Lab](legacy/CONTENT-LAB.md): removed editor, HTTP 410 routes and preserved historical data.
 - [Sanity MCP proposal](SANITY_MCP_PLAN.md): an exploration, not an installed integration or the active bot architecture.
 - [Roadmap](ROADMAP.md): future profile claims and open operational/portfolio follow-ups.
 

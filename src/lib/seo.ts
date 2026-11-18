@@ -24,8 +24,6 @@ export const staticPages: PageMeta[] = [
     { path: '/dispatch/', title: 'DISPATCH | Daily Digital Art News | CATALOGUE', description: 'The CATALOGUE daily digital art edition. Read past issues, exhibitions, artists, and developments across independent digital culture.' },
     { path: '/about/', title: 'About CATALOGUE | Independent Digital Art Directory', description: 'Learn about CATALOGUE, an independent publication and directory connecting readers with digital artists, their work and their own websites.' },
     { path: '/submit/', title: 'Submit Your Artist or Gallery Website | CATALOGUE', description: 'Apply to the CATALOGUE directory. Submit your independent artist website or gallery programme for editorial review.' },
-    { path: '/content-lab/', title: 'Stories Editor | CATALOGUE', description: 'The CATALOGUE editorial workspace.', noindex: true },
-    { path: '/content-lab/admin/', title: 'Stories Editor | CATALOGUE', description: 'The CATALOGUE editorial workspace.', noindex: true },
 ];
 export function profileMeta(profile: { id: string; type: string; name: string; subtitle?: string; shortBio?: string; websiteUrl?: string; image?: string }): PageMeta {
     return { path: `/${profile.type}/${encodeURIComponent(profile.id)}/`, title: `${profile.name} | CATALOGUE`, profile: {name: profile.name, type: profile.type, websiteUrl: profile.websiteUrl}, description: profile.shortBio?.trim() || (profile.subtitle?.trim() ? `${profile.subtitle.trim()} — view ${profile.name} on CATALOGUE.` : `View ${profile.name} on CATALOGUE.`), image: profile.image };

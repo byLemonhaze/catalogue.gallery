@@ -2,7 +2,6 @@ import { REJECTION_REASON_OPTIONS } from '../reviewConfig'
 
 interface CatalogueSchemaCopy {
     subtitleDescription: string
-    contentBioDescription: string
 }
 
 interface CatalogueSchemaOptions extends CatalogueSchemaCopy {
@@ -28,7 +27,7 @@ function buildWebsiteUrlValidation(Rule: any) {
     })
 }
 
-function buildSharedFields({ subtitleDescription, contentBioDescription }: CatalogueSchemaCopy) {
+function buildSharedFields({ subtitleDescription }: CatalogueSchemaCopy) {
     return [
         {
             name: 'name',
@@ -57,7 +56,7 @@ function buildSharedFields({ subtitleDescription, contentBioDescription }: Catal
             title: 'Public short biography',
             type: 'text',
             rows: 5,
-            description: 'Reviewed public biography shown on the profile. Keep this distinct from internal Content Lab research. Leave empty until approved.',
+            description: 'Reviewed public biography shown on the profile. Leave empty until approved.',
         },
         {
             name: 'websiteUrl',
@@ -141,10 +140,11 @@ function buildSharedFields({ subtitleDescription, contentBioDescription }: Catal
         },
         {
             name: 'contentBio',
-            title: 'Research Bio (Content Lab)',
+            title: 'Archived research',
+            hidden: true,
+            readOnly: true,
             type: 'text',
             rows: 8,
-            description: contentBioDescription,
         },
         {
             name: 'contentBioUpdatedAt',
@@ -209,7 +209,6 @@ export function createCatalogueEntrySchema({
     name,
     title,
     subtitleDescription,
-    contentBioDescription,
 }: CatalogueSchemaOptions) {
     return {
         name,
@@ -217,7 +216,6 @@ export function createCatalogueEntrySchema({
         type: 'document',
         fields: buildSharedFields({
             subtitleDescription,
-            contentBioDescription,
         }),
     }
 }

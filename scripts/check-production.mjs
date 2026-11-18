@@ -5,6 +5,13 @@ const origin = 'https://catalogue.gallery';
 const failures = [];
 const check = (condition, message) => { if (!condition) failures.push(message); };
 const get = (url, redirect = 'follow') => fetch(url, {redirect, signal:AbortSignal.timeout(20000), headers:{'Cache-Control':'no-cache'}});
+for (const route of ['/content-lab', '/content-lab/', '/content-lab/admin', '/api/content-artists', '/api/content-drafts', '/api/content-generate', '/api/content-publish', '/api/content-scrape', '/api/content-upload-image']) {
+    const response = await get(origin + route, 'manual');
+    check(response.status === 410, `${route}: expected retirement HTTP 410, received ${response.status}`);
+    check(response.headers.get('x-robots-tag')?.includes('noindex'), `${route}: missing retirement noindex`);
+    check(response.headers.get('cache-control') === 'no-store', `${route}: retired response must not be cached`);
+    await response.body?.cancel();
+}
 const story = 'experimental-television-center-owego-paik-abe';
 for (const [from,to] of [['/blog/','/stories/'],[`/blog/${story}/`,`/stories/${story}/`],['/info/','/about/']]) {
     const response = await get(origin + from + '?release-check=1', 'manual');

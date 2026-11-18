@@ -160,13 +160,3 @@ html, body {background:var(--catalogue-paper);color:var(--catalogue-ink);color-s
 .public-site .catalogue-intro h1 {font-size:clamp(28px,2.5vw,38px);line-height:1.08;letter-spacing:-.045em;text-wrap:balance;max-width:19ch;margin-top:0}
 .world-message-title {font-weight:600;letter-spacing:-.045em}
 @media(max-width:760px){.public-site .catalogue-intro h1{font-size:30px;max-width:24ch}}
-.editorial-workspace {font-family:Sora,sans-serif;font-weight:400;letter-spacing:normal;color-scheme:dark}
-.editorial-workspace h1 {font-family:var(--catalogue-display);font-weight:600;letter-spacing:-.045em}
-.editorial-workspace .catalogue-masthead nav {font-family:Sora,sans-serif;font-weight:400;letter-spacing:normal}
-.editorial-auth {background:var(--catalogue-paper);color:var(--catalogue-ink);min-height:calc(100dvh - 86px)}
-.editorial-auth>div {background:var(--catalogue-surface);border-color:var(--catalogue-line)}
-.editorial-auth p {color:var(--catalogue-muted)}
-.editorial-auth p:first-child {font-weight:400;letter-spacing:.12em}
-.editorial-auth input {color:var(--catalogue-ink);border-color:var(--catalogue-line)}
-.editorial-auth input::placeholder {color:var(--catalogue-muted)}
-.editorial-auth button {background:var(--catalogue-action);color:var(--catalogue-action-text);font-weight:400;letter-spacing:.04em}

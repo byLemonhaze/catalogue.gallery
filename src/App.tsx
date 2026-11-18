@@ -34,7 +34,6 @@ const ArticleList = lazy(() => recoverImport(() => import('./components/ArticleL
 const InfoHub = lazy(() => recoverImport(() => import('./components/InfoHub').then(m => ({ default: m.InfoHub }))));
 const ArtistFrame = lazy(() => recoverImport(loadArtistFrame));
 const SubmitArtist = lazy(() => recoverImport(() => import('./pages/SubmitArtist').then(m => ({ default: m.SubmitArtist }))));
-const ContentLab = lazy(() => recoverImport(() => import('./pages/ContentLab').then(m => ({ default: m.ContentLab }))));
 
 export const AppContent = () => {
   const location = useLocation();
@@ -79,7 +78,7 @@ export const AppContent = () => {
   );
 
   return (
-    <div className={`min-h-screen font-display ${isWorld ? 'bg-black text-white' : location.pathname.startsWith('/content-lab') ? 'editorial-workspace bg-black text-white' : 'public-site'}`}>
+    <div className={`min-h-screen font-display ${isWorld ? 'bg-black text-white' : 'public-site'}`}>
       {staticMeta && <Seo meta={staticMeta} />}
       <Navigation
         onSearchOpen={() => {setSearch('');setIsSearchOpen(true);}}
@@ -138,8 +137,6 @@ export const AppContent = () => {
           <Route path="/dispatch" element={<DispatchArchive />} />
           <Route path="/dispatch/:slug" element={<DispatchIssue />} />
           <Route path="/artists" element={<ArtistList />} />
-          <Route path="/content-lab" element={<ContentLab />} />
-          <Route path="/content-lab/admin" element={<Navigate to="/content-lab" replace />} />
           <Route path="/about" element={<InfoHub setIsLegalModalOpen={setIsLegalModalOpen} />} />
           <Route path="*" element={<main className="route-state"><Seo meta={missingMeta(location.pathname)} /><h1 >Page not found</h1><p >This page may have moved or is no longer available.</p><Link className="text-link" to="/artists/">Explore the directory</Link></main>} />
         </Routes>

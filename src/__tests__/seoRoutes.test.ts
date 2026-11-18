@@ -13,6 +13,18 @@ const profile = { id: 'new-artist', type: 'artist', name: 'New artist', subtitle
 const post = { id: 'new-story', title: 'New story', excerpt: 'A newly published story.', updatedAt: '2026-10-10T12:00:00Z' };
 const context = (path: string, slug: string) => ({ request: new Request(`https://catalogue.gallery${path}`), env, params: { slug } });
 afterEach(() => { vi.unstubAllGlobals(); vi.clearAllMocks(); });
+it.each(['/content-lab/', '/content-lab/admin', '/api/content-generate'])('blocks retired %s before assets, CMS or API handling', async path => {
+    const { onRequest } = await import('../../functions/_middleware');
+    const next = vi.fn(async () => new Response('old application'));
+    const upstream = vi.fn(); vi.stubGlobal('fetch', upstream);
+    const response = await onRequest({ request: new Request(`https://catalogue.gallery${path}`), env, next });
+    expect(response.status).toBe(410);
+    expect(response.headers.get('Cache-Control')).toBe('no-store');
+    expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
+    expect(next).not.toHaveBeenCalled();
+    expect(assets).not.toHaveBeenCalled();
+    expect(upstream).not.toHaveBeenCalled();
+});
 it('serves newly published profiles with correct metadata and bootstrap without a build', async () => {
     const fetchMock = vi.fn().mockResolvedValue(Response.json({ result: [profile] })); vi.stubGlobal('fetch', fetchMock);
     const response = await artist(context('/artist/new-artist/', 'new-artist'));

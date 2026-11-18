@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { DispatchThumbnail } from '../components/DispatchThumbnail';
 import { DispatchMedia } from '../components/DispatchMedia';
-import { EditorialImage } from '../components/ContentLabSection';
+import { EditorialImage } from '../components/EditorialCards';
 import { DispatchIssue } from '../pages/Dispatch';
 import { PublicPageContext } from '../lib/publicPageData';
 import type { ArticleRecord } from '../types/article';

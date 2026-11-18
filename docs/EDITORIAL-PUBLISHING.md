@@ -4,7 +4,7 @@ Current operational guide, reconciled 12 November 2026.
 
 The owner confirms that external Grok bots and Sanity are the editorial production workflow. This repository supplies the schemas, public reading experience and delivery functions. It does not contain the external bots, their scheduler, approval records, credentials or publication ledger. Their exact configuration and a successful end-to-end bot run cannot be established from this repository alone.
 
-**Stories** provides longer articles and interviews. **Dispatch** provides the day's digital-art news. The former public name Content Lab is superseded by Stories. The retained private editor is a separate [legacy implementation](legacy/CONTENT-LAB.md), not a prerequisite for either feed.
+**Stories** provides longer articles and interviews. **Dispatch** provides the day's digital-art news. The former public name Content Lab is superseded by Stories. The private editor and its generation APIs have been [removed](legacy/CONTENT-LAB.md); neither feed depends on them.
 
 ## Ownership and boundaries
 

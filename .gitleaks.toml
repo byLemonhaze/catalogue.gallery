@@ -1,0 +1,11 @@
+title = "Catalogue secret detection"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "sanity-api-token"
+description = "Sanity API credential (including legacy tokens)"
+regex = '''\b(sk[A-Za-z0-9]{80,200})\b'''
+secretGroup = 1
+keywords = ["sk"]
