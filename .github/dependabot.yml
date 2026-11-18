@@ -9,6 +9,18 @@ updates:
       - "dependencies"
     commit-message:
       prefix: "deps"
+    groups:
+      website-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      website-compatible:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
     ignore:
       - dependency-name: "vite"
         update-types:
@@ -26,6 +38,19 @@ updates:
       - "dependencies"
     commit-message:
       prefix: "deps"
+
+    groups:
+      studio-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      studio-compatible:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "github-actions"
     directory: "/"
