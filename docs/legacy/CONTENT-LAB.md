@@ -13,7 +13,7 @@ Documentation changes do not disable endpoints, revoke credentials, remove workf
 | `/content-lab/`, `/content-lab/admin` | `src/App.tsx`, `src/pages/ContentLab.tsx` | Previous private editor, distinct from public Stories |
 | `/api/content-*` | `functions/api/content-*.ts`, `CONTENT_LAB_PASSWORD` | Password-header-protected draft, generation and publishing APIs |
 | Server generation | `content-generate.ts`, `GROK_API_KEY` | xAI call; source model `grok-4-0709` |
-| Browser BYOK | `src/lib/contentLab/byok.ts` | Direct xAI request with a session-storage key |
+| Browser BYOK | `src/lib/contentLab/byok.ts` | Direct xAI request with an in-memory key |
 | Website summarization | `content-scrape.ts`, `CLAUDE_API_KEY`, `SANITY_WRITE_TOKEN` | Anthropic call; source model `claude-haiku-4-5-20251001`; writes `contentBio` |
 | Draft persistence | `CONTACTS_DB`, `migrations/003_content_drafts.sql` | D1 `content_drafts`, separate from applicant contact records |
 | Publishing and media | `content-publish.ts`, `content-upload-image.ts`, `SANITY_WRITE_TOKEN` | Sanity mutations; older publisher label `Catalogue Content Lab` remains in code |
@@ -158,3 +158,11 @@ Notes:
 ## Retirement checklist (not executed)
 
 Confirm callers and the manual workflow are unused; preserve any required drafts; remove UI/routes/endpoints/workflow in a dedicated code PR; then revoke only credentials proven exclusive to that path. Keep privacy, applicant review, public Sanity reads and existing published content intact. Test and deploy the retirement separately.
+
+## Security maintenance (18 November 2026)
+
+The retained editor was hardened rather than removed because current usage has not been confirmed. BYOK keys are now kept only in React memory, cleared on failed authorization and lost when leaving/reloading the editor. Opening the editor deletes the previous session-storage entry. Users must re-enter their key after reloading.
+
+The research scraper now uses an HTML parser with single-pass entity decoding, validates artist IDs and binds them as GROQ parameters, rejects empty password configuration, validates public HTTPS URLs on each redirect, and limits downloaded HTML to 1 MB with an 8-second deadline. It still requires the existing password and writes research notes only after successful generation. These controls do not turn the extractor into an HTML sanitizer.
+
+No legacy routes, drafts, shared databases or credentials were removed. The retirement checklist above remains a separate usage decision.

@@ -615,14 +615,8 @@ export function ContentLab() {
     const [artists, setArtists] = useState<Artist[]>([]);
     const [selectedArtistId, setSelectedArtistId] = useState('random');
     const [selectedType, setSelectedType] = useState<DraftType>('article');
-    const [byokApiKey, setByokApiKey] = useState(() => {
-        if (typeof window === 'undefined') return '';
-        return window.sessionStorage.getItem(BYOK_SESSION_KEY) || '';
-    });
-    const [generationMode, setGenerationMode] = useState<GenerationMode>(() => {
-        if (typeof window === 'undefined') return 'server';
-        return window.sessionStorage.getItem(BYOK_SESSION_KEY) ? 'byok' : 'server';
-    });
+    const [byokApiKey, setByokApiKey] = useState('');
+    const [generationMode, setGenerationMode] = useState<GenerationMode>('server');
     const [scraping, setScraping] = useState(false);
     const [scrapeStatus, setScrapeStatus] = useState<{ ok: boolean; msg: string } | null>(null);
 
@@ -646,16 +640,9 @@ export function ContentLab() {
     useEffect(() => { fetchArtists(); }, [fetchArtists]);
 
     useEffect(() => {
-        if (typeof window === 'undefined') return;
-
-        const trimmed = byokApiKey.trim();
-        if (trimmed) {
-            window.sessionStorage.setItem(BYOK_SESSION_KEY, trimmed);
-            return;
-        }
-
-        window.sessionStorage.removeItem(BYOK_SESSION_KEY);
-    }, [byokApiKey]);
+        // Remove keys persisted by older versions; new keys only live in memory.
+        try { window.sessionStorage.removeItem(BYOK_SESSION_KEY); } catch { /* Storage can be disabled. */ }
+    }, []);
 
     const fetchDrafts = useCallback(async (pw: string) => {
         setLoading(true);
@@ -664,7 +651,7 @@ export function ContentLab() {
             const res = await fetch(`/api/content-drafts?status=${statusFilter}`, {
                 headers: { 'x-content-lab-password': pw },
             });
-            if (res.status === 401) { setAuthed(false); return; }
+            if (res.status === 401) { setAuthed(false); setPassword(''); setByokApiKey(''); return; }
             const data = await res.json() as { drafts: Draft[] };
             setDrafts(data.drafts || []);
         } catch {
@@ -881,7 +868,7 @@ export function ContentLab() {
                                         </button>
                                     </div>
                                     <p className="mt-3 text-[10px] leading-relaxed text-white/35">
-                                        Your xAI key stays in this browser session and is sent directly to xAI from your device. CATALOGUE does not store it or send it through <code className="font-mono text-white/55">/api/*</code>.
+                                        Your xAI key stays in memory until you reload or leave this page and is sent directly to xAI from your device. CATALOGUE does not store it or send it through <code className="font-mono text-white/55">/api/*</code>.
                                     </p>
                                 </div>
                             )}

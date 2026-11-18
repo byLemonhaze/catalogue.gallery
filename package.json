@@ -8,17 +8,19 @@
     "build": "tsc -b && vite build && vite build --ssr src/entry-server.tsx --outDir server-dist",
     "lint": "eslint .",
     "preview": "vite preview",
-    "verify": "node node_modules/eslint/bin/eslint.js . && node node_modules/typescript/bin/tsc -b --noEmit && node node_modules/vitest/vitest.mjs run",
-    "postbuild": "npx -y tsx scripts/generate-meta.ts && npm run audit:shares",
-    "migrate:articles": "npx -y tsx scripts/migrate-articles.ts",
+    "verify": "npm run lint && npm run typecheck && npm test",
+    "postbuild": "tsx scripts/generate-meta.ts && npm run audit:shares",
+    "migrate:articles": "tsx scripts/migrate-articles.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "audit:shares": "node scripts/audit-share-previews.mjs"
+    "audit:shares": "node scripts/audit-share-previews.mjs",
+    "typecheck": "tsc -b --noEmit && tsc -p tsconfig.server.json && tsc -p tsconfig.scripts.json"
   },
   "dependencies": {
     "@sanity/client": "^7.14.1",
     "@sanity/image-url": "^2.0.3",
     "@tailwindcss/vite": "^4.1.18",
+    "htmlparser2": "^12.0.0",
     "jszip": "^3.10.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -27,6 +29,7 @@
     "react-router-dom": "^7.18.5"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261118.1",
     "@eslint/js": "^9.39.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
@@ -45,6 +48,7 @@
     "postcss": "^8.5.33",
     "sharp": "^0.35.5",
     "tailwindcss": "^4.2.1",
+    "tsx": "^4.23.15",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^7.3.8",

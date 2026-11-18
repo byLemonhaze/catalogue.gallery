@@ -14,26 +14,10 @@
  */
 
 import { type ContentBankBindings } from './_contentBank';
+import { fetchWebsiteHtml, stripHtml } from './_scrapeText';
 
 const SANITY_PROJECT_ID = 'ebj9kqfo';
 const SANITY_DATASET = 'production';
-
-function stripHtml(html: string): string {
-    return html
-        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ')
-        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
-        .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, ' ')
-        .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, ' ')
-        .replace(/<[^>]+>/g, ' ')
-        .replace(/&nbsp;/g, ' ')
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        .replace(/\s{2,}/g, ' ')
-        .trim();
-}
 
 function extractMeta(html: string): string {
     const get = (re: RegExp) => (html.match(re)?.[1] || '').replace(/"/g, '').trim();
@@ -57,15 +41,8 @@ function extractMeta(html: string): string {
 
 async function fetchPageText(url: string): Promise<string | null> {
     try {
-        const res = await fetch(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (compatible; CATALOGUE-Research/1.0)',
-                'Accept': 'text/html,application/xhtml+xml',
-            },
-            signal: AbortSignal.timeout(8000),
-        });
-        if (!res.ok) return null;
-        const html = await res.text();
+        const html = await fetchWebsiteHtml(url);
+        if (!html) return null;
         const meta = extractMeta(html);
         const body = stripHtml(html).slice(0, 3000);
         const combined = [meta, body].filter(Boolean).join('\n\n');
@@ -130,20 +107,24 @@ Be factual. Only include information that is actually present. Do not infer, emb
     }
 }
 
-export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ request, env }) => {
+type ScrapeContext = { request: Request; env: Pick<ContentBankBindings, 'CONTENT_LAB_PASSWORD' | 'CLAUDE_API_KEY' | 'SANITY_WRITE_TOKEN'> };
+
+export const onRequestPost = async ({ request, env }: ScrapeContext) => {
     const auth = request.headers.get('x-content-lab-password') || '';
-    if (auth !== env.CONTENT_LAB_PASSWORD) {
+    if (!env.CONTENT_LAB_PASSWORD || auth !== env.CONTENT_LAB_PASSWORD) {
         return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
     }
 
-    const body = await request.json().catch(() => ({})) as { artistId?: string };
-    if (!body.artistId) {
-        return new Response(JSON.stringify({ error: 'Missing artistId' }), { status: 400 });
+    const payload = await request.json().catch(() => null);
+    const body = (payload && typeof payload === 'object' ? payload : {}) as { artistId?: unknown };
+    if (typeof body.artistId !== 'string' || !/^[a-zA-Z0-9_.-]{1,128}$/.test(body.artistId)) {
+        return new Response(JSON.stringify({ error: 'Invalid artistId' }), { status: 400 });
     }
 
     // Fetch artist from Sanity
-    const q = encodeURIComponent(`*[_id == "${body.artistId}"][0]{_id, _type, name, websiteUrl}`);
-    const sanityUrl = `https://${SANITY_PROJECT_ID}.api.sanity.io/v2024-01-01/data/query/${SANITY_DATASET}?query=${q}`;
+    const sanityUrl = new URL(`https://${SANITY_PROJECT_ID}.api.sanity.io/v2024-01-01/data/query/${SANITY_DATASET}`);
+    sanityUrl.searchParams.set('query', '*[_id == $artistId && _type in ["artist", "gallery"]][0]{_id, _type, name, websiteUrl}');
+    sanityUrl.searchParams.set('$artistId', JSON.stringify(body.artistId));
 
     const sanityRes = await fetch(sanityUrl);
     if (!sanityRes.ok) {
@@ -169,6 +150,9 @@ export const onRequestPost: PagesFunction<ContentBankBindings> = async ({ reques
         return new Response(JSON.stringify({ error: 'Could not scrape website — it may block crawlers or require JavaScript.' }), { status: 422 });
     }
 
+    if (!env.CLAUDE_API_KEY) {
+        return new Response(JSON.stringify({ error: 'CLAUDE_API_KEY not configured.' }), { status: 500 });
+    }
     const bio = await summarizeWithHaiku(env.CLAUDE_API_KEY, artist.name, rawText);
     if (!bio) {
         return new Response(JSON.stringify({ error: 'Summarization failed — check CLAUDE_API_KEY.' }), { status: 502 });

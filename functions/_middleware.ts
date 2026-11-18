@@ -1,9 +1,10 @@
+import { withSecurityHeaders } from './_lib/securityHeaders';
 import { staticPages, canonicalPath } from '../src/lib/seo';
 import { cachedPublicResponse, pageResponse, unavailableResponse, slashRedirect, type PageEnv } from './_lib/seoResponse';
 import { publicPageData, renderPublicDocument } from './_lib/renderPublic';
 import {publicPath} from '../src/lib/publicRoutes';
 interface Context { request: Request; env: PageEnv; next(): Promise<Response> }
-export async function onRequest({ request, env, next }: Context) {
+async function routeRequest({ request, env, next }: Context) {
     const url = new URL(request.url);
     const renamed = publicPath(url.pathname);
     if (['www.catalogue.gallery', 'artfinder.pages.dev', 'production.artfinder.pages.dev'].includes(url.hostname)) {
@@ -32,4 +33,8 @@ export async function onRequest({ request, env, next }: Context) {
         response.headers.set('X-Robots-Tag', 'noindex, follow');
     }
     return response;
+}
+
+export async function onRequest(context: Context) {
+    return withSecurityHeaders(await routeRequest(context));
 }
