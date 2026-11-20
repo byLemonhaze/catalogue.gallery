@@ -29,7 +29,7 @@ export async function cachedPublicResponse(request: Request, render: () => Promi
     const cache = (globalThis.caches as (CacheStorage & { default?: Cache }) | undefined)?.default;
     if (!cache || request.method !== 'GET') return render();
     // Key by the deployed shell so a release never reuses HTML pointing at old JS assets.
-    let revision: string | null = null;
+    let revision: string | null;
     try { revision = (await env.ASSETS.fetch(new Request(new URL('/app-shell.html', request.url), { method: 'HEAD' }))).headers.get('ETag'); }
     catch { return render(); }
     if (!revision) return render();
