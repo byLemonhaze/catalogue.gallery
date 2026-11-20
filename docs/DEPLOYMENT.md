@@ -191,3 +191,18 @@ For a failed external check, inspect the exact PR head with `gh pr view 61 --jso
 ## Response security policy (18 November 2026)
 
 Global middleware applies the common response security headers to Functions, redirects and assets. `public/_headers` supplies the static fallback policy. HTML responses additionally carry `Content-Security-Policy-Report-Only`; it does not block resources. Violations are visible in browser developer tools only, with no reporting endpoint or visitor-URL upload. Validate artist frames, inline metadata, images and analytics before considering enforcement. Do not replace report-only with enforcement as part of a routine deployment.
+
+## Studio embedding (20 November 2026)
+
+The owner-approved showcase on `https://dax27.xyz` may embed CATALOGUE. Functions middleware and the static fallback both enforce `Content-Security-Policy: frame-ancestors 'self' https://dax27.xyz`. This replaces `X-Frame-Options: SAMEORIGIN`; middleware also removes inherited values from older cached responses. The broader resource policy remains report-only, with the same ancestor allowlist to avoid contradictory reports.
+
+The exception is for the exact HTTPS apex origin. Other origins, HTTP, `www` and arbitrary subdomains are not included. Add an approved origin in both `functions/_lib/securityHeaders.ts` and `public/_headers`; regression tests keep them aligned. This controls who embeds CATALOGUE, not which artist sites CATALOGUE can embed. Nested artist sites still apply their own ancestor restrictions.
+
+The studio can use:
+
+```html
+<iframe src="https://catalogue.gallery/" title="CATALOGUE — digital art directory"
+  style="width:100%;height:850px;border:0" loading="lazy"></iframe>
+```
+
+`scripts/check-production.mjs` verifies the deployed policy and absence of conflicting framing headers across public routes. Post-deployment browser verification should confirm that a parent at the studio origin can load the homepage and that an unlisted origin cannot. Record those results with the PR's deployed commit evidence; this change does not add an iframe to the studio itself.

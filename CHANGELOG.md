@@ -6,6 +6,9 @@ The project now uses [Semantic Versioning](https://semver.org/) for public relea
 
 ## [Unreleased]
 
+- Bound carousel bending and colour separation, recover from invalid animation timing, and reset movement/hover when leaving the tab. The reported intermittent pink/frozen frame was not reproduced exactly; these safeguards address confirmed timing and state defects.
+- Allow CATALOGUE to be embedded by `https://dax27.xyz`, the owner's development studio, using an exact enforced frame-ancestor allowlist shared by Functions and static responses. See [deployment and embedding](docs/DEPLOYMENT.md#studio-embedding-20-november-2026).
+
 - Remove the private Content Lab editor, generation APIs and workflow; retired URLs now return HTTP 410. Preserve public Stories, Dispatch and existing records. Revoke an exposed historical Sanity token, isolate website application credentials and add full-history secret scanning. See [the audit and containment record](docs/SECURITY-AUDIT-2026-11-18.md).
 
 - Remove the extra Dispatch fade after its opening animation. Exit world now returns directly to the original profile image in one click after embedded-site navigation; closing the profile restores the originating CATALOGUE page without walking iframe history.

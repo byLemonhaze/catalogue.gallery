@@ -7,7 +7,7 @@ export async function pageResponse(request: Request, env: PageEnv, meta: PageMet
     let html = applyPageMeta(await shell.text(), meta);
     if (transform) html = await transform(html);
     if (status !== 200) html = html.replace('<div id="root"></div>', `<div id="root"><main><h1>${escapeHtml(meta.title)}</h1><p>${escapeHtml(meta.description)}</p><a href="/artists/">Explore the directory</a></main></div>`);
-    const headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': status === 200 ? 'public, max-age=0, s-maxage=300, must-revalidate' : 'no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'X-Frame-Options': 'SAMEORIGIN' });
+    const headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': status === 200 ? 'public, max-age=0, s-maxage=300, must-revalidate' : 'no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin' });
     const hostname = new URL(request.url).hostname;
     if (meta.noindex || hostname.endsWith('.pages.dev')) headers.set('X-Robots-Tag', 'noindex, follow');
     if (status === 503) headers.set('Retry-After', '60');

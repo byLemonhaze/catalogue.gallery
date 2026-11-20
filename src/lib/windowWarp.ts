@@ -1,5 +1,6 @@
 import { captionCovered } from './windowsMotion';
 import { captionPath, outlinePoints } from './captionMotion';
+import { clampWarpVelocity } from './carouselFeel';
 /** One GPU surface for the carousel. DOM images remain the accessible/CORS fallback. */
 export type WarpMotion = { velocity: number; reduced: boolean };
 const vertex = `
@@ -42,7 +43,7 @@ varying float vLight;
 void main(){
  vec2 uv=(vUv-.5)*uCover+.5;
  float edge=pow(abs(vUv.x-.5)*2.,4.);
- vec2 split=vec2(uVelocity*.004*edge,0.);
+ vec2 split=vec2(clamp(uVelocity,-1.0,1.0)*.004*edge,0.);
  vec4 c=texture2D(uTexture,uv);
  c.r=texture2D(uTexture,uv+split).r;
  c.b=texture2D(uTexture,uv-split).b;
@@ -90,7 +91,10 @@ export function createWindowWarp(canvas: HTMLCanvasElement, stage: HTMLElement, 
     let pointer = { x: 0, y: 0 }, pointerInside = false, hover = 0, raf = 0, disposed = false, visible = true;
     const onPointer = (event: PointerEvent) => { pointer = {x:event.clientX,y:event.clientY}; pointerInside = true; };
     const onLeave = () => { pointerInside = false; };
+    const resetHover = () => { pointerInside = false; hover = 0; };
+    const onVisibility = () => { if (document.hidden) resetHover(); };
     stage.addEventListener('pointermove',onPointer); stage.addEventListener('pointerleave',onLeave);
+    window.addEventListener('blur',resetHover); document.addEventListener('visibilitychange',onVisibility);
     const restoreImages = () => stage.querySelectorAll('[data-warp-ready]').forEach(element => element.removeAttribute('data-warp-ready'));
     const lost = (event: Event) => { event.preventDefault(); disposed=true; cancelAnimationFrame(raf); restoreImages(); };
     canvas.addEventListener('webglcontextlost',lost);
@@ -119,17 +123,17 @@ export function createWindowWarp(canvas: HTMLCanvasElement, stage: HTMLElement, 
         }
         return entry;
     };
-    const getShapes = (cards: HTMLElement[], time: number) => {
+    const getShapes = (cards: HTMLElement[], time: number, velocity: number) => {
         return cards.map(card => {
             const image = card.querySelector('img');
             const rect = (image || card).getBoundingClientRect();
-            const points = outlinePoints(rect.width, rect.height, motion.velocity,
-                {x:(pointer.x-rect.left)/Math.max(1,rect.width),y:(pointer.y-rect.top)/Math.max(1,rect.height)},hover,time*.001);
+            const points = outlinePoints(rect.width, rect.height, velocity,
+                {x:(pointer.x-rect.left)/Math.max(1,rect.width),y:(pointer.y-rect.top)/Math.max(1,rect.height)},hover,time);
             const xs=points.map(p=>p.x),ys=points.map(p=>p.y);
             return {card,points,rect:{left:rect.left+Math.min(...xs),right:rect.left+Math.max(...xs),top:rect.top+Math.min(...ys),bottom:rect.top+Math.max(...ys)},depth:Number(card.style.zIndex)};
         });
     };
-    const drawCard = (card: HTMLElement, bounds: DOMRect, shapes: ReturnType<typeof getShapes>, time: number) => {
+    const drawCard = (card: HTMLElement, bounds: DOMRect, shapes: ReturnType<typeof getShapes>, time: number, velocity: number, rippleTime: number) => {
         const img=card.querySelector('img'); if (!img) return;
         const src=img.currentSrc || img.src;
         const entry=getTexture(src,time);
@@ -152,8 +156,8 @@ export function createWindowWarp(canvas: HTMLCanvasElement, stage: HTMLElement, 
         const path = caption?.querySelector<SVGPathElement>('.caption-baseline');
         const text = caption?.querySelector<SVGTextElement>('text');
         if (path && text) {
-            path.setAttribute('d', captionPath(rect.width, rect.height, motion.velocity,
-                { x: (pointer.x-rect.left)/rect.width, y: (pointer.y-rect.top)/rect.height }, hover, time*.001));
+            path.setAttribute('d', captionPath(rect.width, rect.height, velocity,
+                { x: (pointer.x-rect.left)/rect.width, y: (pointer.y-rect.top)/rect.height }, hover, rippleTime));
             // Fit long captions without splitting surnames; the full name remains in the link label.
             text.removeAttribute('textLength');
             if (text.getComputedTextLength() > rect.width - 16) {
@@ -173,13 +177,17 @@ export function createWindowWarp(canvas: HTMLCanvasElement, stage: HTMLElement, 
         if (canvas.width!==width || canvas.height!==height) { canvas.width=width;canvas.height=height;gl.viewport(0,0,width,height); }
         gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT);
         if (motion.reduced) { canvas.dataset.textureStatus='reduced'; restoreImages(); return; }
+        const velocity = clampWarpVelocity(motion.velocity);
+        // Wrap by a complete ripple cycle: long-lived tabs must not exhaust
+        // the shader's mediump precision. Captions use the same phase.
+        const rippleTime = (time * .001) % (2 * Math.PI / 2.4);
         gl.uniform2f(uniforms.uViewport,bounds.width,bounds.height);
-        gl.uniform1f(uniforms.uVelocity,motion.velocity);
-        gl.uniform1f(uniforms.uTime,time*.001);
+        gl.uniform1f(uniforms.uVelocity,velocity);
+        gl.uniform1f(uniforms.uTime,rippleTime);
         hover += ((pointerInside ? 1 : 0)-hover)*.08;
         const cards=Array.from(stage.querySelectorAll<HTMLElement>(selector)).sort((a,b)=>Number(a.style.zIndex)-Number(b.style.zIndex));
-        const shapes = getShapes(cards,time);
-        for (const card of cards) drawCard(card,bounds,shapes,time);
+        const shapes = getShapes(cards,rippleTime,velocity);
+        for (const card of cards) drawCard(card,bounds,shapes,time,velocity,rippleTime);
         // Bound GPU memory when browsing hundreds of artists.
         for(const [src,entry] of textures) if(time-entry.touched>12000) { gl.deleteTexture(entry.texture);textures.delete(src); }
     };
@@ -187,6 +195,7 @@ export function createWindowWarp(canvas: HTMLCanvasElement, stage: HTMLElement, 
     return () => {
         disposed=true;cancelAnimationFrame(raf);observer?.disconnect();restoreImages();
         stage.removeEventListener('pointermove',onPointer);stage.removeEventListener('pointerleave',onLeave);canvas.removeEventListener('webglcontextlost',lost);
+        window.removeEventListener('blur',resetHover);document.removeEventListener('visibilitychange',onVisibility);
         textures.forEach(entry=>gl.deleteTexture(entry.texture));gl.deleteBuffer(buffer);shaders.forEach(shader=>gl.deleteShader(shader));gl.deleteProgram(program);
     };
 }

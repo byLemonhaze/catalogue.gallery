@@ -104,3 +104,11 @@ Content Lab was subsequently removed at the owner’s request. Regression tests 
 The findings and remediation decisions are recorded in the [18 November security review](../security_best_practices_report.md).
 
 The first refreshed main scan's additional warnings are covered by [the contextual CodeQL triage and regression evidence](CODE-SCANNING-TRIAGE.md). Dismissals are specific to those reviewed alerts; scanning rules remain enabled.
+
+## Carousel timing and studio embedding (20 November 2026)
+
+The owner reported intermittent pink colour shifts and a warped frame after switching tabs. The exact screenshot was not reproduced. Controlled tests did establish that consecutive frames sharing a timestamp permanently poisoned the previous velocity calculation, that backgrounding did not immediately reset movement, and that a full-directory scrub could drive colour separation far beyond the mesh's bounded bend.
+
+The correction protects the frame interval, bounds and sanitizes velocity across rendering/captions, clears movement and hover on blur/hidden-document events, and wraps the ripple clock by a complete cycle to avoid growing shader time in long-lived tabs. Regression tests cover repeated timestamps, invalid-value recovery, full-directory scrubbing and immediate blur/visibility resets. A fresh Chromium page checked full-range scrubbing followed by a tab switch: the moving shader velocity was capped at 1 and returned near zero, with no page errors. This is not proof of the original intermittent trigger or a physical Safari/GPU check.
+
+The studio embedding exception is documented in [Deployment](DEPLOYMENT.md#studio-embedding-20-november-2026). Header tests cover replacement of inherited restrictions and consistency between static and Functions policies; production smoke checks inspect the same policy across public pages. Final build/check counts and deployed browser evidence belong on the release PR after observation.
