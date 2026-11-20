@@ -1,4 +1,8 @@
 export type CarouselFeel = 'baseline' | 'direct' | 'weighted' | 'glide';
+/** Keep image bending, colour separation and captions within the same range. */
+export function clampWarpVelocity(velocity: number) {
+    return Number.isFinite(velocity) ? Math.max(-1, Math.min(1, velocity)) : 0;
+}
 export const carouselFeels: Record<CarouselFeel, { label: string; settle: number; coast: number; maxThrow: number }> = {
     baseline: { label: 'Baseline', settle: 160, coast: 0, maxThrow: 0 },
     direct: { label: 'Direct', settle: 85, coast: 0, maxThrow: 0 },

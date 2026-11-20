@@ -26,6 +26,8 @@ local.window.close();
 for (const route of ['/','/stories/',`/stories/${story}/`,'/about/','/artists/','/dispatch/','/dispatch/2026-11-11/','/artist/lemonhaze/','/artist/lemonhaze/world/']) {
     const response = await get(origin+route);
     check(response.status === 200, `${route}: HTTP ${response.status}`);
+    check(response.headers.get('content-security-policy') === "frame-ancestors 'self' https://dax27.xyz", `${route}: incorrect studio embedding policy`);
+    check(!response.headers.has('x-frame-options'), `${route}: conflicting X-Frame-Options restriction`);
     const doc = new JSDOM(await response.text());
     const head = doc.window.document;
     const canonical = origin + (route.endsWith('/world/') ? route.replace(/world\/$/,'') : route);

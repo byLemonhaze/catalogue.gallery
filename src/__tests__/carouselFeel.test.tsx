@@ -13,7 +13,7 @@ beforeEach(()=>{vi.useFakeTimers();vi.stubGlobal('PointerEvent',class extends Mo
     readonly pointerId: number;
     constructor(type: string, init: PointerEventInit = {}) { super(type,init); this.pointerId=init.pointerId ?? 1; }
 });vi.stubGlobal('matchMedia',vi.fn(()=>({matches:false,addEventListener:vi.fn(),removeEventListener:vi.fn()})));});
-afterEach(()=>{cleanup();vi.useRealTimers();vi.unstubAllGlobals();});
+afterEach(()=>{cleanup();vi.useRealTimers();vi.unstubAllGlobals();vi.restoreAllMocks();});
 const setup=(items=artists)=>render(<MemoryRouter><WindowsCarousel artists={items}/></MemoryRouter>);
 it('keeps direct releases close and bounds weighted/glide momentum, including stale gestures',()=>{
     expect(releasePosition(3.2,.01,0,'direct',false)).toBe(3);
@@ -146,4 +146,54 @@ it('cancels a swipe only when the stage loses capture of the active pointer',()=
     expect(stage).not.toHaveAttribute('data-dragging');
     fireEvent.pointerMove(stage,{pointerId:1,clientX:-200,clientY:201});
     expect(document.querySelector('.selected-artist')).toHaveTextContent('Artist 1');
+});
+
+it('keeps warp velocity finite when consecutive animation frames share a timestamp',()=>{
+    let frame: FrameRequestCallback;
+    vi.stubGlobal('requestAnimationFrame',vi.fn(callback=>{frame=callback;return 1;}));
+    setup();
+    const motion=vi.mocked(createWindowWarp).mock.calls.at(-1)![2];
+    act(()=>frame(100));
+    act(()=>frame(100));
+    act(()=>frame(116));
+    expect(Number.isFinite(motion.velocity)).toBe(true);
+    act(()=>frame(132));
+    expect(Number.isFinite(motion.velocity)).toBe(true);
+});
+
+it('bounds distortion across a full-directory scrub and recovers from an invalid velocity',()=>{
+    setup(Array.from({length:320},(_,i)=>({...artists[0],id:String(i),name:`Artist ${i}`})));
+    const slider=screen.getByRole('slider');
+    const motion=vi.mocked(createWindowWarp).mock.calls.at(-1)![2];
+    fireEvent.pointerDown(slider,{button:0});
+    fireEvent.change(slider,{target:{value:'319'}});
+    act(()=>vi.advanceTimersByTime(48));
+    expect(motion.velocity).toBeGreaterThan(0);
+    expect(motion.velocity).toBeLessThanOrEqual(1);
+    motion.velocity=NaN;
+    act(()=>vi.advanceTimersByTime(32));
+    expect(Number.isFinite(motion.velocity)).toBe(true);
+    fireEvent.pointerUp(slider);
+    act(()=>vi.advanceTimersByTime(2400));
+    expect(motion.velocity).toBeLessThan(.01);
+    expect(document.querySelector('.selected-artist')).toHaveTextContent('Artist 319');
+});
+
+it.each(['blur','visibilitychange'] as const)('clears movement immediately on %s without waiting for a background frame',event=>{
+    setup();
+    const slider=screen.getByRole('slider');
+    const motion=vi.mocked(createWindowWarp).mock.calls.at(-1)![2];
+    fireEvent.pointerDown(slider,{button:0});
+    fireEvent.change(slider,{target:{value:'15.5'}});
+    act(()=>vi.advanceTimersByTime(48));
+    expect(motion.velocity).toBeGreaterThan(0);
+    if(event==='blur') fireEvent.blur(window);
+    else {
+        vi.spyOn(document,'hidden','get').mockReturnValue(true);
+        fireEvent(document,new Event('visibilitychange'));
+    }
+    expect(motion.velocity).toBe(0);
+    vi.restoreAllMocks();
+    act(()=>vi.advanceTimersByTime(300));
+    expect(Number.isFinite(motion.velocity)).toBe(true);
 });

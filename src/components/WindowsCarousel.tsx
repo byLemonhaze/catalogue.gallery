@@ -1,5 +1,5 @@
 import { WindowCaption } from './WindowCaption';
-import { carouselFeels, dragDistance, releasePosition, type CarouselFeel } from '../lib/carouselFeel';
+import { carouselFeels, clampWarpVelocity, dragDistance, releasePosition, type CarouselFeel } from '../lib/carouselFeel';
 import { restoreDiscoveryPosition, type DiscoveryMemory } from '../lib/discoverySession';
 import { useEffect, useRef, useState } from 'react';
 import { SiteLink as Link } from './SiteLink';
@@ -105,7 +105,8 @@ export function WindowsCarousel({ artists, discoveryReady = true, memory, onReme
             }
         };
         const tick = (time: number) => {
-            const dt = lastTime.current ? Math.min(50, time - lastTime.current) : 16;
+            // Coarse/repeated timestamps must never divide velocity by zero.
+            const dt = lastTime.current ? Math.max(1, Math.min(50, time - lastTime.current)) : 16;
             lastTime.current = time;
             const element = stage.current;
             const available = discoveryReady && onScreen && !document.hidden && !element?.closest('[inert]');
@@ -115,7 +116,7 @@ export function WindowsCarousel({ artists, discoveryReady = true, memory, onReme
             const previous = current.current;
             updatePosition(available, dt);
             const velocity = frameVelocity(time, previous, dt);
-            warp.current.velocity += (velocity - warp.current.velocity) * (1 - Math.exp(-dt / 90));
+            warp.current.velocity = available ? clampWarpVelocity(warp.current.velocity + (velocity - warp.current.velocity) * (1 - Math.exp(-dt / 90))) : 0;
             if (!scrubHeld.current && Math.abs(current.current - target.current) < .001) setScrubPosition(null);
             if (Math.abs(current.current - previous) > .00001) setPosition(current.current);
             frame.current = requestAnimationFrame(tick);
@@ -187,9 +188,18 @@ export function WindowsCarousel({ artists, discoveryReady = true, memory, onReme
     const releaseRef = useRef(release);
     useEffect(() => { releaseRef.current = release; });
     useEffect(() => {
-        const cancel = () => { finishScrubRef.current(); releaseRef.current(true); };
+        const cancel = () => {
+            finishScrubRef.current(); releaseRef.current(true);
+            warp.current.velocity = 0;
+            lastTime.current = 0;
+        };
+        const visibility = () => { if (document.hidden) cancel(); };
         window.addEventListener('blur', cancel);
-        return () => window.removeEventListener('blur', cancel);
+        document.addEventListener('visibilitychange', visibility);
+        return () => {
+            window.removeEventListener('blur', cancel);
+            document.removeEventListener('visibilitychange', visibility);
+        };
     }, []);
     if (!count) return null;
     // Only adjacent previews are mounted; the directory links every published profile.
