@@ -18,9 +18,9 @@ Screenshots below are real November review captures. Some precede the Content La
 
 The second-generation experience brings together the Windows WebGL carousel, a dark-only visual system, the Constellation identity, editorial page transitions and a mobile-ready directory. Artist-owned websites remain at the centre of discovery.
 
-- **Discover:** touch, wheel and keyboard browsing; directory search, sorting, Shuffle and grid/list views.
+- **Discover:** touch, wheel and keyboard browsing; directory search, sorting, Shuffle and an A–Z artist index with an artwork preview.
 - **Enter:** profile previews reveal the artist’s website before entry; a compact movable exit keeps Catalogue within reach.
-- **Read:** Stories and daily Dispatch editions, with the Counterpoint live transcript on the homepage.
+- **Read:** featured stories and a reading list on the homepage, alongside the Counterpoint transcript from the daily Dispatch.
 - **Share:** server-rendered public pages, canonical URLs, permanent legacy redirects and audited social previews.
 
 [0.2 release notes](docs/releases/v0.2.0.md) · [Latest published release](https://github.com/byLemonhaze/catalogue.gallery/releases/latest) · [Changelog](CHANGELOG.md)
