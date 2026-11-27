@@ -19,9 +19,9 @@ Sanity is the current public content source. Historical Dispatch also has a bund
 
 ## Discovery and artist-owned worlds
 
-The dark-only Windows interface uses Syne headings, Sora body/UI and IBM Plex Mono controls, with the handwritten `.gallery` wordmark suffix and Constellation identity. The header links Directory, Stories, Dispatch, Apply and Search.
+The dark interface pairs Spectral for the masthead, story headlines and article text with Source Sans 3 for the artist index, navigation and captions. IBM Plex Mono sets dates and counters. The masthead includes the handwritten `.gallery` signature. The header links Directory, Stories, Dispatch, Apply and Search.
 
-The homepage contains a virtualized, continuously resizing WebGL artist carousel, context rail and Counterpoint Dispatch transcript. Directory browsing adds search, filters, sorting, Shuffle and grid/list views. Unified search includes profiles, Stories and Dispatch.
+The homepage opens with the WebGL artist carousel, context rail and Counterpoint Dispatch transcript. Visitors can step between artists with arrows or scroll down to the feature spreads and headline list. The directory offers an artwork preview beside the name index and a compact names-only view. Both support search, filters, sorting and Shuffle. Unified search includes profiles, Stories and Dispatch.
 
 Profile links from discovery/search open a dialog over the current location; direct URLs render a standalone profile. Reviewed `shortBio` falls back to the existing subtitle, never internal `contentBio`. A ready website preview can reveal inside the profile image before entry. Thus embedding exists in **both profile preview and fullscreen world**, not solely the world route.
 

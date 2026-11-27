@@ -1,7 +1,8 @@
 /* One public palette contract. Private publishing tools retain their own tokens. */
 :root {
-  --catalogue-display: Syne, Sora, sans-serif;
-  --catalogue-controls: 'IBM Plex Mono', monospace;
+  --catalogue-display: 'Spectral', Georgia, serif;
+  --catalogue-sans: 'Source Sans 3', 'Helvetica Neue', Arial, sans-serif;
+  --catalogue-mono: 'IBM Plex Mono', monospace;
   --catalogue-paper: #131315;
   --catalogue-ink: #f3f1ed;
   --catalogue-muted: #aaa9b0;
@@ -28,31 +29,33 @@
   color-scheme: var(--catalogue-scheme);
   letter-spacing: normal;
 }
-/* Syne marks entrances; Sora carries reading; Plex Mono identifies controls. */
-.public-site :is(h1, .section-heading h2, .join-catalogue h2, .search-heading h2, .legal-modal h2) {
-  font-family: var(--catalogue-display);
-  font-weight: 600;
-  letter-spacing: -.045em;
-  line-height: 1.06;
+/* Publication titles, running text and catalogue numbers each have their own voice. */
+.public-site :is(h1,.section-heading h2,.join-catalogue h2,.search-heading h2,.legal-modal h2,.editorial-index-title),
+.public-site :is(.editorial-card h3,.dispatch-story h2,.dispatch-issue-card h2,.rail-story h2) {
+  font-family:var(--catalogue-display);
+  font-weight:400;
+  letter-spacing:-.032em;
+  line-height:1.09;
+  text-wrap:pretty;
 }
-.public-site .story-archive .editorial-index-title {font-family:var(--catalogue-display);font-weight:600}
-.public-site :is(input, textarea) {font-family:Sora,sans-serif}
-.public-site :is(button, select, kbd, .font-mono, .editorial-kicker, .editorial-meta, .editorial-link, .editorial-number, .eyebrow, .text-link, .solid-link, .window-bottom, .directory-sort, .entry-type, .story-date, .signal-top, .signal-number, .signal-foot),
+.public-site :is(input, textarea) {font-family:var(--catalogue-sans)}
+.public-site :is(button, select, .editorial-kicker, .editorial-meta, .editorial-link, .eyebrow, .text-link, .solid-link, .window-bottom, .directory-sort, .entry-type, .signal-foot),
 .public-site .application-page label,
 .public-site .windows-footer nav,
 .public-site .rail-heading a,
 .public-site .dispatch-tools label,
 .public-site .dispatch-adjacent,
-.world-shell :is(.world-action, .world-text-link, .world-loading, .world-artist-label) {font-family:var(--catalogue-controls)}
+.world-shell :is(.world-action, .world-text-link, .world-loading, .world-artist-label) {font-family:var(--catalogue-sans)}
+.public-site :is(kbd,.font-mono,.editorial-number,.story-date,.signal-top,.signal-number) {font-family:var(--catalogue-mono);font-variant-numeric:tabular-nums}
 .public-site :is(.editorial-meta > span:first-child, .editorial-lead-foot) {color:var(--muted)}
 .public-site :is(.editorial-kicker, .eyebrow) {font-weight:400;letter-spacing:.12em}
 .public-site .search-heading h2 {font-size:40px}
 .public-site .directory-caption h2 {font-weight:500;letter-spacing:-.035em}
-.public-site .catalogue-intro h1 {line-height:1.12}
-.public-site .catalogue-masthead nav {font-family:var(--catalogue-controls);letter-spacing:0;font-weight:400}
+.public-site .catalogue-intro h1 {font-size:clamp(30px,2.55vw,41px);line-height:1.09;letter-spacing:-.033em;text-wrap:balance;max-width:20ch;margin-top:0}
+.public-site .catalogue-masthead nav {font-family:var(--catalogue-sans);letter-spacing:.006em;font-size:clamp(13px,1vw,15px);font-weight:500}
 .catalogue-wordmark .catalogue-signature {
   position:relative;display:inline-block;width:3.7em;height:1.45em;
-  margin-left:7px;font:400 clamp(16px,1.2vw,18px)/1 Sora,sans-serif;
+  margin-left:7px;font:400 clamp(16px,1.2vw,18px)/1 var(--catalogue-sans);
   letter-spacing:-.02em;vertical-align:baseline;
 }
 .catalogue-signature img {position:absolute;inset:auto 0 -.2em;width:100%;height:auto;opacity:0}
@@ -91,7 +94,7 @@
 .public-site .application-page {background:var(--paper)}
 .public-site .application-page :is(input:not([type="range"]), textarea) {background:var(--paper)}
 .public-site .application-page :is(label, p[class*="tracking-"], button[class*="tracking-"]) {letter-spacing:.08em;font-weight:500}
-.public-site .application-page h1 {letter-spacing:-.045em;font-weight:600}
+.public-site .application-page h1 {letter-spacing:-.032em;font-weight:400}
 .public-site .application-page [aria-invalid="true"] {border-color:var(--catalogue-error)}
 .public-site [class*="text-red-400"] {color:var(--catalogue-error)}
 .public-site .text-emerald-400 {color:var(--catalogue-success)}
@@ -121,13 +124,21 @@
 .profile-name>span {display:inline-block;white-space:pre}
 @media(max-width:760px){.public-site .profile-copy .profile-name{font-size:var(--profile-name-size,48px)}}
 
-/* Reading surfaces retain Sora; actions follow the control contract above. */
+/* Keep editorial prose at a comfortable measure across short and long pieces. */
 html, body {background:var(--catalogue-paper);color:var(--catalogue-ink);color-scheme:dark}
-.public-site .reader-page {font-family:Sora,sans-serif}
+.public-site .reader-page {font-family:var(--catalogue-sans)}
 .public-site .reader-page :is(p,li,blockquote) {color:var(--catalogue-ink);font-weight:400}
 .public-site .reader-page :is(h2,h3) {font-weight:500;line-height:1.3}
 .public-site .reader-page h2 {font-size:clamp(24px,2.4vw,32px)}
 .public-site .reader-page h3 {font-size:clamp(20px,2vw,25px)}
+.public-site .reader-page>article>header h1 {max-width:24ch;letter-spacing:-.036em;text-wrap:balance}
+.public-site .reader-page>article>header p {font:400 clamp(17px,1.45vw,21px)/1.48 var(--catalogue-sans);max-width:62ch;color:var(--muted)}
+.public-site .reader-page>article>.article-prose {font:400 clamp(18px,1.45vw,21px)/1.62 var(--catalogue-display);max-width:63ch;overflow-wrap:break-word}
+.public-site .article-prose :is(p,li) {font:inherit}
+.public-site .article-prose :is(h2,h3) {font-family:var(--catalogue-display);font-weight:600;letter-spacing:-.022em}
+.public-site .article-prose :is(strong,a) {font-weight:600}
+.public-site .article-prose em {color:inherit}
+.public-site .reader-page .article-prose blockquote {font:italic 400 1.2em/1.45 var(--catalogue-display)}
 .public-site .reader-page header>div:last-child, .public-site .reader-page header>div:first-child>span {letter-spacing:.08em;font-weight:400}
 .public-site .about-page section>p:first-child {font-weight:400;letter-spacing:.12em}
 .public-site .legal-modal h3 {font-size:13px;letter-spacing:.08em;font-weight:500}
@@ -149,14 +160,12 @@ html, body {background:var(--catalogue-paper);color:var(--catalogue-ink);color-s
 @media(max-width:760px){
  .public-site .legal-modal :is(header,footer,.legal-scroll){padding:22px}
  .public-site .reader-page>article>header{margin-bottom:36px;padding-bottom:28px}
- .public-site .reader-page>article>header>div:last-child{gap:12px;font-size:9px}
+ .public-site .reader-page>article>header>div:last-child{gap:12px;font-size:11px}
 }
 .public-site .legal-modal>div{background:var(--surface)}
 
-/* A single assertive display voice, shared by every public entrance. */
-.public-site :is(h1,.section-heading h2,.join-catalogue h2,.search-heading h2,.legal-modal h2,.editorial-index-title) {
-  font-family:var(--catalogue-display);font-weight:600;letter-spacing:-.045em;line-height:1.06;
-}
-.public-site .catalogue-intro h1 {font-size:clamp(28px,2.5vw,38px);line-height:1.08;letter-spacing:-.045em;text-wrap:balance;max-width:19ch;margin-top:0}
-.world-message-title {font-weight:600;letter-spacing:-.045em}
-@media(max-width:760px){.public-site .catalogue-intro h1{font-size:30px;max-width:24ch}}
+.public-site .selected-artist {font-family:var(--catalogue-display);font-weight:400;letter-spacing:-.024em}
+.public-site :is(.filter-tabs,.directory-sort,.directory-shuffle,.register-jump,.text-link) {font-size:14px}
+.public-site :is(.directory-count,.editorial-meta,.eyebrow) {font-size:11px}
+.world-message-title {font-weight:400;letter-spacing:-.032em}
+@media(max-width:760px){.public-site .catalogue-intro h1{font-size:32px;max-width:24ch}}

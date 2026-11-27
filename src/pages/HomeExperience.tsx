@@ -5,7 +5,7 @@ import type { ArticleRecord } from '../types/article';
 import type { HomeSectionKey } from '../constants/homeSections';
 import { WindowsCarousel } from '../components/WindowsCarousel';
 import { DispatchSection } from '../components/DispatchSection';
-import { EditorialCard } from '../components/EditorialCards';
+import { HomeReadingList } from '../components/EditorialCards';
 interface Props {
     artists: Artist[];
     discovery?: { ready: boolean; memory: DiscoveryMemory; remember: (next: DiscoveryMemory) => void };
@@ -29,7 +29,7 @@ export function HomeExperience({ artists, discovery, loading, artistsError, arti
         <DispatchSection/>
       </aside>
     </section>
-    <section className="windows-editorial" aria-labelledby="recent-title"><div className="section-heading"><div><span className="eyebrow">Stories</span><h2 id="recent-title">Digital art, in context.</h2><p className="section-description">Stories explore the artists and ideas behind the news.</p></div><Link className="text-link" to="/stories/">All stories</Link></div>{articlesLoading && !stories.length ? <p role="status">Loading stories…</p> : <div className="editorial-grid">{stories.map(article => <EditorialCard key={article.id} article={article}/>)}</div>}</section>
+    <section className="windows-editorial" aria-labelledby="recent-title"><div className="section-heading"><div><span className="eyebrow">Stories</span><h2 id="recent-title">Digital art, in context.</h2><p className="section-description">Stories explore the artists and ideas behind the news.</p></div><Link className="text-link" to="/stories/">All stories</Link></div>{articlesLoading && !stories.length ? <p role="status">Loading stories…</p> : <HomeReadingList stories={stories}/>}</section>
     <section className="join-catalogue"><span className="eyebrow">Apply + About</span><h2>Your practice. Your perspective. Your place here.</h2><p>Have an artist website or a gallery programme to share? Send it our way. Every application is reviewed before it joins the directory.</p><Link className="solid-link" to="/submit/">Apply now</Link></section>
     <footer className="windows-footer"><Link to="/">CATALOGUE.gallery</Link><nav aria-label="Footer"><Link to="/about/">About</Link><Link to="/artists/">Directory</Link><Link to="/stories/">Stories</Link><a href="https://x.com/CatalogueART" target="_blank" rel="noreferrer">@CatalogueART</a><button onClick={() => setIsLegalModalOpen(true)}>Policy</button></nav></footer>
   </main>;

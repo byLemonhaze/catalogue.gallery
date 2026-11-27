@@ -63,7 +63,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
                             {article.type === 'Interview' ? 'Interview' : 'Story'}
                         </span>
                     </div>
-                    <h1 className="text-3xl md:text-5xl font-semibold tracking-tight mb-7 leading-tight text-white max-w-3xl mx-auto">{article.title}</h1>
+                    <h1 className="text-3xl md:text-5xl mb-7 leading-tight text-white max-w-3xl mx-auto">{article.title}</h1>
                     <p className="max-w-2xl mx-auto text-sm md:text-base leading-relaxed text-white/60 mb-8">{article.excerpt}</p>
                     <div className="flex items-center justify-center gap-4 flex-wrap text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] border-t border-white/10 pt-6 max-w-md mx-auto relative">
                         <time dateTime={article.publishedAt}>{article.date}</time>
@@ -90,19 +90,19 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ articles, loading = fa
                     </div>
                 </header>
 
-                <div className="max-w-2xl mx-auto">
+                <div className="article-prose mx-auto">
                     {body.loading && <p role="status" className="text-white/60">Loading the story…</p>}
                     {body.error && <div role="alert" className="border border-white/20 p-6 mb-8"><p>This story could not load. Please check your connection.</p><button className="editorial-link" onClick={() => window.location.reload()}>Try again</button></div>}
                     <ReactMarkdown
                         components={{
                             h1: () => null,
-                            h2: (props) => <h2 className="text-lg md:text-xl font-black uppercase tracking-[0.1em] mb-6 mt-16 text-white border-b border-white/10 pb-2" {...props} />,
-                            h3: (props) => <h3 className="text-sm font-bold uppercase tracking-widest mb-4 mt-8 text-white/80" {...props} />,
-                            p: (props) => <p className="text-base md:text-lg leading-relaxed text-white/80 mb-6 font-light" {...props} />,
+                            h2: (props) => <h2 className="mb-6 mt-16 text-white border-b border-white/10 pb-2" {...props} />,
+                            h3: (props) => <h3 className="mb-4 mt-8 text-white/80" {...props} />,
+                            p: (props) => <p className="mb-6" {...props} />,
                             strong: (props) => <strong className="font-bold text-white" {...props} />,
                             em: (props) => <em className="italic text-white/80" {...props} />,
                             blockquote: (props) => (
-                                <blockquote className="my-12 pl-6 border-l-2 border-white text-xl md:text-2xl font-light italic text-white/90 leading-normal" {...props} />
+                                <blockquote className="my-12 pl-6 border-l-2 border-white" {...props} />
                             ),
                             ul: (props) => <ul className="list-disc list-outside ml-6 mb-6 text-white/70 space-y-2" {...props} />,
                             li: (props) => <li className="pl-2" {...props} />,

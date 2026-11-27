@@ -16,9 +16,9 @@ html {
   padding-left: max(3vw, var(--safe-left));
   padding-right: max(3vw, var(--safe-right));
 }
-.section-description {font:400 13px/1.7 Sora,sans-serif;color:var(--muted);margin-top:18px;max-width:46ch}
+.section-description {font:400 13px/1.7 var(--catalogue-sans);color:var(--muted);margin-top:18px;max-width:46ch}
 .dispatch .section-description {margin:0 0 18px;font-size:12px}
-.profile-embed-note {font:400 12px/1.7 Sora,sans-serif;color:var(--muted);margin-top:18px;max-width:38ch}
+.profile-embed-note {font:400 12px/1.7 var(--catalogue-sans);color:var(--muted);margin-top:18px;max-width:38ch}
 .profile-embed-note::before {content:'';display:inline-block;width:6px;height:6px;background:currentColor;margin-right:8px;vertical-align:middle}
 .public-site .search-result small {display:block;margin-top:5px;line-height:1.6}
 .search-empty {color:var(--muted);line-height:1.7;padding-block:24px}
@@ -127,4 +127,21 @@ html {
 @media (max-width:380px) {
   .directory-tools .filter-tabs[aria-label="Profile type"] {grid-column:1/-1}
   .directory-tools .filter-tabs[aria-label="Directory layout"] {grid-row:4;grid-column:1/-1;justify-content:flex-end}
+}
+
+.window-step-controls {display:inline-flex;gap:2px;align-items:center}
+.window-pagination .window-step-controls button {
+  display:grid;place-items:center;width:44px;height:44px;padding:0;
+  color:var(--ink);background:transparent;border:1px solid var(--line);
+  transition:background-color 140ms ease-out;
+}
+.window-step-controls button span {display:block;transition:transform 140ms ease-out}
+@media (hover:hover) {
+  .window-step-controls button:hover {background:var(--surface-alt)}
+  .window-step-controls button:first-child:hover span {transform:translateX(-2px)}
+  .window-step-controls button:last-child:hover span {transform:translateX(2px)}
+}
+.is-reduced .window-step-controls button span {transition:none;transform:none}
+@media (prefers-reduced-motion:reduce) {
+  .window-step-controls button span {transition:none;transform:none!important}
 }

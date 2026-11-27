@@ -3,25 +3,25 @@
 .dispatch-counterpoint:hover{border-left-color:#ffffff9a}
 .signal-mast{display:flex;justify-content:flex-end;align-items:center;min-height:12px}
 .dispatch-counterpoint .signal-mast h2{position:absolute;left:10px;top:20px;writing-mode:vertical-rl;transform:rotate(180deg);font:400 10px/1.2 'IBM Plex Mono',monospace;letter-spacing:.17em;margin:0;color:#e9e8e5}
-.signal-mast>span{font:400 9px/1.5 'IBM Plex Mono',monospace;letter-spacing:0;color:#aaaab2;white-space:nowrap;font-variant-numeric:tabular-nums}
-.signal-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin:9px 0 0;font:400 9px/1.5 'IBM Plex Mono',monospace;color:#929299}
+.signal-mast>span{font:400 11px/1.5 'IBM Plex Mono',monospace;letter-spacing:0;color:#aaaab2;white-space:nowrap;font-variant-numeric:tabular-nums}
+.signal-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin:9px 0 0;font:400 11px/1.5 'IBM Plex Mono',monospace;color:#929299}
 .signal-counter-stage{display:grid;grid-template-columns:92px minmax(0,1fr);align-items:center;gap:15px;min-height:170px;margin:12px 0}
-.signal-counter{align-self:start;margin-top:28px;color:#83838b;font:500 72px/1 Syne,sans-serif;letter-spacing:-.09em;font-variant-numeric:tabular-nums}
-.signal-counter-copy{display:grid;min-width:0;padding:20px 0;font:400 23px/1.22 Sora,sans-serif;letter-spacing:-.055em;overflow-wrap:anywhere;color:#d2bce7}
+.signal-counter{align-self:start;margin-top:28px;color:#83838b;font:400 72px/1 var(--catalogue-display);letter-spacing:-.045em;font-variant-numeric:tabular-nums}
+.signal-counter-copy{display:grid;min-width:0;padding:20px 0;font:400 25px/1.23 var(--catalogue-display);letter-spacing:-.02em;overflow-wrap:anywhere;color:#d2bce7}
 .signal-sizing,.signal-counter-text{grid-area:1/1}
 .signal-sizing{display:grid;visibility:hidden;pointer-events:none}
 .signal-sizing>span{grid-area:1/1}
 .signal-word-mask{display:inline-block;max-width:100%;overflow:hidden;vertical-align:top;padding-right:.25em}
 .signal-word-mask>span{display:inline-block;transform:translateY(110%);transition:transform .5s cubic-bezier(.22,1,.36,1)}
 .signal-word-mask>span[data-shown=true]{transform:translateY(0)}
-.signal-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:14px 0;border-top:1px solid #ffffff20;font:400 10px/1.5 'IBM Plex Mono',monospace;color:#b7b7bd}
+.signal-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:14px 0;border-top:1px solid #ffffff20;font:400 13px/1.5 var(--catalogue-sans);color:#b7b7bd}
 .signal-positions{display:flex;align-items:center;gap:4px;flex-wrap:wrap;max-width:40%}
 .signal-positions i{width:3px;height:3px;background:#55555d}
 .signal-positions i[data-active=true]{height:8px;background:#e3e3e6}
 .signal-index{list-style:none;margin:20px 0;padding:0}
-.signal-index li{display:grid;grid-template-columns:20px minmax(0,1fr);gap:8px;margin-top:10px;font:400 12px/1.6 'IBM Plex Mono',monospace;color:#d2bce7;overflow-wrap:anywhere}
+.signal-index li{display:grid;grid-template-columns:20px minmax(0,1fr);gap:8px;margin-top:10px;font:400 15px/1.45 var(--catalogue-sans);color:#d2bce7;overflow-wrap:anywhere}
 .signal-index li>span:first-child{color:#929299}
-.dispatch-all-editions{display:block;width:max-content;margin:10px 0 0 auto;padding:8px 0;font:400 10px/1.5 'IBM Plex Mono',monospace;color:var(--muted);text-decoration:underline;text-underline-offset:4px}
-@media(max-width:1600px){.signal-counter-stage{grid-template-columns:72px minmax(0,1fr);gap:14px}.signal-counter{font-size:52px}.signal-counter-copy{font-size:21px}}
+.dispatch-all-editions{display:block;width:max-content;margin:10px 0 0 auto;padding:8px 0;font:400 13px/1.5 var(--catalogue-sans);color:var(--muted);text-decoration:underline;text-underline-offset:4px}
+@media(max-width:1600px){.signal-counter-stage{grid-template-columns:72px minmax(0,1fr);gap:14px}.signal-counter{font-size:52px}.signal-counter-copy{font-size:23px}}
 @media(max-width:760px){.dispatch-counterpoint{max-width:460px}}
 @media(prefers-reduced-motion:reduce){.dispatch-counterpoint,.signal-word-mask>span{transition:none}}

@@ -131,6 +131,12 @@ export function WindowsCarousel({ artists, discoveryReady = true, memory, onReme
     function jump(next: number) {
         hold(); clearTimeout(snap.current); target.current = next; current.current = next; warp.current.velocity = 0; setScrubPosition(null); setPosition(next); remember(next);
     }
+    function stepArtist(direction: number) {
+        clearTimeout(snap.current);
+        const next = Math.round(target.current) + direction;
+        if (reduced) jump(next);
+        else move(next);
+    }
     function finishScrub() {
         if (!scrubHeld.current) return;
         scrubHeld.current = false;
@@ -150,8 +156,14 @@ export function WindowsCarousel({ artists, discoveryReady = true, memory, onReme
         const wheel = (event: WheelEvent) => {
             if (event.ctrlKey || count < 2)
                 return;
+            // Horizontal intent belongs to the artworks. Vertical intent takes the reader to Dispatch and Stories.
+            const horizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY) * 1.15;
+            if (!horizontal && !event.shiftKey) return;
+            const delta = horizontal ? event.deltaX : event.deltaY;
+            if (!delta) return;
             event.preventDefault();
-            moveRef.current(target.current + (Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY) * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? element.clientHeight : 1) / Math.max(220, element.clientWidth * .42));
+            const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? element.clientWidth : 1;
+            moveRef.current(target.current + delta * unit / dragDistance(element.clientWidth));
             clearTimeout(snap.current);
             snap.current = setTimeout(() => moveRef.current(Math.round(target.current)), 180);
         };
@@ -250,7 +262,12 @@ export function WindowsCarousel({ artists, discoveryReady = true, memory, onReme
     </div>
     <div className="windows-controls">
       <div><span className="eyebrow">Selected artist</span><ProfileLink artist={artists[active]} className="selected-artist">{artists[active].name}</ProfileLink></div>
-      <div className="window-pagination"><span className="window-position" aria-label={`Artist ${active + 1} of ${count}`}>{String(active + 1).padStart(2, '0')} / {count}</span><button className="rotation-toggle" aria-pressed={paused || reduced} onClick={() => { setPaused(value => !value); remember(current.current, !paused); }} disabled={reduced}>{reduced ? 'Paused' : paused ? 'Resume' : 'Pause'}</button></div>
+      <div className="window-pagination">
+        {count > 1 && <div className="window-step-controls" role="group" aria-label="Step between artists">
+          <button type="button" aria-label="Previous artist" onClick={() => stepArtist(-1)}><span aria-hidden="true">←</span></button>
+          <button type="button" aria-label="Next artist" onClick={() => stepArtist(1)}><span aria-hidden="true">→</span></button>
+        </div>}
+        <span className="window-position" aria-label={`Artist ${active + 1} of ${count}`}>{String(active + 1).padStart(2, '0')} / {count}</span><button className="rotation-toggle" aria-pressed={paused || reduced} onClick={() => { setPaused(value => !value); remember(current.current, !paused); }} disabled={reduced}>{reduced ? 'Paused' : paused ? 'Resume' : 'Pause'}</button></div>
       <label className="window-scrubber"><span className="sr-only">Choose artist</span><input type="range" min="0" max={count - 1} step="0.001" disabled={count < 2} value={scrubPosition ?? Math.min(count - 1, wrap(position, count))} aria-valuetext={`${artists[active].name}, ${active + 1} of ${count}`}
         onPointerDown={event => {
             if (event.button !== 0 || count < 2) return;
@@ -268,7 +285,7 @@ export function WindowsCarousel({ artists, discoveryReady = true, memory, onReme
             else jump(Math.round(next));
         }}/></label>
     </div>
-    <div className="window-bottom"><span><span className="gesture-pointer">Scroll, drag or use arrow keys.</span><span className="gesture-touch">Swipe sideways to explore. Scroll down for stories.</span></span><Link to="/artists/">View all artists</Link><button aria-pressed={reduced} onClick={toggleReduced}>Motion: {reduced ? 'reduced' : 'full'}</button></div>
+    <div className="window-bottom"><span><span className="gesture-pointer">Drag or scroll sideways to browse. Scroll down for stories.</span><span className="gesture-touch">Swipe sideways to explore. Scroll down for stories.</span></span><Link to="/artists/">View all artists</Link><button aria-pressed={reduced} onClick={toggleReduced}>Motion: {reduced ? 'reduced' : 'full'}</button></div>
     {import.meta.env.DEV && <fieldset className="carousel-feel-review"><legend>Local review · drag feel</legend>{(Object.keys(carouselFeels) as CarouselFeel[]).map(mode => <button key={mode} aria-pressed={feel === mode} onClick={() => { release(true); feelRef.current = mode; setFeel(mode); target.current = current.current; hold(); }}>{carouselFeels[mode].label}</button>)}</fieldset>}
   </div>;
 }
