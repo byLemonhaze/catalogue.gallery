@@ -73,20 +73,23 @@ it('exposes search on standalone profile pages', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Search artists and stories' }));
     expect(screen.getByRole('dialog', { name: 'Search' })).toBeInTheDocument();
 });
-it('reserves horizontal wheel gestures for discovery and leaves vertical scrolling and zoom native', () => {
+it('browses artists with the wheel over the artwork and lets the page scroll elsewhere', async () => {
     setup();
     const stage = document.querySelector('.windows-stage')!;
-    const wheel = new WheelEvent('wheel', { deltaY: 120, bubbles: true, cancelable: true });
-    fireEvent(stage, wheel);
-    expect(wheel.defaultPrevented).toBe(false);
-    for (const input of [{deltaX:120,deltaY:8},{deltaY:120,shiftKey:true}]) {
-        const horizontal = new WheelEvent('wheel', {...input, bubbles:true, cancelable:true});
-        fireEvent(stage, horizontal);
-        expect(horizontal.defaultPrevented).toBe(true);
-    }
-    const zoom = new WheelEvent('wheel', { deltaY: 120, ctrlKey: true, bubbles: true, cancelable: true });
-    fireEvent(stage, zoom);
-    expect(zoom.defaultPrevented).toBe(false);
+    const selected = document.querySelector('.selected-artist');
+    const wheel = (target: Element, input: WheelEventInit) => {
+        const event = new WheelEvent('wheel', { ...input, bubbles: true, cancelable: true });
+        fireEvent(target, event);
+        return event.defaultPrevented;
+    };
+    expect(wheel(screen.getByRole('link', { name: 'View Test Artist' }), { deltaY: 220 })).toBe(true);
+    await waitFor(() => expect(selected).toHaveTextContent('Other Artist'));
+    expect(wheel(stage, { deltaY: -220 })).toBe(true);
+    await waitFor(() => expect(selected).toHaveTextContent('Test Artist'));
+    expect(wheel(stage, { deltaX: 220, deltaY: 8 })).toBe(true);
+    expect(wheel(stage, { deltaY: 220, shiftKey: true })).toBe(true);
+    expect(wheel(stage, { deltaY: 120, ctrlKey: true })).toBe(false);
+    expect(wheel(screen.getByRole('heading', { name: 'Digital art, in context.' }), { deltaY: 120 })).toBe(false);
 });
 it('enters the artist website on the second image click and returns to the same profile', async () => {
     setup();
