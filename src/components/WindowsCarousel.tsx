@@ -156,14 +156,12 @@ export function WindowsCarousel({ artists, discoveryReady = true, memory, onReme
         const wheel = (event: WheelEvent) => {
             if (event.ctrlKey || count < 2)
                 return;
-            // Horizontal intent belongs to the artworks. Vertical intent takes the reader to Dispatch and Stories.
-            const horizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY) * 1.15;
-            if (!horizontal && !event.shiftKey) return;
-            const delta = horizontal ? event.deltaX : event.deltaY;
+            const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
             if (!delta) return;
             event.preventDefault();
-            const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? element.clientWidth : 1;
-            moveRef.current(target.current + delta * unit / dragDistance(element.clientWidth));
+            const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? element.clientHeight : 1;
+            const pixelsPerArtist = Math.max(220, element.clientWidth * .42);
+            moveRef.current(target.current + delta * unit / pixelsPerArtist);
             clearTimeout(snap.current);
             snap.current = setTimeout(() => moveRef.current(Math.round(target.current)), 180);
         };
@@ -285,7 +283,7 @@ export function WindowsCarousel({ artists, discoveryReady = true, memory, onReme
             else jump(Math.round(next));
         }}/></label>
     </div>
-    <div className="window-bottom"><span><span className="gesture-pointer">Drag or scroll sideways to browse. Scroll down for stories.</span><span className="gesture-touch">Swipe sideways to explore. Scroll down for stories.</span></span><Link to="/artists/">View all artists</Link><button aria-pressed={reduced} onClick={toggleReduced}>Motion: {reduced ? 'reduced' : 'full'}</button></div>
+    <div className="window-bottom"><span><span className="gesture-pointer">Scroll, drag or use arrow keys.</span><span className="gesture-touch">Swipe sideways to explore. Scroll down for stories.</span></span><Link to="/artists/">View all artists</Link><button aria-pressed={reduced} onClick={toggleReduced}>Motion: {reduced ? 'reduced' : 'full'}</button></div>
     {import.meta.env.DEV && <fieldset className="carousel-feel-review"><legend>Local review · drag feel</legend>{(Object.keys(carouselFeels) as CarouselFeel[]).map(mode => <button key={mode} aria-pressed={feel === mode} onClick={() => { release(true); feelRef.current = mode; setFeel(mode); target.current = current.current; hold(); }}>{carouselFeels[mode].label}</button>)}</fieldset>}
   </div>;
 }
