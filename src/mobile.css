@@ -128,3 +128,20 @@ html {
   .directory-tools .filter-tabs[aria-label="Profile type"] {grid-column:1/-1}
   .directory-tools .filter-tabs[aria-label="Directory layout"] {grid-row:4;grid-column:1/-1;justify-content:flex-end}
 }
+
+.window-step-controls {display:inline-flex;gap:2px;align-items:center}
+.window-pagination .window-step-controls button {
+  display:grid;place-items:center;width:44px;height:44px;padding:0;
+  color:var(--ink);background:transparent;border:1px solid var(--line);
+  transition:background-color 140ms ease-out;
+}
+.window-step-controls button span {display:block;transition:transform 140ms ease-out}
+@media (hover:hover) {
+  .window-step-controls button:hover {background:var(--surface-alt)}
+  .window-step-controls button:first-child:hover span {transform:translateX(-2px)}
+  .window-step-controls button:last-child:hover span {transform:translateX(2px)}
+}
+.is-reduced .window-step-controls button span {transition:none;transform:none}
+@media (prefers-reduced-motion:reduce) {
+  .window-step-controls button span {transition:none;transform:none!important}
+}

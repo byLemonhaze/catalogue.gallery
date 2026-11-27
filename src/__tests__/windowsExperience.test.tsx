@@ -58,17 +58,32 @@ it('searches the complete directory without requiring carousel interaction', asy
     fireEvent.change(input, { target: { value: 'No such artist' } });
     expect(screen.getByText(/No matching profiles/)).toBeInTheDocument();
 });
+it('browses individual directory previews and keeps each name linked in the names view', () => {
+    setup('/artists/');
+    const preview = document.querySelector('.register-credit strong');
+    expect(preview).toHaveTextContent('Other Artist');
+    fireEvent.click(screen.getByRole('button', {name:'Next artwork'}));
+    expect(preview).toHaveTextContent('Test Artist');
+    fireEvent.click(screen.getByRole('button', {name:'Names'}));
+    expect(screen.queryByRole('complementary', {name:'Artwork preview'})).not.toBeInTheDocument();
+    expect(screen.getByRole('link', {name:/Test Artist/})).toHaveAttribute('href','/artist/test-artist/');
+});
 it('exposes search on standalone profile pages', () => {
     setup('/artist/test-artist/');
     fireEvent.click(screen.getByRole('button', { name: 'Search artists and stories' }));
     expect(screen.getByRole('dialog', { name: 'Search' })).toBeInTheDocument();
 });
-it('captures vertical wheel input over the stage but preserves browser zoom gestures', () => {
+it('reserves horizontal wheel gestures for discovery and leaves vertical scrolling and zoom native', () => {
     setup();
     const stage = document.querySelector('.windows-stage')!;
     const wheel = new WheelEvent('wheel', { deltaY: 120, bubbles: true, cancelable: true });
     fireEvent(stage, wheel);
-    expect(wheel.defaultPrevented).toBe(true);
+    expect(wheel.defaultPrevented).toBe(false);
+    for (const input of [{deltaX:120,deltaY:8},{deltaY:120,shiftKey:true}]) {
+        const horizontal = new WheelEvent('wheel', {...input, bubbles:true, cancelable:true});
+        fireEvent(stage, horizontal);
+        expect(horizontal.defaultPrevented).toBe(true);
+    }
     const zoom = new WheelEvent('wheel', { deltaY: 120, ctrlKey: true, bubbles: true, cancelable: true });
     fireEvent(stage, zoom);
     expect(zoom.defaultPrevented).toBe(false);
@@ -103,6 +118,16 @@ it('moves one whole artist with arrow keys from the page and scrubber, preservin
     expect(slider).toHaveFocus();
     fireEvent.keyDown(slider, {key:'ArrowLeft'});
     await waitFor(() => expect(selected()).toBe('Other Artist'));
+});
+it('steps to a neighbouring artist with buttons and keeps focus on the control', async () => {
+    setup();
+    const next = screen.getByRole('button', {name:'Next artist'});
+    next.focus();
+    fireEvent.click(next);
+    await waitFor(() => expect(document.querySelector('.selected-artist')).toHaveTextContent('Other Artist'));
+    expect(next).toHaveFocus();
+    fireEvent.click(screen.getByRole('button', {name:'Previous artist'}));
+    await waitFor(() => expect(document.querySelector('.selected-artist')).toHaveTextContent('Test Artist'));
 });
 it('does not intercept arrows in search or an open profile', () => {
     setup();

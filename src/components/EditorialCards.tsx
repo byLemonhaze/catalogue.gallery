@@ -11,3 +11,23 @@ export function EditorialCard({ article }: { article: ArticleRecord }) {
         <h3>{article.title}</h3><p>{article.excerpt}</p>
     </Link></article>;
 }
+
+/** Keep the original chronology while giving two images room to carry a spread. */
+export function HomeReadingList({ stories }: { stories: ArticleRecord[] }) {
+    if (!stories.length) return null;
+    return <div className="home-reading-list">{stories.map((story,index) => {
+        const feature = index === 0 || (index === 5 && stories.length >= 7);
+        const className = feature ? 'story-spread' + (index === 0 ? '' : ' reversed') : 'story-line';
+        return <article key={story.id} className={className}>
+            <Link to={'/stories/' + story.id + '/'}>
+                {story.thumbnailUrl && <div className="story-plate"><EditorialImage article={story} sizes={feature?'(max-width: 760px) 100vw, 58vw':'(max-width: 760px) 72px, 124px'}/></div>}
+                <div className="story-text">
+                    <div className="story-dateline"><span>{story.date}</span>{story.type==='Interview'&&<span>Interview</span>}</div>
+                    <h3>{story.title}</h3>
+                    {feature && <><p>{story.excerpt}</p><span className="story-read">Read story <span aria-hidden="true">↗</span></span></>}
+                </div>
+                {!feature && <span className="story-direction" aria-hidden="true">↗</span>}
+            </Link>
+        </article>;
+    })}</div>;
+}
