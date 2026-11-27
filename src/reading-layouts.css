@@ -6,8 +6,8 @@
 .register-layout {display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,.94fr);gap:clamp(30px,5vw,96px);align-items:start}
 .register-layout.register-list {display:block}
 .register-preview {position:sticky;top:clamp(16px,4vh,44px);min-width:0}
-.register-plate {position:relative;isolation:isolate;display:grid;place-items:center;width:100%;height:clamp(230px,53vh,600px);overflow:hidden;background:#1a1a1c}
-.register-plate img {position:absolute;inset:0;background:#1a1a1c;width:100%;height:100%;min-height:0;object-fit:contain;animation:register-exposure 160ms ease-out both}
+.register-plate {position:relative;isolation:isolate;display:grid;place-items:center;width:100%;height:clamp(230px,53vh,600px);overflow:hidden}
+.register-plate img {position:absolute;inset:0;width:100%;height:100%;min-height:0;object-fit:contain;animation:register-exposure 160ms ease-out both}
 .register-plate .register-pending {visibility:hidden;pointer-events:none}
 .register-initial {font:400 clamp(64px,13vw,172px)/1 var(--catalogue-display);color:var(--ink)}
 .register-credit {display:flex;gap:20px;align-items:start;justify-content:space-between;margin-top:18px}

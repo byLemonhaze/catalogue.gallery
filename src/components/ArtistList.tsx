@@ -61,9 +61,9 @@ export function ArtistList() {
         : current && <div className={'register-layout register-' + layout}>
             {layout==='preview' && <aside className="register-preview" aria-label="Artwork preview">
                 <ProfileLink artist={shown} className="register-plate" aria-label={'Open profile for '+shown.name} aria-busy={Boolean(previous)}>
-                    <span className="register-initial" aria-hidden="true">{shown.name.charAt(0)}</span>
-                    {shownPicture && shownPicture!==failedImage && <img key={shown.id} src={shownPicture} alt={'Preview for '+shown.name} decoding="async"
-                        onLoad={()=>setReadyImage(shown.id)} onError={()=>setFailedImage(shownPicture)}/>}
+                    {shownPicture && shownPicture !== failedImage ? <img key={shown.id} src={shownPicture} alt={'Preview for '+shown.name} decoding="async"
+                        onLoad={()=>setReadyImage(shown.id)} onError={()=>setFailedImage(shownPicture)}/>
+                        : <span className="register-initial" aria-hidden="true">{shown.name.charAt(0)}</span>}
                     {previous && <img className="register-pending" key={current.id} src={picture} alt="" aria-hidden="true" decoding="async"
                         onLoad={()=>setReadyImage(current.id)} onError={()=>setFailedImage(picture || null)}/>}
                 </ProfileLink>
